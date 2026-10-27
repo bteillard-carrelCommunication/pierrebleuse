@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pierre Bleuse — maquette home</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,500;1,300&family=Inter:wght@300;400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="home">
+
+  <nav class="nav">
+    <span class="nav__brand">Pierre Bleuse</span>
+    <span class="nav__links">Biographie · Agenda · Discographie · Contact</span>
+  </nav>
+
+  <!-- 1. Hero — bleuse-1 (stries + bandeau) -->
+  <section class="hero" data-hero data-image="assets/bleuse-1.jpg" data-preset="bleuse-1">
+    <div class="hero__frame" data-hero-frame>
+      <img class="hero__img" data-hero-img src="assets/bleuse-1.jpg" alt="Pierre Bleuse, chef d'orchestre" fetchpriority="high">
+      <canvas class="hero__canvas" data-hero-canvas></canvas>
+      <div class="hero__text hero__text--lorem">
+        <p class="lorem" lang="la">Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Section intermédiaire — fond noir -->
+  <section class="lorem-section">
+    <p class="lorem" lang="la">Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi.</p>
+    <p class="lorem" lang="la">Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming id quod mazim placerat facer possim assum. Typi non habent claritatem insitam&nbsp;; est usus legentis in iis qui facit eorum claritatem.</p>
+    <p class="lorem" lang="la">Investigationes demonstraverunt lectores legere me lius quod ii legunt saepius. Claritas est etiam processus dynamicus, qui sequitur mutationem consuetudium lectorum.</p>
+  </section>
+
+  <!-- 3. Hero — bleuse-3 (grille de stries) -->
+  <section class="hero" data-hero data-image="assets/bleuse-3.jpg" data-preset="bleuse-3">
+    <div class="hero__frame" data-hero-frame>
+      <img class="hero__img" data-hero-img src="assets/bleuse-3.jpg" alt="Pierre Bleuse dirigeant l'orchestre en concert" decoding="async">
+      <canvas class="hero__canvas" data-hero-canvas></canvas>
+      <div class="hero__text hero__text--lorem hero__text--right hero__text--m-bottom">
+        <p class="lorem" lang="la">Mirum est notare quam littera gothica, quam nunc putamus parum claram, anteposuerit litterarum formas humanitatis per seacula quarta decima et quinta decima. Eodem modo typi, qui nunc nobis videntur parum clari, fiant sollemnes in futurum.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. Section fond noir -->
+  <section class="lorem-section lorem-section--duo">
+    <p class="lorem" lang="la">Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat.</p>
+    <p class="lorem" lang="la">At vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit.</p>
+  </section>
+
+  <!-- 5. Bas de page — bleuse-5 (deux voiles blancs autour du chef) -->
+  <footer class="hero" data-hero data-image="assets/bleuse-5.jpg" data-preset="bleuse-5">
+    <div class="hero__frame" data-hero-frame>
+      <img class="hero__img" data-hero-img src="assets/bleuse-5.jpg" alt="Pierre Bleuse accroupi sur la scène, près du clavecin" decoding="async">
+      <canvas class="hero__canvas" data-hero-canvas></canvas>
+      <div class="hero__text hero__text--lorem hero__text--right hero__text--m-bottom">
+        <p class="lorem" lang="la">Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Libs : versions figées, chargées depuis cdnjs / unpkg -->
+  <script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.4.0/pixi.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+  <script src="js/stripes-effect.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Pierre Bleuse — Hypothèse 2 · Tutti</title>
+  <meta name="description" content="Maquette « Tutti, cent voix, un geste » : un point de lumière par musicien, les photos apparaissent à travers eux.">
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/tutti.css">
+</head>
+<body>
+
+  <nav class="nav">
+    <a class="logo" href="#ouverture" aria-label="Pierre Bleuse">
+      <span class="logo__first">Pierre</span>
+      <span class="logo__last" aria-hidden="true">Bl<span class="rev">e</span>us<span class="rev">e</span></span>
+    </a>
+    <div class="nav__lang" aria-label="Langue"><span class="is-on">FR</span><span class="sep">|</span><span>EN</span></div>
+  </nav>
+
+  <main>
+
+    <!-- 1. Ouverture — bleuse-1 : les points se rassemblent sur le sujet, chaque point est une fenêtre -->
+    <section class="tutti tutti--photo" id="ouverture" data-tutti="ouverture"
+             data-image="../../assets/bleuse-1.jpg" data-mask="../../assets/bleuse-1-masque.png">
+      <div class="tutti__frame" data-frame>
+        <img class="tutti__img" data-img src="../../assets/bleuse-1.jpg" alt="Pierre Bleuse, mains ouvertes, en répétition" fetchpriority="high">
+        <canvas class="tutti__canvas" data-canvas aria-hidden="true"></canvas>
+        <div class="tutti__text tutti__text--right" data-text>
+          <p class="lorem" lang="la" data-lines data-reveal="ouverture">Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.</p>
+        </div>
+        <div class="hint" aria-hidden="true">Défiler</div>
+      </div>
+    </section>
+
+    <!-- 2. Respiration — noir : plan de salle de l'orchestre, puis les voix extérieures -->
+    <section class="tutti tutti--dark" id="respiration" data-tutti="respiration">
+      <canvas class="tutti__canvas" data-canvas aria-hidden="true"></canvas>
+      <div class="plan" data-plan>
+        <ul class="legend" aria-label="Pupitres">
+          <li><i style="--c:#efe6d3"></i>Cordes</li>
+          <li><i style="--c:#b59ac8"></i>Bois</li>
+          <li><i style="--c:#7fd3e3"></i>Cuivres</li>
+          <li><i style="--c:#6fa08a"></i>Percussions</li>
+        </ul>
+      </div>
+      <div class="voices">
+        <p class="lorem" lang="la" data-lines>Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi.</p>
+        <blockquote class="quote is-centered">
+          <p data-lines>« Citation presse — à venir. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt. »</p>
+          <footer data-lines>Voix extérieure · média, ville, 2027</footer>
+        </blockquote>
+        <p class="lorem" lang="la" data-lines>Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming id quod mazim placerat facer possim assum. Typi non habent claritatem insitam&nbsp;; est usus legentis in iis qui facit eorum claritatem.</p>
+      </div>
+    </section>
+
+    <!-- 3. Deuxième photo — bleuse-3 : les points se rangent en colonnes et révèlent la photo pivotée, teintée lavande -->
+    <section class="tutti tutti--photo" id="orchestre" data-tutti="orchestre"
+             data-image="../../assets/bleuse-3.jpg" data-mask="../../assets/bleuse-3-masque.png">
+      <div class="tutti__frame" data-frame>
+        <img class="tutti__img" data-img src="../../assets/bleuse-3.jpg" alt="Pierre Bleuse dirigeant l'orchestre en concert" decoding="async">
+        <canvas class="tutti__canvas" data-canvas aria-hidden="true"></canvas>
+        <div class="tutti__text tutti__text--right" data-text>
+          <p class="lorem" lang="la" data-lines data-reveal="orchestre">Mirum est notare quam littera gothica, quam nunc putamus parum claram, anteposuerit litterarum formas humanitatis per seacula quarta decima et quinta decima. Eodem modo typi, qui nunc nobis videntur parum clari, fiant sollemnes in futurum.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Agenda — constellation : cinq points plus grands, les cinq temps forts -->
+    <section class="tutti tutti--dark" id="agenda" data-tutti="agenda">
+      <canvas class="tutti__canvas" data-canvas aria-hidden="true"></canvas>
+      <header class="agenda__head">
+        <h2 data-lines class="is-centered">Agenda</h2>
+        <p class="mention is-centered" data-lines>Exemples de temps forts — saison 2026-2027</p>
+      </header>
+      <ol class="events" data-events>
+        <li class="ev" data-ev>
+          <i class="ev__dot" data-ev-dot aria-hidden="true"></i>
+          <div class="ev__body is-left">
+            <time class="ev__date" datetime="2026-11-06" data-lines>6 novembre 2026</time>
+            <h3 class="ev__title" data-lines>Sortie du disque <em>Ravel Abroad</em></h3>
+            <p class="ev__place" data-lines>Disque · parution</p>
+          </div>
+        </li>
+        <li class="ev" data-ev>
+          <i class="ev__dot" data-ev-dot aria-hidden="true"></i>
+          <div class="ev__body is-left">
+            <time class="ev__date" datetime="2027-01-13" data-lines>13 janvier 2027</time>
+            <h3 class="ev__title" data-lines>EIC 50 : œuvre collective de 50 compositeurs</h3>
+            <p class="ev__place" data-lines>Philharmonie de Paris</p>
+          </div>
+        </li>
+        <li class="ev" data-ev>
+          <i class="ev__dot" data-ev-dot aria-hidden="true"></i>
+          <div class="ev__body is-left">
+            <time class="ev__date" datetime="2027-03-13" data-lines>13 → 28 mars 2027</time>
+            <h3 class="ev__title" data-lines><em>Red Fox</em>, création mondiale de Du Yun, mise en scène Barrie Kosky</h3>
+            <p class="ev__place" data-lines>Dutch National Opera, Amsterdam</p>
+          </div>
+        </li>
+        <li class="ev" data-ev>
+          <i class="ev__dot" data-ev-dot aria-hidden="true"></i>
+          <div class="ev__body is-left">
+            <time class="ev__date" datetime="2027-04" data-lines>Avril 2027</time>
+            <h3 class="ev__title" data-lines>Tournée avec Hayato Sumino, cinq villes</h3>
+            <p class="ev__place" data-lines>Kammerorchester Basel</p>
+          </div>
+        </li>
+        <li class="ev" data-ev>
+          <i class="ev__dot" data-ev-dot aria-hidden="true"></i>
+          <div class="ev__body is-left">
+            <time class="ev__date" datetime="2027-05-16" data-lines>16 mai 2027</time>
+            <h3 class="ev__title" data-lines>Orchestra della RAI, festival Milano Musica</h3>
+            <p class="ev__place" data-lines>Teatro alla Scala, Milan</p>
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <!-- 5. Pied de page — bleuse-5 : les points se posent sur les taches de lumière, puis les deux voiles -->
+    <footer class="tutti tutti--photo" id="pied" data-tutti="pied" data-image="../../assets/bleuse-5.jpg">
+      <div class="tutti__frame" data-frame>
+        <img class="tutti__img" data-img src="../../assets/bleuse-5.jpg" alt="Pierre Bleuse accroupi sur la scène, près du clavecin" decoding="async">
+        <canvas class="tutti__canvas" data-canvas aria-hidden="true"></canvas>
+        <div class="tutti__text tutti__text--right" data-text>
+          <p class="lorem" lang="la" data-lines data-reveal="pied">Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.</p>
+        </div>
+      </div>
+      <div class="footer-bar">
+        <p class="footer-line lorem is-centered" lang="la" data-lines>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.</p>
+        <p class="footer-meta">Pierre Bleuse · chef d'orchestre · <span class="listen">Écouter — à venir</span></p>
+      </div>
+    </footer>
+
+  </main>
+
+  <!-- Bibliothèques : versions figées (brief) -->
+  <script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.4.0/pixi.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
+  <script src="js/tutti.js"></script>
+  <script src="js/tutti-sections.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

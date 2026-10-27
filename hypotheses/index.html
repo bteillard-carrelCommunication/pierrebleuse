@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pierre Bleuse — trois hypothèses</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,500;1,300&family=Inter:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg: #000; --fg: #f1ece4; --muted: #8a8278; --accent: #c5a572; --lav: #5A638D; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--fg); font-family: 'Inter', system-ui, sans-serif; font-weight: 300; -webkit-font-smoothing: antialiased; }
+    main { max-width: 1100px; margin: 0 auto; padding: 6rem 16px 8rem; }
+    .logo { font-family: 'Cormorant Garamond', serif; line-height: 0.9; }
+    .logo i { display: block; font-size: 1.1rem; font-weight: 300; letter-spacing: 0.05em; padding-left: 0.4rem; }
+    .logo b { display: block; font-size: 2.4rem; font-weight: 500; letter-spacing: 0.02em; }
+    h1 { font-family: 'Cormorant Garamond', serif; font-weight: 300; font-size: clamp(2rem, 4vw, 3.2rem); margin: 3rem 0 0.75rem; }
+    p.lead { color: var(--muted); max-width: 60ch; line-height: 1.6; font-size: 1.05rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 3rem; }
+    a.card { display: block; padding: 2rem 1.75rem 2.25rem; border: 1px solid rgba(241, 236, 228, 0.14); text-decoration: none; color: inherit; transition: border-color 0.4s ease, background 0.4s ease; }
+    a.card:hover { border-color: var(--accent); background: rgba(197, 165, 114, 0.05); }
+    .card small { display: block; font-size: 0.72rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--accent); margin-bottom: 1rem; }
+    .card h2 { font-family: 'Cormorant Garamond', serif; font-weight: 300; font-size: 2rem; line-height: 1.05; margin-bottom: 0.9rem; }
+    .card p { color: var(--muted); line-height: 1.55; font-size: 0.95rem; }
+    .card .q { margin-top: 1.25rem; color: var(--fg); font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 1.15rem; }
+    footer { margin-top: 4rem; color: var(--muted); font-size: 0.8rem; line-height: 1.6; }
+    footer a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="logo"><i>Pierre</i><b>Blɘusɘ</b></div>
+    <h1>Trois hypothèses de site-performance</h1>
+    <p class="lead">Même ossature en cinq temps (ouverture, respiration, deuxième photo, agenda, pied de page), même matière, trois manières de répondre à la question du DA&nbsp;: comment retranscrire visuellement le niveau d'excellence de Pierre Bleuse&nbsp;? Les trois appliquent la même grammaire de mouvement (progressivité, finesse, douceur).</p>
+    <div class="grid">
+      <a class="card" href="h1-rubato/">
+        <small>Hypothèse 1</small>
+        <h2>Rubato<br>le temps musical</h2>
+        <p>Les compositions du DA, intactes, mais phrasées comme une partition&nbsp;: anacrouse, entrées en pupitres, résolution longue, respiration.</p>
+        <p class="q">« Un chef, c'est quelqu'un qui décide quand. »</p>
+      </a>
+      <a class="card" href="h2-tutti/">
+        <small>Hypothèse 2</small>
+        <h2>Tutti<br>cent voix, un geste</h2>
+        <p>Un point de lumière par musicien. Le scroll est le geste du chef&nbsp;: il rassemble les voix, et les photos apparaissent à travers elles.</p>
+        <p class="q">« Un chef n'est rien seul. »</p>
+      </a>
+      <a class="card" href="h3-lever/">
+        <small>Hypothèse 3</small>
+        <h2>Lever<br>la lumière et le silence</h2>
+        <p>La retenue comme signe de stature&nbsp;: la lumière révèle, jamais la découpe. Un seul fil, la trace de la baguette, conduit l'œil.</p>
+        <p class="q">« Le silence avant la première note. »</p>
+      </a>
+    </div>
+    <footer>Maquettes de travail, contenus en lorem ipsum, temps forts de l'agenda donnés à titre d'exemples. Photos sources en 992 px, en attente des HD. Le brief commun et la grammaire de mouvement sont dans <a href="BRIEF-COMMUN.md">BRIEF-COMMUN.md</a>.</footer>
+  </main>
+</body>
+</html>

@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pierre Bleuse — sandbox stries</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;500&family=Inter:wght@300;400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <nav class="nav">
+    <span class="nav__brand">Pierre Bleuse</span>
+    <span class="nav__links">Biographie · Agenda · Discographie · Contact</span>
+  </nav>
+
+  <section class="hero" data-hero data-image="assets/bleuse-3.jpg" data-preset="bleuse-3">
+    <div class="hero__frame" data-hero-frame>
+      <img class="hero__img" data-hero-img src="assets/bleuse-3.jpg" alt="Pierre Bleuse dirigeant l'orchestre en concert" fetchpriority="high">
+      <canvas class="hero__canvas" data-hero-canvas></canvas>
+      <img class="hero__ref" src="assets/bleuse-4.jpg" alt="" data-hero-ref>
+      <div class="hero__text">
+        <h1>Pierre Bleuse</h1>
+        <p>Chef d'orchestre</p>
+      </div>
+      <div class="hero__scroll">scroll</div>
+    </div>
+  </section>
+
+  <section class="content">
+    <h2>À propos</h2>
+    <p>Sur ordinateur, la photo ralentit doucement le temps que l'effet se construise, sans jamais arrêter la page&nbsp;: les stries s'ouvrent en partant du chef vers les bords, remplies de la photo pivotée de 180° et teintée lavande. Les deux stries juste à droite du chef passent derrière son bras. En remontant, tout se défait jusqu'à la photo nue.</p>
+    <p>Touche <code>R</code>&nbsp;: superpose la maquette du DA pour comparer. <code>?photo=1</code> dans l'URL&nbsp;: revoir la version précédente (bleuse-1). Composition et réglages dans <code>js/stripes-effect.js</code>.</p>
+  </section>
+
+  <section class="content content--tall">
+    <h2>Section longue</h2>
+    <p>De quoi sentir le scroll inertiel de Lenis sur une distance confortable et vérifier que l'effet reste synchrone avec le défilement, dans les deux sens.</p>
+    <p style="height: 40vh;"></p>
+  </section>
+
+  <!-- Libs : versions figées, chargées depuis cdnjs / unpkg -->
+  <script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.4.0/pixi.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+  <script src="js/stripes-effect.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

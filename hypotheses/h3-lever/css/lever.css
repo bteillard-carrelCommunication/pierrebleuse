@@ -1,0 +1,269 @@
+/* Hypothèse 3 — Lever (la lumière et le silence) */
+
+:root {
+  --bg: #000;
+  --fg: #efe8dc;
+  --muted: #8d867a;
+  --cream: #f1e9d8;
+  --gold: #e3c48f;
+  --blue: #8fb6ff;
+  --lavande: #5a638d;
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --sans: 'Inter', system-ui, sans-serif;
+  --glow: rgba(227, 196, 143, 0.75);      /* couleur de la lumière locale (or) */
+  --gutter: 2.5rem;
+}
+@media (max-width: 720px) { :root { --gutter: 16px; } }
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--sans);
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+}
+body { position: relative; overflow-x: clip; }
+
+html.lenis { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-stopped { overflow: clip; }
+
+/* ------- nav : logo « Pierre Blɘusɘ » à gauche, FR | EN à droite ------- */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 10;
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding: 1.5rem var(--gutter);
+  pointer-events: none;
+}
+/* Fond du logo : un voile noir dégradé (noir sur noir, invisible sur la page ; le haut des photos
+   est déjà fondu au noir par la vignette du shader) pour que « Pierre Blɘusɘ » reste lisible
+   quand « Agenda », la citation ou le titre d'une lampe passent dessous, surtout sur téléphone. */
+.nav::before {
+  content: ''; position: absolute; inset: 0 0 -44px; z-index: -1;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.86) 0%, rgba(0, 0, 0, 0.55) 50%, rgba(0, 0, 0, 0) 100%);
+  pointer-events: none;
+}
+.nav a { pointer-events: auto; color: inherit; text-decoration: none; }
+.logo { display: grid; line-height: 1; color: var(--cream); text-shadow: 0 0 22px rgba(0, 0, 0, 0.55); }
+.logo__first {
+  font-family: var(--serif); font-style: italic; font-weight: 300;
+  font-size: 1.2rem; letter-spacing: 0.03em;
+  margin-left: 1.6rem;
+}
+.logo__last {
+  font-family: var(--sans); font-weight: 700;
+  font-size: 1.8rem; letter-spacing: -0.03em;
+  margin-top: -0.22rem;
+}
+.flip { display: inline-block; transform: scaleX(-1); }   /* e retourné (ɘ) dans la même police */
+.lang {
+  display: flex; gap: 0.7em; align-items: center;
+  padding-top: 0.5rem;
+  font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--muted);
+}
+.lang .is-on { color: var(--cream); }
+
+/* ------- scènes de lumière (photos) -------
+   La section est plus haute que l'écran de --extra (marge du ralenti, calculée
+   en JS sur ordinateur) ; le cadre, haut d'un écran, y glisse. */
+.scene {
+  position: relative;
+  width: 100%;
+  height: calc(100vh + var(--extra, 0px));
+  height: calc(100svh + var(--extra, 0px));
+  overflow: hidden;
+  background: #000;
+}
+.scene__frame, .scene__over {
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 100vh;
+  height: 100svh;
+}
+.scene__frame { overflow: hidden; }
+.scene__over  { z-index: 3; pointer-events: none; }
+.scene__over * { pointer-events: auto; }
+/* Photo seule, dans la pénombre : affichée tout de suite à la luminosité de l'ambiant du shader
+   (0,14 ≈ 0,12 × couleur d'ambiance), puis recouverte par le canvas : pas de « baisse des
+   lumières » au chargement. Gardée, plus claire, si WebGL échoue. */
+.scene__img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  display: block;
+  object-fit: cover;
+  filter: brightness(0.14);
+  pointer-events: none;
+  -webkit-touch-callout: none;
+}
+.scene.is-fallback .scene__img { filter: brightness(0.7); }
+.scene__canvas {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  display: block;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+  pointer-events: none;      /* décoratif : ne capte jamais le doigt */
+  touch-action: pan-y;
+}
+.scene.is-ready .scene__canvas { opacity: 1; }
+
+.scene__text { position: absolute; color: #fff; }
+.scene__text--open   { right: 6%; top: 52%; width: clamp(12rem, 15vw, 15.5rem); }
+.scene__text--photo2 { right: 5%; bottom: 13%; width: clamp(12rem, 15vw, 15.5rem); --glow: rgba(143, 182, 255, 0.7); }
+
+/* ------- textes ------- */
+.lorem {
+  font-family: var(--sans); font-weight: 400;
+  font-size: 0.95rem; line-height: 1.4;
+  text-align: justify;
+  color: #fff;
+}
+.line { display: block; }
+.lorem .line { text-align-last: justify; }
+.lorem .line:last-child { text-align-last: auto; }
+.js [data-lines]:not(.is-split) { visibility: hidden; }
+
+/* ------- la trace de la baguette ------- */
+.trace {
+  position: absolute; top: 0; left: 0;
+  width: 100%;
+  z-index: 2;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  overflow: visible;
+}
+.trace__path {
+  fill: none;
+  stroke: rgba(241, 233, 216, 0.55);
+  stroke-width: 1;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+.trace__breath {
+  animation: breathe 4s ease-in-out infinite;    /* ± 10 % sur 4 s */
+  transform-box: fill-box; transform-origin: center;
+}
+@keyframes breathe { 0%, 100% { transform: scale(0.95); } 50% { transform: scale(1.05); } }
+
+/* ------- respiration (section noire) ------- */
+.rest {
+  position: relative; z-index: 3;
+  padding: 26vh var(--gutter) 24vh;
+}
+.rest__grid {
+  display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 2rem;
+  max-width: 1440px; margin: 0 auto;
+}
+.quote { grid-column: 2 / span 7; }
+.quote__label, .quote__src, .agenda__sub, .lamp__date {
+  font-size: 0.68rem; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--muted);
+}
+.quote__label { margin-bottom: 1.6rem; }
+.quote__text {
+  font-family: var(--serif); font-weight: 300;
+  font-size: clamp(2.3rem, 3.7vw, 3.6rem);
+  line-height: 1.14; letter-spacing: -0.005em;
+  color: var(--cream);
+}
+.quote__src { margin-top: 1.6rem; }
+.rest .lorem { grid-column: 10 / span 3; max-width: 15.5rem; margin-top: 36vh; }
+
+/* ------- agenda : rampe de lumière ------- */
+.agenda {
+  position: relative; z-index: 3;
+  padding: 22vh var(--gutter) 24vh;
+  --glow: rgba(241, 233, 216, 0.7);
+}
+.agenda__inner { max-width: 1440px; margin: 0 auto; }
+.agenda__head { margin-bottom: 20vh; padding-left: calc(100% / 12); }
+.agenda__title {
+  font-family: var(--serif); font-weight: 300;
+  font-size: clamp(2.4rem, 4vw, 3.6rem); line-height: 1;
+  color: var(--cream);
+}
+.agenda__sub { margin-top: 1rem; }
+.ramp { list-style: none; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); column-gap: 2rem; }
+.lamp { position: relative; padding-top: 3.4rem; --lit: 0; }
+.lamp__light {
+  position: absolute; left: 1px; top: 0;
+  width: 9px; height: 9px; border-radius: 50%;
+  background: #fff6e6;
+  opacity: var(--lit);
+  box-shadow: 0 0 10px 2px rgba(255, 240, 214, 0.9), 0 0 42px 12px rgba(255, 236, 200, 0.42);
+}
+.lamp__light::before {
+  content: ''; position: absolute; left: 50%; top: 50%;
+  width: 240px; height: 240px;
+  transform: translate(-50%, -50%) scale(calc(0.6 + 0.4 * var(--lit)));
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 240, 214, 0.32), rgba(255, 240, 214, 0));
+  opacity: var(--lit);
+}
+.lamp__date { display: block; color: var(--cream); margin-bottom: 0.9rem; }
+.lamp__title {
+  font-family: var(--serif); font-weight: 300;
+  font-size: clamp(1.5rem, 1.9vw, 1.9rem); line-height: 1.1;
+  color: var(--cream);
+  margin-bottom: 0.7rem;
+}
+.lamp__place { font-size: 0.82rem; line-height: 1.45; color: var(--muted); }
+
+/* ------- pied de page ------- */
+.foot {
+  position: relative; z-index: 3;
+  height: 72px;
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  padding: 0 var(--gutter);
+  font-size: 0.72rem; letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+/* ------- indice de défilement ------- */
+.hint {
+  position: absolute; left: 50%; bottom: 2.2rem;
+  width: 1px; height: 44px;
+  background: linear-gradient(to bottom, rgba(241, 233, 216, 0), rgba(241, 233, 216, 0.7));
+  transform: translateX(-50%);
+}
+.hint i {
+  position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+  background: inherit;
+  animation: hint 6s ease-in-out infinite;
+}
+@keyframes hint { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
+
+/* ------- téléphone (portrait) ------- */
+@media (max-width: 720px) {
+  .nav { padding: 1.2rem 16px; }
+  .logo__first { font-size: 1.05rem; margin-left: 1.4rem; }
+  .logo__last { font-size: 1.55rem; }
+  /* sujet au centre : le texte passe en bas, sur un dégradé sombre */
+  /* La trace descend le long du bord gauche : les textes lui laissent une réglure de 2,4 rem
+     (gouttière 16 px conservée pour la trace, les lampes et le pied de page). */
+  .scene__text--open, .scene__text--photo2 {
+    left: 0; right: 0; top: auto; bottom: 0;
+    width: auto;
+    padding: 6rem 16px 3.2rem calc(16px + 2.4rem);
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
+  }
+  .scene__text--open .lorem, .scene__text--photo2 .lorem { max-width: 20rem; }
+  .hint { display: none; }
+  .rest { padding: 18vh 16px 16vh calc(16px + 2.4rem); }
+  .rest__grid { display: block; }
+  .quote__text { font-size: clamp(1.9rem, 8vw, 2.5rem); }
+  .rest .lorem { margin: 10vh 0 0 auto; max-width: 17rem; }
+  .agenda { padding: 14vh 16px 16vh; }
+  .agenda__head { margin-bottom: 10vh; padding-left: 2.4rem; }
+  .ramp { display: block; }
+  .lamp { padding: 0 0 0 2.4rem; margin-bottom: 4.4rem; }
+  .lamp__light { left: 0; top: 0.25rem; }
+  .lamp__light::before { width: 180px; height: 180px; }
+  .foot { height: auto; padding: 1.4rem 16px 1.6rem; flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trace__breath, .hint i { animation: none; }
+  .scene__canvas { transition: none; }
+}

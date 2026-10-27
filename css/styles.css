@@ -1,0 +1,223 @@
+:root {
+  --bg: #000;
+  --fg: #f1ece4;
+  --muted: #8a8278;
+  --accent: #c5a572;
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --sans: 'Inter', system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--sans);
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+}
+
+html.lenis { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped { overflow: clip; }
+
+/* ------- nav ------- */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 10;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 1.5rem 2.5rem;
+  font-size: 0.85rem; letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--fg);
+  mix-blend-mode: difference;
+}
+.nav__brand { font-family: var(--serif); font-size: 1.1rem; letter-spacing: 0.2em; }
+.nav__links { color: var(--muted); }
+
+/* ------- hero ------- */
+/* La section est plus haute que l'écran de --hero-extra (marge du ralenti,
+   calculée en JS sur ordinateur) ; le cadre, haut d'un écran, y glisse.
+   svh : hauteur d'écran stable sur mobile (barre d'adresse comprise). */
+.hero {
+  position: relative;
+  width: 100%;
+  height: calc(100vh + var(--hero-extra, 0px));
+  height: calc(100svh + var(--hero-extra, 0px));
+  overflow: hidden;
+  background: #000;
+}
+.hero__frame {
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+}
+/* Photo seule : affichée tout de suite, puis recouverte par le canvas WebGL
+   (et conservée si WebGL est indisponible). */
+.hero__img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  display: block;
+  object-fit: cover;
+  pointer-events: none;          /* ni glisser-déposer à la souris, ni menu « Enregistrer » au doigt */
+  -webkit-touch-callout: none;
+}
+.hero__canvas {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  display: block;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  /* Décoratif : ne doit jamais capter le toucher. Pixi pose touch-action:none
+     sur son canvas, ce qui empêchait de faire défiler la page au doigt. */
+  pointer-events: none;
+  touch-action: pan-y;
+}
+.hero.is-ready .hero__canvas { opacity: 1; }
+
+/* maquette du DA superposée (touche R) */
+.hero__ref {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  z-index: 1;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.show-ref .hero__ref { opacity: 1; }
+.hero__text {
+  position: absolute; left: 4rem; bottom: 4rem;
+  z-index: 2;
+  color: var(--fg);
+  max-width: 50vw;
+  text-shadow: 0 2px 24px rgba(0,0,0,0.6);
+}
+.hero__text--right { left: auto; right: 4rem; text-align: right; }
+.hero__text h1 {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(3rem, 7vw, 6rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.hero__text h2 {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(2.2rem, 5vw, 4rem);
+  line-height: 1;
+}
+.hero__text p {
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ------- lorem ipsum (maquette bleuse-6) -------
+   Petit paragraphe justifié, linéale blanche, environ 15 px. */
+.lorem {
+  font-family: var(--sans);
+  font-weight: 400;
+  font-size: 0.95rem;
+  line-height: 1.37;
+  text-align: justify;
+  color: #fff;
+}
+/* Sur une photo : bloc étroit en haut, comme sur la maquette */
+.hero__text--lorem {
+  top: 14%; bottom: auto;
+  left: 3rem;
+  width: clamp(12rem, 15vw, 15rem);
+  max-width: none;
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.5);
+}
+.hero__text--lorem.hero__text--right { left: auto; right: 4%; text-align: left; }
+.hero__text .lorem {
+  margin: 0;
+  font-size: 0.95rem;
+  letter-spacing: 0;
+  text-transform: none;
+  color: #fff;
+}
+.hero__scroll {
+  position: absolute; left: 50%; bottom: 2rem;
+  transform: translateX(-50%);
+  z-index: 2;
+  font-size: 0.7rem; letter-spacing: 0.3em; text-transform: uppercase;
+  color: var(--muted);
+  animation: pulse 2.5s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__scroll { animation: none; opacity: 0.7; }
+  .hero__canvas, .hero__ref { transition: none; }
+}
+
+/* ------- content ------- */
+.content {
+  padding: 10rem 2.5rem;
+  max-width: 820px;
+  margin: 0 auto;
+}
+.content--tall { padding-bottom: 20rem; }
+.content h2 {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 2.5rem;
+  margin-bottom: 1.5rem;
+}
+.content p {
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: var(--muted);
+  margin-bottom: 1.25rem;
+}
+.content code {
+  font-family: 'SF Mono', Menlo, monospace;
+  font-size: 0.85em;
+  color: var(--accent);
+  background: rgba(197, 165, 114, 0.08);
+  padding: 0.1em 0.4em;
+  border-radius: 3px;
+}
+
+/* ======= accueil (index.html) ======= */
+
+/* Sections de texte sur fond noir : petits blocs décalés */
+.lorem-section {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: 2rem;
+  align-items: start;
+  padding: 12rem 3rem 14rem;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+.lorem-section .lorem { max-width: 15rem; }
+.lorem-section .lorem:nth-child(1) { grid-column: 2 / span 3; }
+.lorem-section .lorem:nth-child(2) { grid-column: 6 / span 3; margin-top: 9rem; }
+.lorem-section .lorem:nth-child(3) { grid-column: 10 / span 3; margin-top: 3rem; }
+.lorem-section--duo .lorem:nth-child(1) { grid-column: 3 / span 3; }
+.lorem-section--duo .lorem:nth-child(2) { grid-column: 8 / span 3; margin-top: 7rem; }
+
+@media (max-width: 720px) {
+  .nav { padding: 1.2rem 16px; }
+  .nav__links { display: none; }
+  .hero__text { left: 16px; bottom: 3rem; max-width: calc(100% - 32px); }
+  .hero__text--lorem { top: 6rem; bottom: auto; width: min(62vw, 15rem); }
+  .hero__text--lorem.hero__text--right { left: auto; right: 16px; }
+  /* Sujet au centre de l'écran : le texte passe en bas, sur un dégradé sombre */
+  .hero__text--m-bottom,
+  .hero__text--m-bottom.hero__text--right {
+    top: auto; bottom: 0; left: 0; right: 0;
+    width: auto; max-width: none;
+    padding: 5rem 16px 2.5rem;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0));
+  }
+  .lorem-section { display: block; padding: 7rem 16px 8rem; }
+  .lorem-section .lorem { max-width: 16rem; margin: 0 0 4rem; }
+  .lorem-section .lorem:nth-child(even) { margin-left: auto; }
+}

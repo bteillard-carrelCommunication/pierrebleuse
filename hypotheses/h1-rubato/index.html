@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Pierre Bleuse — Hypothèse 1 · Rubato</title>
+  <meta name="description" content="Maquette « Rubato, le temps musical » : le site de Pierre Bleuse, chef d'orchestre, phrasé comme une partition.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <!-- favicon : le motif (une ligne verticale crème sur noir), en SVG inline -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23000'/%3E%3Crect x='14.5' y='5' width='3' height='22' fill='%23EFE6D3'/%3E%3C/svg%3E">
+  <script>
+    document.documentElement.classList.add('js');
+    // Filet de sécurité : si le rideau n'est pas levé après 4 s (script ou CDN en
+    // panne), tout devient visible, sans chorégraphie (voir css : html.js-timeout)
+    setTimeout(function () {
+      if (!document.body || !document.body.classList.contains('is-loaded')) document.documentElement.classList.add('js-timeout');
+    }, 4000);
+  </script>
+</head>
+<body>
+
+  <!-- Nav : logo « Pierre Blɘusɘ » (e retournés, U+0258, dessinés par retournement) + FR | EN -->
+  <header class="nav">
+    <a class="logo" href="#" aria-label="Pierre Bleuse — accueil" data-logo="Pierre Blɘusɘ">
+      <span class="logo__first">Pierre</span>
+      <span class="logo__last" aria-hidden="true">Bl<span class="e">e</span>us<span class="e">e</span></span>
+    </a>
+    <nav class="nav__lang" aria-label="Langue"><b>FR</b><span>|</span>EN</nav>
+  </header>
+
+  <main>
+
+    <!-- 1. Ouverture — bleuse-1 : stries puis bandeau, phrasés -->
+    <section class="hero" data-hero data-image="../../assets/bleuse-1.jpg" data-preset="bleuse-1" aria-label="Ouverture">
+      <div class="hero__frame" data-hero-frame>
+        <img class="hero__img" data-hero-img src="../../assets/bleuse-1.jpg" alt="Pierre Bleuse, mains ouvertes, en répétition" fetchpriority="high">
+        <canvas class="hero__canvas" data-hero-canvas aria-hidden="true"></canvas>
+        <div class="hero__text hero__text--tr" data-reveal="load">
+          <p class="lorem" lang="la" data-lines>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation.</p>
+        </div>
+        <div class="hero__hint" aria-hidden="true">
+          <div class="hero__hint-body">
+            <span class="hero__hint-line"></span>
+            <span>défiler</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Respiration — section noire : deux petits blocs + la voix extérieure -->
+    <section class="rest" aria-label="Respiration">
+      <div class="rest__a" data-reveal>
+        <p class="lorem" lang="la" data-lines>Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi.</p>
+      </div>
+      <div class="rest__b" data-reveal>
+        <p class="lorem" lang="la" data-lines>Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming id quod mazim placerat facer possim assum. Typi non habent claritatem insitam, est usus legentis in iis qui facit eorum claritatem.</p>
+      </div>
+      <blockquote class="quote" data-reveal>
+        <span class="quote__rule" aria-hidden="true"></span>
+        <p class="quote__kicker" data-lines>Citation presse — à venir</p>
+        <p class="quote__text" lang="la" data-lines>« Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. »</p>
+        <footer class="quote__src" data-lines>Nom du média · date — emplacement</footer>
+      </blockquote>
+    </section>
+
+    <!-- 3. Deuxième photo — bleuse-3 : grille de stries lavande, en pupitres -->
+    <section class="hero" data-hero data-image="../../assets/bleuse-3.jpg" data-preset="bleuse-3" aria-label="En concert">
+      <div class="hero__frame" data-hero-frame>
+        <img class="hero__img" data-hero-img src="../../assets/bleuse-3.jpg" alt="Pierre Bleuse dirigeant l'orchestre en concert" decoding="async">
+        <canvas class="hero__canvas" data-hero-canvas aria-hidden="true"></canvas>
+        <div class="hero__text hero__text--r" data-reveal="hero">
+          <p class="lorem" lang="la" data-lines>Mirum est notare quam littera gothica, quam nunc putamus parum claram, anteposuerit litterarum formas humanitatis per seacula quarta decima et quinta decima. Eodem modo typi, qui nunc nobis videntur parum clari, fiant sollemnes in futurum.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Agenda = partition : la portée se trace, les temps forts entrent en pupitres -->
+    <section class="agenda" aria-labelledby="agenda-title">
+      <div class="agenda__head" data-reveal>
+        <div>
+          <p class="agenda__kicker" data-lines>Agenda · exemples de temps forts</p>
+          <h2 class="agenda__title" id="agenda-title" data-lines>Saison 2026 – 2027</h2>
+        </div>
+        <p class="agenda__note" data-lines>Dates publiques, à titre d'exemples</p>
+      </div>
+      <div class="staff" data-staff>
+        <svg class="staff__svg" aria-hidden="true" focusable="false">
+          <line class="staff__line staff__line--h" x1="0" y1="50%" x2="100%" y2="50%" pathLength="1"/>
+          <line class="staff__line staff__line--v" x1="0.5" y1="0" x2="0.5" y2="100%" pathLength="1"/>
+        </svg>
+        <article class="note note--down" style="--at: 11%" data-delay="0.30" data-reveal="note">
+          <span class="note__halo" aria-hidden="true"></span><span class="note__dot" aria-hidden="true"></span><span class="note__stem" aria-hidden="true"></span>
+          <p class="note__date" data-lines>6 novembre 2026</p>
+          <h3 class="note__title" data-lines>Sortie du disque <em>Ravel&nbsp;Abroad</em></h3>
+        </article>
+        <article class="note note--up" style="--at: 30.5%" data-delay="0.38" data-reveal="note">
+          <span class="note__halo" aria-hidden="true"></span><span class="note__dot" aria-hidden="true"></span><span class="note__stem" aria-hidden="true"></span>
+          <p class="note__date" data-lines>13 janvier 2027</p>
+          <h3 class="note__title" data-lines>EIC 50 : œuvre collective de 50 compositeurs</h3>
+          <p class="note__place" data-lines>Philharmonie de Paris</p>
+        </article>
+        <article class="note note--down" style="--at: 50%" data-delay="0.56" data-reveal="note">
+          <span class="note__halo" aria-hidden="true"></span><span class="note__dot" aria-hidden="true"></span><span class="note__stem" aria-hidden="true"></span>
+          <p class="note__date" data-lines>13 → 28 mars 2027</p>
+          <h3 class="note__title" data-lines><em>Red Fox</em>, création mondiale de Du Yun</h3>
+          <p class="note__place" data-lines>Dutch National Opera, Amsterdam · mise en scène Barrie Kosky</p>
+        </article>
+        <article class="note note--up" style="--at: 69.5%" data-delay="0.68" data-reveal="note">
+          <span class="note__halo" aria-hidden="true"></span><span class="note__dot" aria-hidden="true"></span><span class="note__stem" aria-hidden="true"></span>
+          <p class="note__date" data-lines>Avril 2027</p>
+          <h3 class="note__title" data-lines>Tournée avec Hayato&nbsp;Sumino</h3>
+          <p class="note__place" data-lines>Kammerorchester Basel · cinq villes</p>
+        </article>
+        <article class="note note--down" style="--at: 89%" data-delay="0.74" data-reveal="note">
+          <span class="note__halo" aria-hidden="true"></span><span class="note__dot" aria-hidden="true"></span><span class="note__stem" aria-hidden="true"></span>
+          <p class="note__date" data-lines>16 mai 2027</p>
+          <h3 class="note__title" data-lines>Teatro alla Scala, Milan</h3>
+          <p class="note__place" data-lines>Orchestra della RAI · festival Milano&nbsp;Musica</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- 5. Pied de page — bleuse-5 : deux voiles crème, puis une ligne -->
+    <footer aria-label="Pied de page">
+      <section class="hero" data-hero data-image="../../assets/bleuse-5.jpg" data-preset="bleuse-5" aria-label="Sur scène">
+        <div class="hero__frame" data-hero-frame>
+          <img class="hero__img" data-hero-img src="../../assets/bleuse-5.jpg" alt="Pierre Bleuse accroupi sur la scène, près du clavecin" decoding="async">
+          <canvas class="hero__canvas" data-hero-canvas aria-hidden="true"></canvas>
+          <div class="hero__text hero__text--r5" data-reveal="hero">
+            <p class="lorem" lang="la" data-lines>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam.</p>
+          </div>
+        </div>
+      </section>
+      <div class="colophon">
+        <p lang="la">Lorem ipsum dolor sit amet, consectetuer adipiscing elit · sed diam nonummy nibh euismod tincidunt ut laoreet dolore.</p>
+        <p>Pierre Bleuse · 2026 — maquette, hypothèse 1</p>
+      </div>
+    </footer>
+
+  </main>
+
+  <!-- Libs : versions figées, chargées depuis unpkg / cdnjs -->
+  <script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.4.0/pixi.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
+  <script src="js/stripes-effect.js"></script>
+  <script src="js/choreo.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

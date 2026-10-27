@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Pierre Bleuse — Hypothèse 3 · Lever</title>
+  <meta name="description" content="Maquette « Lever » : la lumière et le silence. Page presque noire, photos révélées par la lumière, une seule trace qui conduit l'œil.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,500;1,300&family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="css/lever.css">
+  <script>
+    // Les textes découpés en lignes restent cachés jusqu'au JS ; si le JS ne démarre pas, ils réapparaissent.
+    document.documentElement.classList.add('js');
+    setTimeout(function () { if (!window.__leverBooted) document.documentElement.classList.remove('js'); }, 4000);
+  </script>
+</head>
+<body>
+
+  <header class="nav">
+    <a class="logo" href="#" aria-label="Pierre Bleuse — accueil">
+      <span class="logo__first">Pierre</span>
+      <span class="logo__last" aria-hidden="true">Bl<span class="flip">e</span>us<span class="flip">e</span></span>
+    </a>
+    <nav class="lang" aria-label="Langue">
+      <a href="#" class="is-on" aria-current="page">FR</a><span aria-hidden="true">|</span><a href="#" hreflang="en">EN</a>
+    </nav>
+  </header>
+
+  <!-- La trace de la baguette : un seul chemin sur toute la page, tracé par le scroll -->
+  <svg class="trace" aria-hidden="true" focusable="false">
+    <defs>
+      <radialGradient id="halo">
+        <stop offset="0" stop-color="#fff6e4" stop-opacity="0.95"/>
+        <stop offset="0.35" stop-color="#f5e3bf" stop-opacity="0.45"/>
+        <stop offset="1" stop-color="#f5e3bf" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <path class="trace__path" d=""/>
+    <g class="trace__head">
+      <g class="trace__breath">
+        <circle r="12" fill="url(#halo)"/>
+        <circle r="1.4" fill="#fff8ea"/>
+      </g>
+    </g>
+  </svg>
+
+  <!-- 1. Ouverture — bleuse-1 : le spot naît sous le logo, descend vers le visage ; faisceaux ; barre de lumière -->
+  <section class="scene" data-scene data-section="open" data-image="../../assets/bleuse-1.jpg" data-preset="bleuse-1">
+    <div class="scene__frame" data-frame>
+      <img class="scene__img" data-img src="../../assets/bleuse-1.jpg" alt="Pierre Bleuse, chef d'orchestre, mains ouvertes" fetchpriority="high">
+      <canvas class="scene__canvas" data-canvas></canvas>
+    </div>
+    <div class="scene__over" data-follow>
+      <div class="scene__text scene__text--open">
+        <p class="lorem" data-lines data-phase="0.44,0.665" lang="la">Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation.</p>
+      </div>
+      <div class="hint" data-hint aria-hidden="true"><i></i></div>
+    </div>
+  </section>
+
+  <!-- 2. Respiration — noir : une voix extérieure, puis un petit bloc -->
+  <section class="rest" data-section="rest">
+    <div class="rest__grid">
+      <blockquote class="quote">
+        <p class="quote__label" data-lines>Citation presse — à venir</p>
+        <p class="quote__text glow" data-lines lang="la">Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod.</p>
+        <footer class="quote__src" data-lines>Nom du média — à venir</footer>
+      </blockquote>
+      <p class="lorem" data-lines lang="la">Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi.</p>
+    </div>
+  </section>
+
+  <!-- 3. Deuxième photo — bleuse-3 : lumière froide, colonnes de lumière bleue qui montent -->
+  <section class="scene" data-scene data-section="photo2" data-image="../../assets/bleuse-3.jpg" data-preset="bleuse-3">
+    <div class="scene__frame" data-frame>
+      <img class="scene__img" data-img src="../../assets/bleuse-3.jpg" alt="Pierre Bleuse dirigeant l'orchestre en concert" decoding="async">
+      <canvas class="scene__canvas" data-canvas></canvas>
+    </div>
+    <div class="scene__over" data-follow>
+      <div class="scene__text scene__text--photo2">
+        <p class="lorem" data-lines data-phase="0.04,0.26" lang="la">Mirum est notare quam littera gothica, quam nunc putamus parum claram, anteposuerit litterarum formas humanitatis per seacula quarta decima et quinta decima.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. Agenda — rampe de lumière : cinq lampes allumées une à une par la trace -->
+  <section class="agenda" data-section="agenda">
+    <div class="agenda__inner">
+      <header class="agenda__head">
+        <h2 class="agenda__title glow" data-lines>Agenda</h2>
+        <p class="agenda__sub" data-lines>Temps forts 2026 – 2027 · exemples</p>
+      </header>
+      <ol class="ramp">
+        <li class="lamp" data-lamp>
+          <span class="lamp__light" aria-hidden="true"></span>
+          <time class="lamp__date line" datetime="2026-11-06">6 novembre 2026</time>
+          <h3 class="lamp__title line">Ravel Abroad</h3>
+          <p class="lamp__place line">Sortie du disque</p>
+        </li>
+        <li class="lamp" data-lamp>
+          <span class="lamp__light" aria-hidden="true"></span>
+          <time class="lamp__date line" datetime="2027-01-13">13 janvier 2027</time>
+          <h3 class="lamp__title line">EIC 50</h3>
+          <p class="lamp__place line">Philharmonie de Paris · œuvre collective de 50 compositeurs</p>
+        </li>
+        <li class="lamp" data-lamp>
+          <span class="lamp__light" aria-hidden="true"></span>
+          <time class="lamp__date line" datetime="2027-03-13">13 → 28 mars 2027</time>
+          <h3 class="lamp__title line">Red Fox</h3>
+          <p class="lamp__place line">Dutch National Opera, Amsterdam · création mondiale de Du Yun, mise en scène Barrie Kosky</p>
+        </li>
+        <li class="lamp" data-lamp>
+          <span class="lamp__light" aria-hidden="true"></span>
+          <time class="lamp__date line" datetime="2027-04">Avril 2027</time>
+          <h3 class="lamp__title line">Tournée avec Hayato Sumino</h3>
+          <p class="lamp__place line">Kammerorchester Basel · cinq villes</p>
+        </li>
+        <li class="lamp" data-lamp>
+          <span class="lamp__light" aria-hidden="true"></span>
+          <time class="lamp__date line" datetime="2027-05-16">16 mai 2027</time>
+          <h3 class="lamp__title line">Teatro alla Scala</h3>
+          <p class="lamp__place line">Milan · Orchestra della RAI, festival Milano Musica</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- 5. Pied de page — bleuse-5 : deux voiles de lumière crème, le chef s'éclaire en dernier -->
+  <footer class="scene" data-scene data-section="foot" data-image="../../assets/bleuse-5.jpg" data-preset="bleuse-5">
+    <div class="scene__frame" data-frame>
+      <img class="scene__img" data-img src="../../assets/bleuse-5.jpg" alt="Pierre Bleuse accroupi sur la scène, près du clavecin" decoding="async">
+      <canvas class="scene__canvas" data-canvas></canvas>
+    </div>
+  </footer>
+  <div class="foot" data-section="footline">
+    <span lang="la">Lorem ipsum dolor sit amet · consectetuer adipiscing elit</span>
+    <span>Maquette — hypothèse 3 « Lever » · textes et dates : exemples</span>
+  </div>
+
+  <!-- Libs : versions figées, chargées depuis cdnjs / unpkg -->
+  <script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.4.0/pixi.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="js/light-scene.js"></script>
+  <script src="js/lever.js"></script>
+</body>
+</html>

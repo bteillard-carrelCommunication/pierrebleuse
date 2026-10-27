@@ -1,0 +1,293 @@
+/* Hypothèse 2 — Tutti (cent voix, un geste)
+   Base typographique : Cormorant Garamond (serif) + Inter (linéale).
+   Fond noir profond, blanc cassé, lavande du DA et les quatre teintes des pupitres. */
+
+:root {
+  --bg: #050507;
+  --fg: #f1ece4;
+  --muted: #8f8a82;
+  --lavande: #5a638d;
+  --cordes: #efe6d3;
+  --bois: #b59ac8;
+  --cuivres: #7fd3e3;
+  --percussions: #6fa08a;
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --gutter: 3rem;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: auto; }
+html, body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--sans);
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+html.lenis { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-stopped { overflow: clip; }
+
+img { display: block; }
+a { color: inherit; text-decoration: none; }
+
+/* ------- nav : logo à gauche, langues à droite, discrets ------- */
+.nav {
+  position: fixed; inset: 0 0 auto 0; z-index: 20;
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding: 1.6rem var(--gutter);
+  pointer-events: none;
+}
+.nav > * { pointer-events: auto; }
+.logo {
+  display: grid; line-height: 1;
+  color: #fff;
+  text-shadow: 0 1px 18px rgba(0, 0, 0, .45);
+}
+.logo__first {
+  font-family: var(--serif); font-style: italic; font-weight: 400;
+  font-size: 1.35rem; letter-spacing: .01em;
+  margin-left: 1.9rem;           /* « Pierre » décalé, comme sur l'identité V4 */
+  margin-bottom: -.2rem;
+}
+.logo__last {
+  font-family: var(--sans); font-weight: 700;
+  font-size: 2.05rem; letter-spacing: -.02em;
+}
+.logo__last .rev { display: inline-block; transform: scaleX(-1); }   /* ɘ : le e retourné */
+.nav__lang {
+  font-size: .72rem; letter-spacing: .18em; text-transform: uppercase;
+  color: rgba(241, 236, 228, .55);
+  padding-top: .55rem;
+}
+.nav__lang .is-on { color: #fff; }
+.nav__lang .sep { margin: 0 .55em; opacity: .5; }
+
+/* ------- sections ------- */
+.tutti { position: relative; width: 100%; background: var(--bg); }
+
+/* Photo : la section est plus haute que l'écran de --extra (ralenti, ordinateur) ;
+   le cadre, haut d'un écran, y glisse. 100svh = hauteur stable sur mobile. */
+.tutti--photo {
+  height: calc(100vh + var(--extra, 0px));
+  height: calc(100svh + var(--extra, 0px));
+  overflow: hidden;
+}
+.tutti__frame {
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 100vh; height: 100svh;
+  overflow: hidden;
+  background: #000;
+}
+.tutti__img {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  -webkit-touch-callout: none;
+  opacity: 0;                      /* repli : visible seulement si WebGL échoue */
+}
+.tutti.is-fallback .tutti__img { opacity: 1; }
+.tutti.is-fallback .tutti__canvas { display: none; }
+
+/* Tout canvas est décoratif : il ne capte jamais le doigt ni la souris. */
+.tutti__canvas {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  display: block;
+  pointer-events: none;
+  touch-action: pan-y;
+}
+.tutti--dark > .tutti__canvas { z-index: 0; }
+.tutti--dark > :not(.tutti__canvas) { position: relative; z-index: 1; }
+
+/* ------- texte sur photo (petit bloc justifié, maquette bleuse-6) ------- */
+.lorem {
+  font-family: var(--sans); font-weight: 400;
+  font-size: .94rem; line-height: 1.42;
+  text-align: justify; hyphens: auto;
+  color: #fff;
+}
+.tutti__text {
+  position: absolute; z-index: 3;
+  width: clamp(13rem, 16vw, 16rem);
+  text-shadow: 0 1px 14px rgba(0, 0, 0, .55);
+}
+.tutti__text--right { right: 5%; top: 58%; }
+.tutti__text--left  { left: var(--gutter); top: 56%; }
+#ouverture .tutti__text--right { top: 60%; }    /* reste dans le cadre ralenti jusqu'à la fin de sa cascade */
+#orchestre .tutti__text--right { top: 55%; }
+/* pied : posé sur la zone sombre du haut (machinerie), comme sur bleuse-6, avec un voile local discret */
+#pied .tutti__text--right { top: 13%; right: 6%; }
+#pied .tutti__text::before {
+  content: ''; position: absolute; inset: -1.6rem -2.2rem; z-index: -1;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, .46), rgba(0, 0, 0, .2) 55%, transparent 72%);
+  pointer-events: none;
+}
+
+/* Lignes révélées une à une (règle 12) : l'état est posé en style inline par JS */
+.ln { display: block; text-align: justify; text-align-last: justify; }
+.ln:last-child { text-align-last: left; }
+.is-centered .ln, .is-centered .ln:last-child { text-align: center; text-align-last: center; }
+.is-left .ln, .is-left .ln:last-child { text-align: left; text-align-last: left; }
+[data-lines] { opacity: 1; }
+.is-fallback [data-lines] .ln, .no-webgl [data-lines] .ln { opacity: 1 !important; filter: none !important; transform: none !important; }
+
+.hint {
+  position: absolute; left: 50%; bottom: 1.6rem; transform: translateX(-50%);
+  z-index: 3;
+  font-size: .7rem; letter-spacing: .34em; text-transform: uppercase;
+  color: rgba(241, 236, 228, .45);
+}
+
+/* petites capitales : jamais sous 11 px (ordinateur .72rem = 11,5 px, téléphone .7rem = 11,2 px) */
+
+/* ------- 2. respiration : plan de salle + voix extérieures ------- */
+#respiration { min-height: 100vh; min-height: 100svh; }
+.plan { position: relative; height: 100vh; height: 100svh; }
+.legend {
+  position: absolute; left: 50%; bottom: 9%; transform: translateX(-50%);
+  display: flex; gap: 2.2rem; list-style: none;
+  font-size: .72rem; letter-spacing: .22em; text-transform: uppercase;
+  color: rgba(241, 236, 228, .62);
+  white-space: nowrap;
+}
+.legend li { display: flex; align-items: center; gap: .6rem; }
+.legend i {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--c);
+  box-shadow: 0 0 10px 1px color-mix(in srgb, var(--c) 70%, transparent);
+}
+.voices {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: 2rem; align-items: start;
+  max-width: 1440px; margin: 0 auto;
+  padding: 6rem var(--gutter) 16rem;
+}
+.voices > .lorem { max-width: 15rem; }
+.voices > :nth-child(1) { grid-column: 2 / span 3; margin-top: 2rem; }
+.voices > :nth-child(2) { grid-column: 5 / span 5; justify-self: center; margin-top: 9rem; }
+.voices > :nth-child(3) { grid-column: 10 / span 3; margin-top: 1rem; }
+.quote { max-width: 30rem; text-align: center; }
+.quote p {
+  font-family: var(--serif); font-style: italic; font-weight: 300;
+  font-size: clamp(1.6rem, 2.4vw, 2.2rem); line-height: 1.25;
+  color: var(--fg);
+}
+.quote footer {
+  margin-top: 1.2rem;
+  font-size: .72rem; letter-spacing: .24em; text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ------- 4. agenda : constellation ------- */
+/* La constellation reste posée le temps de lire : la section se prolonge en silence (règle 9) */
+#agenda { min-height: 100vh; min-height: 100svh; padding-bottom: 62vh; padding-bottom: 62svh; }
+.agenda__head {
+  padding: 9rem var(--gutter) 0;
+  text-align: center;
+}
+.agenda__head h2 {
+  font-family: var(--serif); font-weight: 300; font-style: italic;
+  font-size: clamp(2.2rem, 4vw, 3.4rem); line-height: 1;
+  color: var(--fg);
+}
+.agenda__head .mention {
+  margin-top: 1rem;
+  font-size: .72rem; letter-spacing: .24em; text-transform: uppercase;
+  color: var(--muted);
+}
+.events {
+  position: relative; list-style: none;
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
+  column-gap: 1.5rem;
+  max-width: 1440px; margin: 10vh auto 0;
+  padding: 0 var(--gutter);
+  min-height: 76vh; min-height: 76svh;
+}
+.ev { position: relative; padding-top: var(--dy, 0px); }
+/* la ligne de temps ondule doucement : chaque temps fort a sa hauteur */
+.ev:nth-child(1) { --dy: 30vh; }
+.ev:nth-child(2) { --dy: 23vh; }
+.ev:nth-child(3) { --dy: 35vh; }
+.ev:nth-child(4) { --dy: 27vh; }
+.ev:nth-child(5) { --dy: 19vh; }
+.ev__dot { display: block; width: 1px; height: 1px; margin: 0 auto; }   /* ancre mesurée par JS */
+.ev__body { padding-top: 2.6rem; text-align: center; }
+.ev__date {
+  display: block;
+  font-size: .72rem; letter-spacing: .22em; text-transform: uppercase;
+  color: var(--muted);
+}
+.ev__title {
+  margin-top: .7rem;
+  font-family: var(--serif); font-weight: 400;
+  font-size: clamp(1.15rem, 1.5vw, 1.45rem); line-height: 1.22;
+  color: var(--fg);
+}
+.ev__title em { font-style: italic; }
+.ev__place {
+  margin-top: .55rem;
+  font-size: .72rem; letter-spacing: .2em; text-transform: uppercase;
+  color: rgba(241, 236, 228, .7);
+}
+
+/* ------- 5. pied de page ------- */
+/* --after : bande noire sous la photo (silence, règle 9) ; elle donne aux voiles 0,5 écran de course */
+#pied { --after: 64vh; }
+.footer-bar {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  height: var(--after, 64vh);
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  gap: 1.5rem;
+  padding: 2rem var(--gutter);
+  text-align: center;
+}
+.footer-line { max-width: 34rem; text-align: center; color: rgba(241, 236, 228, .8); }
+.footer-meta {
+  font-size: .72rem; letter-spacing: .22em; text-transform: uppercase;
+  color: var(--muted);
+}
+.footer-meta .listen { color: rgba(241, 236, 228, .5); }
+#pied.tutti--photo {
+  height: calc(100vh + var(--extra, 0px) + var(--after, 64vh));
+  height: calc(100svh + var(--extra, 0px) + var(--after, 64vh));
+}
+
+/* ------- mouvement réduit ------- */
+@media (prefers-reduced-motion: reduce) {
+  .hint { opacity: .7; }
+}
+
+/* ------- mobile ------- */
+@media (max-width: 720px) {
+  :root { --gutter: 16px; }
+  .nav { padding: 1.1rem 16px; }
+  .logo__first { font-size: 1.1rem; margin-left: 1.5rem; }
+  .logo__last { font-size: 1.65rem; }
+  .tutti__text, .tutti__text--right, #orchestre .tutti__text--right, #pied .tutti__text--right {
+    left: 16px; right: 16px; top: auto; bottom: 2.4rem; width: auto;
+  }
+  .lorem { font-size: .9rem; }
+  .tutti__text .lorem { max-width: 18rem; }
+  #ouverture .tutti__text .lorem, #pied .tutti__text .lorem { margin-left: auto; }
+  .hint { display: none; }
+  .legend { gap: 1rem; font-size: .7rem; letter-spacing: .12em; bottom: 7%; }
+  #pied { --after: 50svh; }
+  #pied .tutti__text::before { display: none; }   /* en portrait le bloc est en bas, sur la photo nue */
+  .voices { display: block; padding: 4rem 16px 9rem; }
+  .voices > * { margin: 0 0 4rem !important; max-width: 20rem; }
+  .voices > :nth-child(2) { margin: 0 auto 4rem !important; }
+  .voices > :nth-child(3) { margin-left: auto !important; }
+  .quote p { font-size: 1.55rem; }
+  .agenda__head { padding-top: 6rem; }
+  #agenda { padding-bottom: 30vh; padding-bottom: 30svh; }
+  .events { display: block; margin-top: 0; padding: 2.5rem 16px 0; min-height: 0; }
+  .ev { --dy: 0px; display: grid; grid-template-columns: 2.4rem 1fr; column-gap: .6rem; align-items: start; margin-bottom: 3.2rem; }
+  .ev__dot { margin: .75rem auto 0; }
+  .ev__body { padding-top: 0; text-align: left; }
+  .footer-bar { gap: 1.1rem; }
+  .footer-line { font-size: .84rem; }
+}
