@@ -3,72 +3,398 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Pierre Bleuse — maquette home</title>
+  <title>Pierre Bleuse — bac à sable</title>
+  <meta name="robots" content="noindex">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,500;1,300&family=Inter:wght@300;400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,500;1,300&family=Inter:wght@300;400&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #050505; --fg: #f1ece4; --muted: #8a8278; --line: rgba(241, 236, 228, 0.12);
+      --accent: #c5a572; --lav: #5A638D; --ok: #8fb39a; --todo: #6b6560;
+      --serif: 'Cormorant Garamond', Georgia, serif;
+      --sans: 'Inter', system-ui, sans-serif;
+      --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background-color: var(--bg); color: var(--fg);
+      font-family: var(--sans); font-weight: 300; -webkit-font-smoothing: antialiased;
+      /* papier millimétré de l'atelier */
+      background-image:
+        linear-gradient(rgba(241, 236, 228, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(241, 236, 228, 0.035) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+    a { color: inherit; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+    @media (min-width: 720px) { .wrap { padding: 0 40px; } }
+
+    /* ---- bandeau chantier ---- */
+    .tape {
+      font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--bg); background: var(--accent); overflow: hidden; white-space: nowrap;
+    }
+    .tape span { display: inline-block; padding: 0.45rem 0; animation: tape 40s linear infinite; }
+    @keyframes tape { to { transform: translateX(-50%); } }
+
+    /* ---- en-tête ---- */
+    header { padding: 4.5rem 0 3.5rem; border-bottom: 1px solid var(--line); }
+    .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 2rem; flex-wrap: wrap; }
+    .logo { font-family: var(--serif); line-height: 0.88; }
+    .logo i { display: block; font-size: 1.35rem; font-weight: 300; letter-spacing: 0.05em; padding-left: 0.45rem; }
+    .logo b { display: block; font-size: clamp(3.2rem, 9vw, 6.5rem); font-weight: 500; letter-spacing: 0.01em; }
+    .stamp {
+      font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.2em; text-transform: uppercase;
+      border: 1px solid var(--accent); color: var(--accent); padding: 0.7rem 1rem; transform: rotate(-3deg);
+      line-height: 1.7; text-align: center; margin-top: 0.5rem;
+    }
+    .stamp strong { display: block; font-weight: 400; font-size: 0.95rem; letter-spacing: 0.3em; }
+    .intro { display: grid; gap: 2rem; margin-top: 3rem; }
+    @media (min-width: 900px) { .intro { grid-template-columns: 1.4fr 1fr; align-items: end; } }
+    .intro p.lead { font-family: var(--serif); font-size: clamp(1.4rem, 2.6vw, 2rem); line-height: 1.25; font-weight: 300; }
+    .intro p.lead em { color: var(--accent); }
+    .meta { font-family: var(--mono); font-size: 0.75rem; color: var(--muted); line-height: 2; }
+    .meta b { color: var(--fg); font-weight: 400; }
+    .toc { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; margin-top: 2.5rem; font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; }
+    .toc a { text-decoration: none; color: var(--muted); transition: color 0.3s; }
+    .toc a:hover { color: var(--accent); }
+    .toc a::before { content: '→ '; }
+
+    /* ---- sections ---- */
+    section { padding: 4.5rem 0; border-bottom: 1px solid var(--line); }
+    .sh { display: grid; grid-template-columns: auto 1fr; align-items: baseline; gap: 0.6rem 1rem; margin-bottom: 2.25rem; }
+    .sh .n { font-family: var(--mono); font-size: 0.75rem; color: var(--accent); }
+    .sh h2 { font-family: var(--serif); font-weight: 300; font-size: clamp(1.9rem, 3.6vw, 2.8rem); }
+    .sh p { grid-column: 1 / -1; color: var(--muted); font-size: 0.92rem; max-width: 62ch; line-height: 1.6; }
+
+    /* ---- cartes d'expérience ---- */
+    .grid { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); }
+    .card {
+      position: relative; display: flex; flex-direction: column;
+      border: 1px solid var(--line); background: rgba(5, 5, 5, 0.75);
+      text-decoration: none; color: inherit; transition: border-color 0.4s ease;
+    }
+    a.card:hover, .card.has-stretch:hover { border-color: var(--accent); }
+    .stretch { text-decoration: none; }
+    .stretch::after { content: ''; position: absolute; inset: 0; z-index: 1; }
+    .card .foot a { position: relative; z-index: 2; }
+    .card.is-todo { border-style: dashed; }
+    .card .body { padding: 1.4rem 1.4rem 1.6rem; display: flex; flex-direction: column; gap: 0.75rem; flex: 1; }
+    .tag { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; gap: 1rem; }
+    .status { white-space: nowrap; display: inline-flex; align-items: center; gap: 0.45rem; }
+    .status::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+    .s-reco { color: var(--accent); } .s-live { color: var(--ok); } .s-arch { color: var(--muted); } .s-todo { color: var(--todo); }
+    .card h3 { font-family: var(--serif); font-weight: 300; font-size: 1.85rem; line-height: 1.05; }
+    .card h3 small { display: block; font-size: 1.1rem; font-style: italic; color: var(--muted); margin-top: 0.2rem; }
+    .card p { color: var(--muted); font-size: 0.9rem; line-height: 1.55; }
+    .card .q { font-family: var(--serif); font-style: italic; font-size: 1.12rem; color: var(--fg); }
+    .card .foot { margin-top: auto; padding-top: 0.75rem; font-family: var(--mono); font-size: 0.7rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; }
+    .card .foot a { color: var(--muted); text-decoration: none; border-bottom: 1px dotted; }
+    .card .foot a:hover { color: var(--accent); }
+    .score { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 0.6rem; font-family: var(--mono); font-size: 0.7rem; color: var(--muted); }
+    .score .bar { height: 2px; background: var(--line); position: relative; }
+    .score .bar i { position: absolute; inset: 0 auto 0 0; background: var(--accent); }
+    .score b { color: var(--fg); font-weight: 400; }
+
+    /* ---- vignette : clin d'œil à l'effet de stries ---- */
+    .thumb { position: relative; aspect-ratio: 992 / 619; overflow: hidden; background: #111; }
+    .thumb img { display: block; width: 100%; height: 100%; object-fit: cover; filter: grayscale(0.25) brightness(0.85); transition: filter 0.6s ease, transform 1.2s cubic-bezier(.2,.7,.2,1); }
+    .thumb::after {
+      content: ''; position: absolute; inset: 0;
+      background: var(--img) center / cover; transform: rotate(180deg);
+      -webkit-mask-image: repeating-linear-gradient(90deg, #000 0 18px, transparent 18px 46px);
+              mask-image: repeating-linear-gradient(90deg, #000 0 18px, transparent 18px 46px);
+      mix-blend-mode: normal; opacity: 0; clip-path: inset(50% 0 50% 0);
+      transition: opacity 0.6s ease, clip-path 1s cubic-bezier(.2,.7,.2,1);
+    }
+    .thumb.lav::after { background: linear-gradient(rgba(90, 99, 141, 0.5), rgba(90, 99, 141, 0.5)), var(--img) center / cover; }
+    a.card:hover .thumb img, .card.has-stretch:hover .thumb img, a.tile:hover .thumb img { filter: none; transform: scale(1.04); }
+    a.card:hover .thumb::after, .card.has-stretch:hover .thumb::after, a.tile:hover .thumb::after { opacity: 0.9; clip-path: inset(0 0 0 0); }
+    .thumb .void { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.2em; color: var(--todo);
+      background: repeating-linear-gradient(90deg, transparent 0 22px, rgba(241,236,228,0.04) 22px 30px); }
+
+    /* ---- matière ---- */
+    .tiles { display: grid; gap: 0.75rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); }
+    .tile { text-decoration: none; display: block; }
+    .tile figcaption { font-family: var(--mono); font-size: 0.68rem; color: var(--muted); padding-top: 0.5rem; line-height: 1.5; }
+    .tile figcaption b { color: var(--fg); font-weight: 400; }
+    h4 { font-family: var(--mono); font-size: 0.72rem; font-weight: 400; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin: 2.5rem 0 1rem; }
+    h4:first-of-type { margin-top: 0; }
+    .swatches { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem; }
+    .sw { font-family: var(--mono); font-size: 0.65rem; color: var(--muted); display: flex; align-items: center; gap: 0.4rem; border: 1px solid var(--line); padding: 0.3rem 0.6rem 0.3rem 0.3rem; }
+    .sw i { width: 16px; height: 16px; background: var(--c); }
+
+    /* ---- carnet ---- */
+    .docs { list-style: none; display: grid; gap: 0; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); border-top: 1px solid var(--line); }
+    .docs li { border-bottom: 1px solid var(--line); }
+    .docs a { display: grid; grid-template-columns: 1fr auto; gap: 0.25rem 1rem; padding: 1rem 0.25rem; text-decoration: none; transition: background 0.3s, padding 0.3s; }
+    .docs a:hover { background: rgba(197, 165, 114, 0.05); padding-left: 0.75rem; }
+    .docs strong { font-weight: 400; font-size: 0.95rem; }
+    .docs code { font-family: var(--mono); font-size: 0.7rem; color: var(--accent); align-self: center; }
+    .docs li.split > a { padding-bottom: 0.2rem; }
+    .docs li.split > span { display: block; padding: 0 0.25rem 1rem; }
+    .docs li.split > span a { display: inline; padding: 0; color: var(--accent); text-decoration: none; border-bottom: 1px dotted; }
+    .docs span { grid-column: 1 / -1; color: var(--muted); font-size: 0.82rem; line-height: 1.5; }
+
+    /* ---- journal ---- */
+    .log { list-style: none; position: relative; padding-left: 1.75rem; }
+    .log::before { content: ''; position: absolute; left: 4px; top: 0.4rem; bottom: 0.4rem; width: 1px; background: linear-gradient(var(--accent), var(--line)); }
+    .log li { position: relative; padding: 0 0 2rem; max-width: 70ch; }
+    .log li::before { content: ''; position: absolute; left: calc(-1.75rem + 1px); top: 0.35rem; width: 7px; height: 7px; border-radius: 50%; background: var(--bg); border: 1px solid var(--accent); }
+    .log li.next::before { border-style: dashed; border-color: var(--todo); }
+    .log time { font-family: var(--mono); font-size: 0.72rem; color: var(--accent); letter-spacing: 0.1em; }
+    .log li.next time { color: var(--todo); }
+    .log h5 { font-family: var(--serif); font-weight: 500; font-size: 1.3rem; margin: 0.2rem 0 0.35rem; }
+    .log p { color: var(--muted); font-size: 0.9rem; line-height: 1.6; }
+    .log blockquote { font-family: var(--serif); font-style: italic; font-size: 1.15rem; color: var(--fg); margin: 0.5rem 0; padding-left: 1rem; border-left: 1px solid var(--lav); }
+
+    footer.colophon { padding: 3rem 0 4rem; font-family: var(--mono); font-size: 0.72rem; color: var(--muted); line-height: 1.9; }
+    footer.colophon code { color: var(--fg); }
+
+    @media (prefers-reduced-motion: reduce) {
+      .tape span { animation: none; }
+      .thumb img, .thumb::after, .docs a { transition: none; }
+      html { scroll-behavior: auto; }
+    }
+  </style>
 </head>
-<body class="home">
+<body>
 
-  <nav class="nav">
-    <span class="nav__brand">Pierre Bleuse</span>
-    <span class="nav__links">Biographie · Agenda · Discographie · Contact</span>
-  </nav>
+  <div class="tape" aria-hidden="true"><span>
+    Bac à sable · maquettes de travail · lorem ipsum · photos 992 px en attente des HD · rien n'est définitif · on casse, on recommence ·
+    Bac à sable · maquettes de travail · lorem ipsum · photos 992 px en attente des HD · rien n'est définitif · on casse, on recommence ·
+  </span></div>
 
-  <!-- 1. Hero — bleuse-1 (stries + bandeau) -->
-  <section class="hero" data-hero data-image="assets/bleuse-1.jpg" data-preset="bleuse-1">
-    <div class="hero__frame" data-hero-frame>
-      <img class="hero__img" data-hero-img src="assets/bleuse-1.jpg" alt="Pierre Bleuse, chef d'orchestre" fetchpriority="high">
-      <canvas class="hero__canvas" data-hero-canvas></canvas>
-      <div class="hero__text hero__text--lorem">
-        <p class="lorem" lang="la">Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation.</p>
+  <header>
+    <div class="wrap">
+      <div class="top">
+        <div class="logo" aria-label="Pierre Bleuse"><i>Pierre</i><b>Blɘusɘ</b></div>
+        <div class="stamp">Atelier<strong>Bac à sable</strong>ne pas diffuser</div>
       </div>
+      <div class="intro">
+        <p class="lead">L'établi du futur site&nbsp;: on y cherche comment faire d'une page web <em>une performance en soi</em>, à la hauteur du geste d'un chef. Chaque lien ci-dessous est un essai, pas une page finie.</p>
+        <div class="meta">
+          <div><b>Client</b> Pierre Bleuse, chef d'orchestre</div>
+          <div><b>DA</b> Philippe Pouyfourcat · identité V4</div>
+          <div><b>Pile</b> Lenis · GSAP ScrollTrigger · Pixi.js / WebGL</div>
+          <div><b>Dernière itération</b> 28/10/2026 · H4-2 Nuit, H4-3 Captation</div>
+        </div>
+      </div>
+      <nav class="toc" aria-label="Sommaire">
+        <a href="#hypotheses">Hypothèses</a>
+        <a href="#premiers-essais">Premiers essais</a>
+        <a href="#matiere">Matière</a>
+        <a href="#carnet">Carnet</a>
+        <a href="#journal">Journal</a>
+      </nav>
     </div>
-  </section>
+  </header>
 
-  <!-- 2. Section intermédiaire — fond noir -->
-  <section class="lorem-section">
-    <p class="lorem" lang="la">Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi.</p>
-    <p class="lorem" lang="la">Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming id quod mazim placerat facer possim assum. Typi non habent claritatem insitam&nbsp;; est usus legentis in iis qui facit eorum claritatem.</p>
-    <p class="lorem" lang="la">Investigationes demonstraverunt lectores legere me lius quod ii legunt saepius. Claritas est etiam processus dynamicus, qui sequitur mutationem consuetudium lectorum.</p>
-  </section>
+  <main>
 
-  <!-- 3. Hero — bleuse-3 (grille de stries) -->
-  <section class="hero" data-hero data-image="assets/bleuse-3.jpg" data-preset="bleuse-3">
-    <div class="hero__frame" data-hero-frame>
-      <img class="hero__img" data-hero-img src="assets/bleuse-3.jpg" alt="Pierre Bleuse dirigeant l'orchestre en concert" decoding="async">
-      <canvas class="hero__canvas" data-hero-canvas></canvas>
-      <div class="hero__text hero__text--lorem hero__text--right hero__text--m-bottom">
-        <p class="lorem" lang="la">Mirum est notare quam littera gothica, quam nunc putamus parum claram, anteposuerit litterarum formas humanitatis per seacula quarta decima et quinta decima. Eodem modo typi, qui nunc nobis videntur parum clari, fiant sollemnes in futurum.</p>
+    <!-- 01 — les hypothèses du reboot -->
+    <section id="hypotheses">
+      <div class="wrap">
+        <div class="sh">
+          <span class="n">01</span><h2>Quatre hypothèses de site-performance</h2>
+          <p>Même ossature en cinq temps, même matière, même grammaire de mouvement (progressivité, finesse, douceur). Notes du jury indépendant sur 50 (douceur, performance, excellence, lisibilité, mobile) pour les trois premières.</p>
+        </div>
+        <div class="grid">
+          <a class="card" href="hypotheses/h3-lever/">
+            <div class="thumb" style="--img:url(assets/bleuse-5.jpg)"><img src="assets/bleuse-5.jpg" alt="" loading="lazy"></div>
+            <div class="body">
+              <div class="tag"><span>H3 · Lever</span><span class="status s-reco">recommandée</span></div>
+              <h3>Lever<small>la lumière et le silence</small></h3>
+              <p>La retenue comme signe de stature&nbsp;: la lumière révèle, jamais la découpe. La trace de la baguette conduit l'œil.</p>
+              <p class="q">« Le silence avant la première note. »</p>
+              <div class="score"><span>jury</span><span class="bar"><i style="width:79%"></i></span><b>39,5</b></div>
+            </div>
+          </a>
+          <a class="card" href="hypotheses/h1-rubato/">
+            <div class="thumb lav" style="--img:url(assets/bleuse-1.jpg)"><img src="assets/bleuse-1.jpg" alt="" loading="lazy"></div>
+            <div class="body">
+              <div class="tag"><span>H1 · Rubato</span><span class="status s-live">à l'étude</span></div>
+              <h3>Rubato<small>le temps musical</small></h3>
+              <p>Les compositions du DA, intactes, mais phrasées comme une partition&nbsp;: anacrouse, pupitres, résolution longue, respiration.</p>
+              <p class="q">« Un chef, c'est quelqu'un qui décide quand. »</p>
+              <div class="score"><span>jury</span><span class="bar"><i style="width:70.4%"></i></span><b>35,2</b></div>
+            </div>
+          </a>
+          <a class="card" href="hypotheses/h2-tutti/">
+            <div class="thumb lav" style="--img:url(assets/bleuse-3.jpg)"><img src="assets/bleuse-3.jpg" alt="" loading="lazy"></div>
+            <div class="body">
+              <div class="tag"><span>H2 · Tutti</span><span class="status s-live">à l'étude</span></div>
+              <h3>Tutti<small>cent voix, un geste</small></h3>
+              <p>Un point de lumière par musicien. Le scroll est le geste du chef&nbsp;: il rassemble les voix, les photos apparaissent à travers elles.</p>
+              <p class="q">« Un chef n'est rien seul. »</p>
+              <div class="score"><span>jury</span><span class="bar"><i style="width:64.8%"></i></span><b>32,4</b></div>
+            </div>
+          </a>
+          <a class="card" href="hypotheses/h4-etourneaux/">
+            <div class="thumb" style="--img:url(hypotheses/h4-etourneaux/assets/vignette.jpg)"><img src="hypotheses/h4-etourneaux/assets/vignette.jpg" alt="" loading="lazy"></div>
+            <div class="body">
+              <div class="tag"><span>H4 · Vol d'étourneaux</span><span class="status s-live">en test</span></div>
+              <h3>Vol d'étourneaux<small>la nuée et le geste</small></h3>
+              <p>Exploration de mouvements organiques de particules inspirés des vols d'étourneaux, avec superposition graphique, transparence paramétrable et interactions musicales et au scroll.</p>
+              <p class="q">« Mille voix, un seul vol. »</p>
+              <div class="foot"><span>faisabilité · musique · scroll</span></div>
+            </div>
+          </a>
+          <a class="card" href="hypotheses/h4-2-nuit/">
+            <div class="thumb" style="--img:url(hypotheses/h4-2-nuit/vignette.jpg)"><img src="hypotheses/h4-2-nuit/vignette.jpg" alt="" loading="lazy"></div>
+            <div class="body">
+              <div class="tag"><span>H4-2 · Nuit</span><span class="status s-live">en test</span></div>
+              <h3>Nuit<small>la nuée seule</small></h3>
+              <p>Le vol d'étourneaux sans la photo&nbsp;: un fond noir, la nuée seule, même cadrage, même musique, même scroll que H4.</p>
+              <p class="q">« Le noir, puis le vol. »</p>
+              <div class="foot"><span>variante de H4 · fond noir</span></div>
+            </div>
+          </a>
+          <a class="card" href="hypotheses/h4-3-captation/">
+            <div class="thumb" style="--img:url(hypotheses/h4-3-captation/vignette.jpg)"><img src="hypotheses/h4-3-captation/vignette.jpg" alt="" loading="lazy"></div>
+            <div class="body">
+              <div class="tag"><span>H4-3 · Captation</span><span class="status s-live">en test</span></div>
+              <h3>Captation<small>la nuée sur le concert</small></h3>
+              <p>La captation de Prades en fond plein cadre, lancée dès l'arrivée, filtrée ou assombrie (scène bleue, noir et blanc, lavande, négatif…), la nuée par-dessus. Vidéo hébergée&nbsp;; YouTube en option pour la maquette.</p>
+              <p class="q">« Le concert, et le vol au-dessus. »</p>
+              <div class="foot"><span>variante de H4 · YouTube ou vidéo hébergée</span></div>
+            </div>
+          </a>
+          <div class="card is-todo">
+            <div class="thumb"><div class="void">EN ATTENTE</div></div>
+            <div class="body">
+              <div class="tag"><span>Piste · Lever +</span><span class="status s-todo">à construire</span></div>
+              <h3>Lever +<small>l'hybride recommandé</small></h3>
+              <p>Base Lever, premier écran lisible, nav de Rubato, plan de salle de Tutti, découpes du DA à 0,5 dans les faisceaux. Six points à trancher avec le DA d'abord.</p>
+              <div class="foot"><span>hypotheses/h4-lever-plus/</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:1.25rem">
+          <a class="body" href="hypotheses/" style="text-decoration:none;flex-direction:row;justify-content:space-between;align-items:center;flex-wrap:wrap">
+            <span class="tag" style="display:block">Sommaire des hypothèses</span>
+            <span style="font-family:var(--serif);font-size:1.3rem">Vue d'ensemble des quatre pistes →</span>
+          </a>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- 4. Section fond noir -->
-  <section class="lorem-section lorem-section--duo">
-    <p class="lorem" lang="la">Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat.</p>
-    <p class="lorem" lang="la">At vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit.</p>
-  </section>
-
-  <!-- 5. Bas de page — bleuse-5 (deux voiles blancs autour du chef) -->
-  <footer class="hero" data-hero data-image="assets/bleuse-5.jpg" data-preset="bleuse-5">
-    <div class="hero__frame" data-hero-frame>
-      <img class="hero__img" data-hero-img src="assets/bleuse-5.jpg" alt="Pierre Bleuse accroupi sur la scène, près du clavecin" decoding="async">
-      <canvas class="hero__canvas" data-hero-canvas></canvas>
-      <div class="hero__text hero__text--lorem hero__text--right hero__text--m-bottom">
-        <p class="lorem" lang="la">Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum.</p>
+    <!-- 02 — itérations stries, avant le reboot -->
+    <section id="premiers-essais">
+      <div class="wrap">
+        <div class="sh">
+          <span class="n">02</span><h2>Premiers essais&nbsp;: les stries</h2>
+          <p>15-16 octobre. Le shader de stries sur photo originale, calé au pixel sur les maquettes du DA. Principe validé, mais jugé «&nbsp;trop mécanique&nbsp;» le 17/10&nbsp;: d'où le reboot.</p>
+        </div>
+        <div class="grid">
+          <a class="card" href="maquette-v1.html">
+            <div class="thumb lav" style="--img:url(assets/bleuse-3.jpg)"><img src="assets/bleuse-4.jpg" alt="" loading="lazy"></div>
+            <div class="body">
+              <div class="tag"><span>V1 · home</span><span class="status s-arch">archivée</span></div>
+              <h3>Maquette de home<small>trois photos, trois effets</small></h3>
+              <p>bleuse-1 (stries + bandeau), bleuse-3 (grille lavande, détourage Vision), bleuse-5 en pied de page (deux voiles). Textes en lorem ipsum.</p>
+              <div class="foot"><span>maquette-v1.html</span></div>
+            </div>
+          </a>
+          <div class="card has-stretch">
+            <div class="thumb" style="--img:url(assets/bleuse-1.jpg)"><img src="assets/bleuse-2.jpg" alt="" loading="lazy"></div>
+            <div class="body">
+              <div class="tag"><span>Banc d'essai</span><span class="status s-arch">outil</span></div>
+              <h3><a class="stretch" href="_draft1.html">Banc des stries</a><small>un hero, des réglages</small></h3>
+              <p>Pour régler le shader photo par photo. Touche <b>R</b>&nbsp;: superpose la maquette du DA pour comparer.</p>
+              <div class="foot"><a href="_draft1.html">bleuse-3</a><a href="_draft1.html?photo=1">?photo=1 · bleuse-1</a></div>
+            </div>
+          </div>
+        </div>
       </div>
+    </section>
+
+    <!-- 03 — matière première -->
+    <section id="matiere">
+      <div class="wrap">
+        <div class="sh">
+          <span class="n">03</span><h2>Matière</h2>
+          <p>Ce qu'on a sur l'établi&nbsp;: photos sources (992 px, HD en attente), maquettes du DA, masques de détourage et planches de l'identité V4.</p>
+        </div>
+
+        <h4>Photos et maquettes du DA</h4>
+        <div class="tiles">
+          <a class="tile" href="assets/bleuse-1.jpg"><figure><div class="thumb" style="--img:url(assets/bleuse-1.jpg)"><img src="assets/bleuse-1.jpg" alt="Pierre Bleuse, mains ouvertes, fond doré" loading="lazy"></div><figcaption><b>bleuse-1</b> · mains ouvertes, bokeh doré</figcaption></figure></a>
+          <a class="tile" href="assets/bleuse-2.jpg"><figure><div class="thumb"><img src="assets/bleuse-2.jpg" alt="Maquette du DA sur bleuse-1" loading="lazy"></div><figcaption><b>bleuse-2</b> · maquette DA : stries + bandeau</figcaption></figure></a>
+          <a class="tile" href="assets/bleuse-3.jpg"><figure><div class="thumb lav" style="--img:url(assets/bleuse-3.jpg)"><img src="assets/bleuse-3.jpg" alt="Pierre Bleuse dirigeant l'orchestre" loading="lazy"></div><figcaption><b>bleuse-3</b> · en frac devant l'orchestre</figcaption></figure></a>
+          <a class="tile" href="assets/bleuse-4.jpg"><figure><div class="thumb"><img src="assets/bleuse-4.jpg" alt="Maquette du DA sur bleuse-3" loading="lazy"></div><figcaption><b>bleuse-4</b> · maquette DA : grille lavande</figcaption></figure></a>
+          <a class="tile" href="assets/bleuse-5.jpg"><figure><div class="thumb" style="--img:url(assets/bleuse-5.jpg)"><img src="assets/bleuse-5.jpg" alt="Pierre Bleuse accroupi sur scène" loading="lazy"></div><figcaption><b>bleuse-5</b> · accroupi, près du clavecin</figcaption></figure></a>
+          <a class="tile" href="assets/bleuse-6.png"><figure><div class="thumb"><img src="assets/bleuse-6.png" alt="Maquette du DA sur bleuse-5" loading="lazy"></div><figcaption><b>bleuse-6</b> · maquette DA : deux voiles</figcaption></figure></a>
+          <a class="tile" href="assets/bleuse-1-masque.png"><figure><div class="thumb"><img src="assets/bleuse-1-masque.png" alt="Masque de détourage de bleuse-1" loading="lazy"></div><figcaption><b>masque</b> · bleuse-1 (Apple Vision)</figcaption></figure></a>
+          <a class="tile" href="assets/bleuse-3-masque.png"><figure><div class="thumb"><img src="assets/bleuse-3-masque.png" alt="Masque de détourage de bleuse-3" loading="lazy"></div><figcaption><b>masque</b> · bleuse-3 (Apple Vision)</figcaption></figure></a>
+        </div>
+
+        <h4>Identité visuelle V4 du DA</h4>
+        <div class="tiles">
+          <a class="tile" href="hypotheses/_ref/identite-v4-logo-home.jpg"><figure><div class="thumb"><img src="hypotheses/_ref/identite-v4-logo-home.jpg" alt="Planche : logo sur la home" loading="lazy"></div><figcaption><b>logo / home</b> · « Pierre Blɘusɘ »</figcaption></figure></a>
+          <a class="tile" href="hypotheses/_ref/identite-v4-plisse.jpg"><figure><div class="thumb"><img src="hypotheses/_ref/identite-v4-plisse.jpg" alt="Planche : le plissé" loading="lazy"></div><figcaption><b>plissé</b> · stries = plis de la chemise</figcaption></figure></a>
+          <a class="tile" href="hypotheses/_ref/identite-v4-blocs.jpg"><figure><div class="thumb"><img src="hypotheses/_ref/identite-v4-blocs.jpg" alt="Planche : blocs" loading="lazy"></div><figcaption><b>blocs</b> · fragments inversés</figcaption></figure></a>
+          <a class="tile" href="hypotheses/_ref/identite-v4-scene-bleue.jpg"><figure><div class="thumb"><img src="hypotheses/_ref/identite-v4-scene-bleue.jpg" alt="Planche : scène bleue" loading="lazy"></div><figcaption><b>scène bleue</b> · lumière de scène</figcaption></figure></a>
+          <a class="tile" href="hypotheses/_ref/identite-v4-scene-bleue-2.jpg"><figure><div class="thumb"><img src="hypotheses/_ref/identite-v4-scene-bleue-2.jpg" alt="Planche : scène bleue, variante" loading="lazy"></div><figcaption><b>scène bleue 2</b> · variante</figcaption></figure></a>
+          <a class="tile" href="hypotheses/_ref/graduation-chromatique-1.jpg"><figure><div class="thumb"><img src="hypotheses/_ref/graduation-chromatique-1.jpg" alt="Planche : graduation chromatique" loading="lazy"></div><figcaption><b>graduation 1</b> · solarisations</figcaption></figure></a>
+          <a class="tile" href="hypotheses/_ref/graduation-chromatique-2.jpg"><figure><div class="thumb"><img src="hypotheses/_ref/graduation-chromatique-2.jpg" alt="Planche : graduation chromatique, suite" loading="lazy"></div><figcaption><b>graduation 2</b> · lavande, cyan, vert</figcaption></figure></a>
+        </div>
+        <div class="swatches">
+          <span class="sw" style="--c:#5A638D"><i></i>#5A638D lavande</span>
+          <span class="sw" style="--c:#c5a572"><i></i>#C5A572 or</span>
+          <span class="sw" style="--c:#f1ece4"><i></i>#F1ECE4 crème</span>
+          <span class="sw" style="--c:#000"><i></i>#000 noir scène</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 04 — documents -->
+    <section id="carnet">
+      <div class="wrap">
+        <div class="sh">
+          <span class="n">04</span><h2>Carnet de bord</h2>
+          <p>Les notes qui accompagnent les essais&nbsp;: décisions, réglages, specs et outils.</p>
+        </div>
+        <ul class="docs">
+          <li><a href="https://claude.ai/artifact/EBS7rGLt6QdS2hx1DJLRaB" target="_blank" rel="noopener"><strong>Analyse pour le débat avec le DA</strong><code>doc ↗</code><span>Cadre, grammaire, les trois hypothèses, verdict du jury, ce qu'il reste à trancher.</span></a></li>
+          <li><a href="HANDOFF.md"><strong>Passation</strong><code>HANDOFF.md</code><span>Tout l'historique : contexte, choix d'architecture, itérations, mesures.</span></a></li>
+          <li><a href="hypotheses/BRIEF-COMMUN.md"><strong>Brief commun</strong><code>BRIEF-COMMUN.md</code><span>La grammaire de mouvement en 12 règles et la structure en cinq temps.</span></a></li>
+          <li class="split"><a href="hypotheses/h1-rubato/LISEZ-MOI.md"><strong>Rubato · réglages</strong><code>LISEZ-MOI</code></a><span>Courbe phrase(), rubato, respiration. <a href="hypotheses/h1-rubato/SPEC.md">Spec</a> · <a href="hypotheses/h1-rubato/">Maquette</a></span></li>
+          <li class="split"><a href="hypotheses/h2-tutti/LISEZ-MOI.md"><strong>Tutti · réglages</strong><code>LISEZ-MOI</code></a><span>Particules, formations, familles d'instruments. <a href="hypotheses/h2-tutti/SPEC.md">Spec</a> · <a href="hypotheses/h2-tutti/">Maquette</a></span></li>
+          <li class="split"><a href="hypotheses/h3-lever/LISEZ-MOI.md"><strong>Lever · réglages</strong><code>LISEZ-MOI</code></a><span>Shader de lumière, faisceaux, trace de la baguette. <a href="hypotheses/h3-lever/SPEC.md">Spec</a> · <a href="hypotheses/h3-lever/">Maquette</a></span></li>
+          <li class="split"><a href="hypotheses/h4-etourneaux/FAISABILITE.md"><strong>Vol d'étourneaux · faisabilité</strong><code>FAISABILITE</code></a><span>YouTube, vidéo hébergée, synchronisation musicale, rendu, performances. <a href="hypotheses/h4-etourneaux/SPEC.md">Spec</a> · <a href="hypotheses/h4-etourneaux/LISEZ-MOI.md">Réglages</a> · <a href="hypotheses/h4-etourneaux/">Prototype</a></span></li>
+          <li class="split"><a href="hypotheses/h4-3-captation/LISEZ-MOI.md"><strong>Nuit · Captation · réglages</strong><code>LISEZ-MOI</code></a><span>Variantes de H4&nbsp;: fond noir, vidéo de fond filtrée, YouTube plein cadre, remplacer la vidéo. <a href="hypotheses/h4-2-nuit/LISEZ-MOI.md">Nuit</a> · <a href="hypotheses/h4-2-nuit/">Maquette Nuit</a> · <a href="hypotheses/h4-3-captation/">Maquette Captation</a></span></li>
+          <li><a href="outils/LISEZ-MOI.md"><strong>Outils</strong><code>outils/</code><span>Masques Vision, relevés au pixel, planches-contact, harnais Chrome et WebKit.</span></a></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 05 — chronologie -->
+    <section id="journal">
+      <div class="wrap">
+        <div class="sh"><span class="n">05</span><h2>Journal</h2></div>
+        <ol class="log">
+          <li><time>15/10/2026</time><h5>Premier shader de stries</h5><p>Choix du rendu en code depuis la photo originale plutôt que des calques PNG. Calage au pixel sur bleuse-2 puis bleuse-4 (écart moyen 2,3/255), détourage du chef par Apple Vision.</p></li>
+          <li><time>16/10/2026</time><h5>Butée, mobile, voiles</h5><p>Compositions portrait, preset bleuse-5 aux deux voiles, home en lorem ipsum, vérification par cinq agents.</p></li>
+          <li><time>17/10/2026</time><h5>Retour du DA</h5><blockquote>« Le site ne devrait pas être juste une composition d'images mais une performance artistique en soi. »</blockquote><p>Effets jugés trop mécaniques&nbsp;: chercher progressivité, finesse, douceur.</p></li>
+          <li><time>22/10/2026</time><h5>Reboot&nbsp;: trois hypothèses</h5><p>Rubato, Tutti, Lever construites, vérifiées et corrigées. Jury à trois regards (DA, programmateur, public mobile)&nbsp;: Lever en tête.</p></li>
+          <li><time>27/10/2026</time><h5>H4&nbsp;: vol d'étourneaux</h5><p>Nuée de particules sur la captation de Prades 2022, pilotée par la musique (analyse préalable et position de lecture) et par le scroll. Investigation YouTube, vidéo hébergée, Web Audio et rendu, prototype avec réglages.</p></li>
+          <li><time>28/10/2026</time><h5>H4-2 Nuit, H4-3 Captation</h5><p>Deux variantes du vol d'étourneaux sur le même moteur&nbsp;: la nuée seule sur le noir&nbsp;; la captation en fond plein cadre (YouTube rogné pour la maquette, vidéo hébergée pour la mise en ligne), avec filtres et assombrissement.</p></li>
+          <li class="next"><time>à venir</time><h5>Lever +</h5><p>Trancher six points avec le DA, puis construire l'hybride. Recevoir les photos HD.</p></li>
+        </ol>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="colophon">
+    <div class="wrap">
+      Pierre Bleuse — toujours avec un <b>S</b>.<br>
+      Servi en local&nbsp;: <code>php -S localhost:8765 -t .</code> · dépôt <a href="https://github.com/bteillard-carrelCommunication/pierrebleuse" target="_blank" rel="noopener">github / pierrebleuse</a>
     </div>
   </footer>
 
-  <!-- Libs : versions figées, chargées depuis cdnjs / unpkg -->
-  <script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.4.0/pixi.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-
-  <script src="js/stripes-effect.js"></script>
-  <script src="js/main.js"></script>
 </body>
 </html>

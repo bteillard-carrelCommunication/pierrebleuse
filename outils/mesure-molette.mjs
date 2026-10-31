@@ -21,7 +21,7 @@ await send('Page.addScriptToEvaluateOnNewDocument', { source: `
     window.__log.push([performance.now(), window.scrollY, ...c]);
     requestAnimationFrame(loop);
   })();` });
-await send('Page.navigate', { url: base + '/index.html' }); await wait(5000);
+await send('Page.navigate', { url: base + '/maquette-v1.html' }); await wait(5000);
 await ev('window.__log.length = 0; 1');
 // 1. trackpad : deltaY 40 toutes les 16 ms jusqu'en bas
 const docH = await ev('document.documentElement.scrollHeight - innerHeight');

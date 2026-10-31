@@ -9,7 +9,7 @@ const { webkit, devices } = require(process.argv[2] + '/node_modules/playwright'
     page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') logs.push(`${m.type()}: ${m.text()}`.slice(0, 300)); });
     page.on('pageerror', (e) => logs.push('pageerror: ' + String(e).slice(0, 300)));
     page.on('requestfailed', (r) => logs.push('requestfailed: ' + r.url()));
-    await page.goto('http://localhost:8765/index.html', { waitUntil: 'load' });
+    await page.goto('http://localhost:8765/maquette-v1.html', { waitUntil: 'load' });
     await page.waitForTimeout(4000);
     const st = await page.evaluate(() => heroes.map((h) => ({ preset: h.section.dataset.preset, ready: h.ready, comp: h.compKey, canvas: [h.canvas.width, h.canvas.height], gl: h.app && h.app.renderer.context.webGLVersion, touch: getComputedStyle(h.canvas).touchAction, pe: getComputedStyle(h.canvas).pointerEvents })));
     console.log(name, JSON.stringify(st));

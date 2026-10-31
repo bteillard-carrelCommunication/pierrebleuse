@@ -1,0 +1,742 @@
+/* Hypothèse 4 — Vol d'étourneaux (la nuée et le geste)
+   Base typographique : Cormorant Garamond (serif) + Inter (linéale), petites étiquettes mono.
+   Fond noir, blanc cassé, lumière froide de la nuée (rampe mesurée sur vol1/2/3).
+
+   Empilement (un seul contexte, la racine) : fonds (z 0) → canvas de la nuée (z 1, « éclaircir »)
+   → lecteur YouTube (z 3, mode conforme) → textes et commandes (z 6 et plus).
+   Les sections ne créent jamais de contexte d'empilement (ni z-index, ni transform, ni opacité,
+   ni filtre, ni isolation) : sinon le canvas ne se mélangerait plus avec les fonds. */
+
+:root {
+  --bg: #000;
+  --fg: #f1ece4;
+  --muted: #8f8a82;
+  --lavande: #5a638d;
+  --froid: #c5cdd6;              /* blanc froid des cœurs de la nuée (rampe Y 200) */
+  --nuit: #0a1524;               /* halo bleu nuit des points épars */
+  --alerte: #e3b25c;
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
+  --gutter: 3rem;
+  --panneau-l: 360px;
+
+  --z-fond: 0;
+  --z-nuee: 1;
+  --z-lecteur: 3;
+  --z-nuee-dessus: 4;            /* aperçu superposé YouTube (non conforme) */
+  --z-texte: 6;
+  --z-nav: 10;
+  --z-commandes: 12;
+  --z-hud: 14;
+  --z-panneau: 20;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: auto; -webkit-text-size-adjust: 100%; }
+html, body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--sans);
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+body { overflow-x: clip; }
+html.lenis { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-stopped { overflow: clip; }
+
+img, video, canvas, svg { display: block; }
+a { color: inherit; }
+button, input, select, textarea { font: inherit; color: inherit; }
+[hidden] { display: none !important; }
+:focus-visible { outline: 1px solid var(--froid); outline-offset: 3px; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* Commandes qui n'ont de sens qu'avec le script : visibles une fois l'amorçage terminé */
+.js-seulement { visibility: hidden; }
+.h4-pret .js-seulement { visibility: visible; }
+
+/* ------- nav : logo à gauche, langues à droite (balisage de h2) ------- */
+.nav {
+  position: fixed; inset: 0 0 auto 0; z-index: var(--z-nav);
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding: 1.6rem var(--gutter);
+  pointer-events: none;
+}
+/* voile discret : le logo reste lisible quand la nuée ou un texte passe dessous */
+.nav::before {
+  content: ''; position: absolute; inset: 0 0 -40px; z-index: -1;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, .8), rgba(0, 0, 0, .45) 55%, rgba(0, 0, 0, 0));
+  pointer-events: none;
+}
+.nav > * { pointer-events: auto; }
+.logo {
+  display: grid; line-height: 1; text-decoration: none;
+  color: #fff;
+  text-shadow: 0 1px 18px rgba(0, 0, 0, .45);
+}
+.logo__first {
+  font-family: var(--serif); font-style: italic; font-weight: 400;
+  font-size: 1.35rem; letter-spacing: .01em;
+  margin-left: 1.9rem; margin-bottom: -.2rem;
+}
+.logo__last {
+  font-family: var(--sans); font-weight: 700;
+  font-size: 2.05rem; letter-spacing: -.02em;
+}
+.logo__last .rev { display: inline-block; transform: scaleX(-1); }   /* ɘ : le e retourné */
+.nav__lang {
+  font-size: .72rem; letter-spacing: .18em; text-transform: uppercase;
+  color: rgba(241, 236, 228, .55);
+  padding-top: .55rem;
+}
+.nav__lang .is-on { color: #fff; }
+.nav__lang .sep { margin: 0 .55em; opacity: .5; }
+
+/* ------- la nuée : un canvas fixe, décoratif, en « éclaircir » ------- */
+.nuee {
+  position: fixed; left: 0; top: 0;
+  width: 100%;
+  height: 100vh; height: 100lvh;    /* hauteur stable : pas de réallocation quand la barre d'URL se replie */
+  z-index: var(--z-nuee);
+  mix-blend-mode: lighten;          /* noir neutre : la chemise et la peau traversent toujours la nuée */
+  pointer-events: none;
+  touch-action: pan-y;
+  opacity: 0;                       /* posée à chaque image par main.js (réglage « Opacité globale ») */
+}
+.sans-nuee .nuee { display: none; }
+.nuee-masquee .nuee { visibility: hidden; }
+.fond-youtube.yt-superpose .nuee { z-index: var(--z-nuee-dessus); }
+
+/* ------- 1. ouverture ------- */
+.ouverture {
+  position: relative;
+  height: 100vh; height: 100svh;
+  overflow: hidden;
+  background: #000;
+}
+.ouverture__cadre {
+  position: absolute; inset: 0; z-index: var(--z-fond);
+  overflow: hidden;
+  container-type: size;              /* unités cqw / cqh : repli CSS du calque ▶ */
+  --focal-x: .6; --focal-y: .4;      /* = object-position ci-dessous */
+}
+/* Cadrage cover avec point focal sur le chef ; main.js relit object-position pour caler la nuée */
+.ouverture__media {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: 60% 40%;
+  pointer-events: none;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+@media (max-aspect-ratio: 9/10) {
+  .ouverture__media { object-position: 62% 40%; }   /* portrait : le visage reste au centre du tiers visible */
+  .ouverture__cadre { --focal-x: .62; }
+}
+/* Position du calque : main.js la calcule en px (rectangle cover + point focal). Repli sans
+   script : la même formule en unités de conteneur (pictogramme en 925, 525 ; 80 × 80 px image). */
+.masque-lecture {
+  --l: max(100cqw, 100cqh * 1920 / 1080);
+  --h: max(100cqh, 100cqw * 1080 / 1920);
+  position: absolute;
+  left: calc((100cqw - var(--l)) * var(--focal-x) + var(--l) * 925 / 1920);
+  top: calc((100cqh - var(--h)) * var(--focal-y) + var(--h) * 525 / 1080);
+  width: calc(var(--l) * 80 / 1920);
+  height: calc(var(--h) * 80 / 1080);
+  max-width: none;
+  pointer-events: none;
+}
+.sans-masque .masque-lecture { display: none; }
+.reference {
+  position: absolute; left: 0; top: 0;
+  max-width: none;
+  mix-blend-mode: lighten;
+  pointer-events: none;
+}
+
+/* Scène : sans z-index (pas de contexte d'empilement) ; chaque enfant porte le sien */
+.ouverture__scene { position: absolute; inset: 0; }
+.ouverture__texte {
+  position: absolute; z-index: var(--z-texte);
+  right: 5%; top: 55%;
+  width: clamp(13rem, 16vw, 16.5rem);
+  text-shadow: 0 1px 14px rgba(0, 0, 0, .55);
+}
+/* halo sombre sous le texte, au-dessus du canvas : les cœurs blancs de la nuée n'y passent pas */
+.ouverture__texte::before {
+  content: ''; position: absolute; inset: -2.6rem -2.8rem; z-index: -1;
+  background: radial-gradient(closest-side, rgba(0, 0, 0, .66), rgba(0, 0, 0, .55) 72%, rgba(0, 0, 0, 0));
+  pointer-events: none;
+}
+.fond-youtube .ouverture__texte::before { display: none; }
+
+.lorem {
+  font-family: var(--sans); font-weight: 400;
+  font-size: .94rem; line-height: 1.42;
+  text-align: justify; hyphens: auto;
+  color: #fff;
+}
+
+/* « Écouter » : discret, au clavier comme à la souris ; le son ne part jamais au scroll */
+.ecoute { margin-top: 1.5rem; }
+.ecoute__bouton {
+  display: inline-flex; align-items: center; gap: .75rem;
+  padding: .2rem .2rem .2rem 0;
+  background: none; border: 0; cursor: pointer;
+  font-size: .74rem; font-weight: 400; letter-spacing: .24em; text-transform: uppercase;
+  color: #fff;
+}
+.ecoute__icone {
+  position: relative; flex: none;
+  width: 2.2rem; height: 2.2rem;
+  border: 1px solid rgba(241, 236, 228, .5);
+  border-radius: 50%;
+  transition: border-color .4s ease, box-shadow .6s ease;
+}
+.ecoute__icone::before, .ecoute__icone::after {
+  content: ''; position: absolute; top: 50%; left: 50%;
+}
+.ecoute__icone::before {                         /* triangle de lecture */
+  width: 0; height: 0;
+  border-style: solid; border-width: .32rem 0 .32rem .52rem;
+  border-color: transparent transparent transparent #fff;
+  transform: translate(-35%, -50%);
+}
+.ecoute__bouton[data-etat="lecture"] .ecoute__icone::before,
+.ecoute__bouton[data-etat="lecture"] .ecoute__icone::after {   /* deux barres : pause */
+  width: 2px; height: .62rem; border: 0; background: #fff;
+  transform: translate(-50%, -50%);
+}
+.ecoute__bouton[data-etat="lecture"] .ecoute__icone::before { margin-left: -3px; }
+.ecoute__bouton[data-etat="lecture"] .ecoute__icone::after { margin-left: 3px; }
+.ecoute__bouton:hover .ecoute__icone,
+.ecoute__bouton:focus-visible .ecoute__icone { border-color: #fff; box-shadow: 0 0 18px rgba(197, 205, 214, .35); }
+.ecoute__bouton[data-etat="lecture"] .ecoute__icone { border-color: var(--froid); }
+.ecoute__credit {
+  margin-top: .6rem;
+  font-size: .68rem; line-height: 1.45; letter-spacing: .04em;
+  color: rgba(241, 236, 228, .66);
+}
+.ecoute__credit i { font-style: italic; }
+.son {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: .15rem .8rem;
+  margin-top: .55rem;
+  font-size: .64rem; letter-spacing: .14em; text-transform: uppercase;
+  color: rgba(241, 236, 228, .5);
+}
+.son__titre { font-family: var(--mono); letter-spacing: .1em; color: rgba(241, 236, 228, .4); }
+.son label { position: relative; cursor: pointer; }
+.son input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.son input:checked + span { color: #fff; border-bottom: 1px solid var(--froid); }
+.son input:focus-visible + span { outline: 1px solid var(--froid); outline-offset: 3px; }
+.ecoute__note {
+  margin-top: .5rem;
+  font-size: .68rem; line-height: 1.4; color: var(--alerte);
+}
+
+.hint {
+  position: absolute; left: 50%; bottom: 1.6rem; transform: translateX(-50%);
+  z-index: var(--z-texte);
+  font-size: .7rem; letter-spacing: .34em; text-transform: uppercase;
+  color: rgba(241, 236, 228, .45);
+  pointer-events: none;
+}
+
+/* Apparition des textes : l'ouverture entre une fois au chargement (anacrouse lente),
+   les autres blocs suivent le scroll (style posé par main.js, fonction de scrollY). */
+.js [data-revele] { opacity: 0; }
+.js .ouverture [data-revele] {
+  transform: translateY(10px);
+  transition: opacity 1.8s cubic-bezier(.45, 0, .2, 1) .35s, transform 2.2s cubic-bezier(.2, .7, .2, 1) .35s;
+}
+.h4-pret .ouverture [data-revele] { opacity: 1; transform: none; }
+html.js-timeout [data-revele] { opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
+
+/* ------- 1 bis. ouverture en mode YouTube : lecteur entier, jamais recouvert ------- */
+.fond-youtube .nav { position: absolute; }           /* ne passe jamais au-dessus du lecteur au scroll */
+.fond-youtube .nav::before { display: none; }
+.fond-youtube .ouverture { height: auto; min-height: 100vh; min-height: 100svh; }
+.fond-youtube .ouverture__cadre { display: none; }    /* pas d'image : la nuée vole dans le noir, autour de l'écran */
+.fond-youtube .ouverture__scene {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--yt-l, 640px) 16.5rem;
+  column-gap: 3rem; row-gap: 2rem;
+  justify-content: center; align-content: center; align-items: center;
+  min-height: 100vh; min-height: 100svh;
+  padding: var(--yt-haut, 7.5rem) calc(var(--gutter) + var(--yt-panneau, 0px)) var(--yt-bas, 8rem) var(--gutter);
+}
+.fond-youtube .ouverture__scene[data-disposition="pile"] { grid-template-columns: var(--yt-l, 640px); }
+.fond-youtube .ouverture__texte { position: relative; right: auto; top: auto; width: auto; max-width: 20rem; }
+.yt {
+  position: relative; z-index: var(--z-lecteur);
+  width: var(--yt-l, 640px); height: var(--yt-h, 360px);
+  background: #000;
+}
+.yt iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.yt__lecteur { position: absolute; inset: 0; }
+.yt__facade {
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  overflow: hidden;
+  background: #000;
+  border: 1px solid rgba(197, 205, 214, .14);
+}
+.yt__affiche {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; object-position: 60% 40%;
+  opacity: .3;
+  pointer-events: none;
+}
+.yt__consentement { position: relative; max-width: 31rem; padding: 1rem 1.4rem; text-align: center; }
+.yt__surtitre { font-size: .64rem; letter-spacing: .24em; text-transform: uppercase; color: rgba(241, 236, 228, .6); }
+.yt__texte { margin-top: .75rem; font-size: .84rem; line-height: 1.5; font-weight: 400; color: rgba(241, 236, 228, .92); }
+.yt__bouton {
+  margin-top: 1.1rem;
+  padding: .75rem 1.35rem;
+  border: 1px solid rgba(241, 236, 228, .6); border-radius: 999px;
+  background: rgba(0, 0, 0, .45);
+  font-size: .7rem; font-weight: 500; letter-spacing: .16em; text-transform: uppercase;
+  cursor: pointer;
+}
+.yt__bouton:hover, .yt__bouton:focus-visible { border-color: #fff; background: rgba(197, 205, 214, .12); }
+.yt__liens { margin-top: .9rem; font-size: .68rem; color: rgba(241, 236, 228, .55); }
+.yt__liens a { text-underline-offset: 2px; }
+.yt__etat {
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  padding: 1rem; text-align: center;
+  font-size: .78rem; color: rgba(241, 236, 228, .75);
+}
+.yt-alerte {
+  margin-bottom: 1.4rem;
+  padding: .45rem .8rem;
+  border: 1px solid var(--alerte); border-radius: 4px;
+  background: rgba(40, 26, 4, .82);
+  font: 500 .66rem/1.4 var(--mono); letter-spacing: .06em; text-transform: uppercase;
+  color: var(--alerte);
+}
+
+/* ------- 1 ter. variantes : vidéo de fond traitée (H4-3), YouTube plein cadre ------- */
+/* Dans le cadre (déjà un contexte d'empilement, sous la nuée) : la boîte du média porte le filtre,
+   puis la teinte en « couleur » (garde la lumière de la vidéo) et le voile noir. Le flou déborde
+   la boîte hors du cadre, sinon ses bords s'assombrissent ; main.js recale la nuée sur la boîte. */
+.fond {
+  position: absolute; inset: calc(-2 * var(--fond-flou, 0px));
+  filter: var(--fond-filtre, none);
+}
+.fond-teinte, .fond-voile { position: absolute; inset: 0; pointer-events: none; }
+.fond-teinte { background: var(--fond-teinte, transparent); mix-blend-mode: color; opacity: var(--fond-teinte-o, 0); }
+.fond-voile { background: #000; opacity: var(--fond-voile, 0); }
+
+/* Lecteur en fond : taille et position posées par main.js (couvre la boîte, rogné en haut et en
+   bas) ; aucun pointeur ne l'atteint (ni survol, donc ni titre ni boutons). L'affiche le couvre
+   tant qu'il ne joue pas. */
+.fond-yt { position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; }
+.fond-yt .yt__lecteur, .fond-yt iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; pointer-events: none; }
+.fond-youtube-plein .ouverture__media, .fond-youtube-plein .masque-lecture { transition: opacity 1.2s ease; }
+.fond-youtube-plein.yt-joue .ouverture__media, .fond-youtube-plein.yt-joue .masque-lecture { opacity: 0; }
+/* le texte s'ancre en bas : la façade de consentement le fait grandir vers le haut, pas sous les commandes */
+.fond-youtube-plein .ouverture__texte { top: auto; bottom: 6.5rem; }
+/* façade de consentement et état du lecteur : dans le texte de l'ouverture, au-dessus de l'écoute */
+.fond-youtube-plein .yt { position: relative; z-index: auto; width: auto; height: auto; aspect-ratio: auto; min-height: 0; margin-top: 1.4rem; background: none; }
+.fond-youtube-plein .yt__facade { position: relative; inset: auto; display: block; overflow: visible; background: none; border: 0; }
+.fond-youtube-plein .yt__consentement { max-width: none; padding: 0; text-align: left; }
+.fond-youtube-plein .yt__texte { font-size: .76rem; }
+.fond-youtube-plein .yt__plus { display: none; }
+.fond-youtube-plein .yt__etat { position: relative; inset: auto; display: block; padding: 0; text-align: left; font-size: .72rem; }
+.fond-youtube-plein .yt:empty { display: none; }
+
+/* ------- 2. respiration (section noire) ------- */
+.respiration { position: relative; padding: 24vh var(--gutter) 26vh; background: var(--bg); }
+.respiration__grille {
+  position: relative; z-index: var(--z-texte);
+  display: grid; grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: 2rem; align-items: start;
+  max-width: 1440px; margin: 0 auto;
+}
+.respiration__grille > .lorem { max-width: 15rem; }
+.respiration__grille > :nth-child(1) { grid-column: 2 / span 3; margin-top: 1rem; }
+.respiration__grille > :nth-child(2) { grid-column: 5 / span 5; justify-self: center; margin-top: 11rem; }
+.respiration__grille > :nth-child(3) { grid-column: 10 / span 3; margin-top: 2rem; }
+.citation { max-width: 30rem; text-align: center; }
+.citation__label, .citation__source {
+  font-size: .7rem; letter-spacing: .24em; text-transform: uppercase;
+  color: var(--muted);
+}
+.citation__texte {
+  margin: 1.3rem 0;
+  font-family: var(--serif); font-style: italic; font-weight: 300;
+  font-size: clamp(1.6rem, 2.4vw, 2.2rem); line-height: 1.25;
+  color: var(--fg);
+}
+
+/* ------- 3 et 5. photos plein écran : la nuée, discrète, passe dessus ------- */
+.photo {
+  position: relative;
+  height: 100vh; height: 100svh;
+  overflow: hidden;
+  background: #000;
+}
+.photo__img {
+  position: absolute; inset: 0; z-index: var(--z-fond);
+  width: 100%; height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  -webkit-touch-callout: none;
+}
+.photo--orchestre .photo__img { object-position: 60% 35%; }
+.photo--pied .photo__img { object-position: 64% 50%; }
+.photo__texte {
+  position: absolute; z-index: var(--z-texte);
+  right: 5%; top: 56%;
+  width: clamp(13rem, 16vw, 16.5rem);
+  text-shadow: 0 1px 14px rgba(0, 0, 0, .55);
+}
+.photo--pied .photo__texte { top: 13%; right: 6%; }
+
+/* ------- 4. agenda : cinq temps forts, posés comme des oiseaux sur un fil ------- */
+.agenda { position: relative; padding: 22vh var(--gutter) 28vh; background: var(--bg); }
+.agenda__tete, .dates { position: relative; z-index: var(--z-texte); }
+.agenda__tete { max-width: 1440px; margin: 0 auto 14vh; padding-left: calc(100% / 12); }
+.agenda__titre {
+  font-family: var(--serif); font-weight: 300; font-style: italic;
+  font-size: clamp(2.4rem, 4vw, 3.6rem); line-height: 1;
+  color: var(--fg);
+}
+.mention {
+  margin-top: 1rem;
+  font-size: .7rem; letter-spacing: .24em; text-transform: uppercase;
+  color: var(--muted);
+}
+.agenda__tete .lorem { max-width: 22rem; margin-top: 1.8rem; }
+.dates {
+  list-style: none;
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
+  column-gap: 2rem; align-items: start;
+  max-width: 1440px; margin: 0 auto;
+}
+.date { position: relative; padding-top: 2.4rem; }
+.date::before {
+  content: ''; position: absolute; left: 1px; top: 0;
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--froid);
+  box-shadow: 0 0 10px 2px rgba(197, 205, 214, .4);
+}
+.date:nth-child(2) { margin-top: 5vh; }
+.date:nth-child(3) { margin-top: 1.5vh; }
+.date:nth-child(4) { margin-top: 7vh; }
+.date:nth-child(5) { margin-top: 3vh; }
+.date__quand {
+  display: block;
+  font-size: .7rem; letter-spacing: .22em; text-transform: uppercase;
+  color: var(--froid);
+}
+.date__titre {
+  margin-top: .8rem;
+  font-family: var(--serif); font-weight: 400;
+  font-size: clamp(1.25rem, 1.6vw, 1.6rem); line-height: 1.15;
+  color: var(--fg);
+}
+.date__titre em { font-style: italic; }
+.date__lieu { margin-top: .6rem; font-size: .8rem; line-height: 1.45; color: var(--muted); }
+
+/* ------- 5. pied de page ------- */
+.pied { position: relative; background: var(--bg); }
+.pied__ligne {
+  position: relative; z-index: var(--z-texte);
+  display: flex; justify-content: space-between; gap: 2rem;
+  padding: 2.4rem var(--gutter) 5.6rem;          /* sous la ligne : la place des commandes fixes */
+  font-size: .72rem; line-height: 1.5; letter-spacing: .04em;
+  color: var(--muted);
+}
+.pied__ligne p:last-child { text-align: right; max-width: 34rem; }
+
+/* ------- commandes fixes : pause de l'animation (WCAG 2.2.2), réglages ------- */
+.commandes {
+  position: fixed; right: var(--gutter); bottom: 1.4rem; z-index: var(--z-commandes);
+  display: flex; gap: .5rem;
+}
+.commande {
+  display: inline-flex; align-items: center; gap: .5rem;
+  height: 2.4rem; padding: 0 .95rem;
+  border: 1px solid rgba(241, 236, 228, .18); border-radius: 999px;
+  background: rgba(4, 5, 8, .74);
+  color: rgba(241, 236, 228, .86);
+  font-size: .66rem; font-weight: 400; letter-spacing: .16em; text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color .3s ease, color .3s ease;
+}
+.commande svg { width: 1rem; height: 1rem; fill: currentColor; flex: none; }
+.commande:hover, .commande:focus-visible { border-color: rgba(241, 236, 228, .55); color: #fff; }
+.commande[aria-pressed="true"], .commande[aria-expanded="true"] { border-color: var(--froid); color: #fff; }
+.panneau-ouvert .commandes { right: calc(var(--panneau-l) + 1rem); }
+.panneau-ouvert .hint { visibility: hidden; }
+.panneau-feuille .commandes { right: var(--gutter); }
+
+/* Évitement (mode YouTube conforme) : un élément fixe qui toucherait le lecteur s'efface */
+.evite { visibility: hidden !important; }
+
+/* ------- HUD de mesure ------- */
+.hud {
+  position: fixed; left: var(--gutter); bottom: 1.4rem; z-index: var(--z-hud);
+  width: 26rem; max-width: calc(100vw - 2 * var(--gutter));
+  height: calc(8 * 1.6 * .64rem + 1.3rem);   /* huit lignes : boîte fixe, mesurée une fois pour l'évitement */
+  padding: .65rem .8rem;
+  background: rgba(3, 5, 8, .84);
+  border: 1px solid rgba(197, 205, 214, .16); border-radius: 6px;
+  font: 400 .64rem/1.6 var(--mono);
+  color: rgba(220, 228, 238, .92);
+  white-space: pre; overflow: hidden;
+  pointer-events: none;
+}
+
+/* ------- panneau de réglages (construit par reglages.js) ------- */
+.reglages {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: var(--z-panneau);
+  width: var(--panneau-l); max-width: 100vw;
+  display: flex; flex-direction: column;
+  background: #05070b;
+  border-left: 1px solid rgba(197, 205, 214, .14);
+  box-shadow: -24px 0 48px rgba(0, 0, 0, .45);
+  color: var(--fg);
+  font-family: var(--sans); font-size: .8rem; font-weight: 400;
+}
+.reglages__tete {
+  display: flex; align-items: center; gap: .8rem;
+  padding: 1.05rem 1.2rem .9rem;
+  border-bottom: 1px solid rgba(197, 205, 214, .1);
+}
+.reglages__titres { flex: 1; }
+.reglages__titre {
+  font-family: var(--serif); font-style: italic; font-weight: 400;
+  font-size: 1.55rem; line-height: 1;
+}
+.reglages__titre:focus { outline: none; }
+.reglages__sous {
+  margin-top: .3rem;
+  font: .6rem var(--mono); letter-spacing: .12em; text-transform: uppercase;
+  color: var(--muted);
+}
+.reglages__fermer {
+  flex: none; width: 2.2rem; height: 2.2rem;
+  border: 1px solid rgba(241, 236, 228, .2); border-radius: 50%;
+  background: none; cursor: pointer;
+  font-size: 1.1rem; line-height: 1;
+}
+.reglages__fermer:hover, .reglages__fermer:focus-visible { border-color: rgba(241, 236, 228, .6); }
+.reglages__corps {
+  flex: 1; overflow-y: auto; overscroll-behavior: contain;
+  padding: .2rem 1.2rem 2.2rem;
+  scrollbar-width: thin; scrollbar-color: rgba(197, 205, 214, .25) transparent;
+}
+.rg-bloc { padding: 1rem 0 1.05rem; border-bottom: 1px solid rgba(197, 205, 214, .08); }
+.rg-bloc:last-child { border-bottom: 0; }
+.rg-bloc__titre {
+  margin-bottom: .8rem;
+  font: 500 .6rem var(--mono); letter-spacing: .16em; text-transform: uppercase;
+  color: var(--muted);
+}
+.rg-onglets { display: grid; grid-template-columns: repeat(3, 1fr); gap: .4rem; }
+.rg-onglet {
+  position: relative;
+  padding: .5rem .55rem .75rem;
+  border: 1px solid rgba(197, 205, 214, .16); border-radius: 6px;
+  background: transparent; text-align: left; cursor: pointer;
+}
+.rg-onglet[aria-selected="true"] { border-color: var(--froid); background: rgba(197, 205, 214, .08); }
+.rg-onglet__nom { display: block; font-size: .78rem; }
+.rg-onglet__poids { display: block; margin-top: .2rem; font: .6rem var(--mono); color: var(--muted); }
+.rg-onglet__barre { position: absolute; left: .55rem; right: .55rem; bottom: .4rem; height: 2px; background: rgba(197, 205, 214, .12); }
+.rg-onglet__barre i { display: block; width: 0; height: 100%; background: var(--froid); }
+.rg-onglet.est-actif .rg-onglet__poids { color: var(--froid); }
+.rg-note { margin-top: .6rem; font-size: .66rem; line-height: 1.45; color: var(--muted); }
+.rg-note--alerte { color: var(--alerte); }
+.rg-champ {
+  display: grid; grid-template-columns: 1fr auto; align-items: baseline;
+  gap: .15rem .6rem;
+  margin-bottom: .9rem;
+}
+.rg-champ label { font-size: .78rem; color: rgba(241, 236, 228, .9); }
+.rg-champ output { font: .68rem var(--mono); color: var(--froid); white-space: nowrap; }
+.rg-champ.est-modifie label::after { content: ' ·'; color: var(--froid); }
+.rg-aide { grid-column: 1 / -1; font-size: .64rem; line-height: 1.4; color: var(--muted); }
+.rg-champ input[type="range"] { grid-column: 1 / -1; }
+.reglages input[type="range"] {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 1.4rem; margin: .1rem 0 0;
+  background: transparent; cursor: pointer;
+}
+.reglages input[type="range"]::-webkit-slider-runnable-track { height: 2px; background: rgba(197, 205, 214, .22); border-radius: 1px; }
+.reglages input[type="range"]::-moz-range-track { height: 2px; background: rgba(197, 205, 214, .22); border-radius: 1px; }
+.reglages input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 13px; height: 13px; margin-top: -5.5px;
+  border-radius: 50%; border: 0; background: var(--froid);
+  box-shadow: 0 0 0 3px rgba(5, 7, 11, .96);
+}
+.reglages input[type="range"]::-moz-range-thumb {
+  width: 13px; height: 13px; border-radius: 50%; border: 0; background: var(--froid);
+}
+.reglages input[type="range"]:focus-visible { outline: 1px solid var(--froid); outline-offset: 2px; }
+.rg-case { display: flex; align-items: flex-start; gap: .55rem; margin: .5rem 0; font-size: .78rem; line-height: 1.35; cursor: pointer; }
+.rg-case input { margin-top: .15rem; accent-color: var(--froid); flex: none; }
+.rg-case small { display: block; font-size: .64rem; color: var(--muted); }
+.rg-case--alerte small { color: var(--alerte); }
+.rg-groupe { margin: .4rem 0 .7rem; border: 0; }
+.rg-groupe legend, .rg-libelle { display: block; margin-bottom: .4rem; font-size: .78rem; color: rgba(241, 236, 228, .9); }
+.rg-pastilles { display: flex; flex-wrap: wrap; gap: .3rem; }
+.rg-pastilles label { position: relative; cursor: pointer; }
+.rg-pastilles input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.rg-pastilles span {
+  display: inline-block; padding: .32rem .65rem;
+  border: 1px solid rgba(197, 205, 214, .2); border-radius: 999px;
+  font-size: .7rem;
+}
+.rg-pastilles input:checked + span { border-color: var(--froid); background: rgba(197, 205, 214, .1); color: #fff; }
+.rg-pastilles input:focus-visible + span { outline: 1px solid var(--froid); outline-offset: 2px; }
+.rg-select {
+  width: 100%; padding: .45rem .55rem;
+  border: 1px solid rgba(197, 205, 214, .22); border-radius: 6px;
+  background: #07090d; font-size: .78rem;
+}
+.rg-ligne { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; }
+.rg-bouton {
+  padding: .5rem .85rem;
+  border: 1px solid rgba(197, 205, 214, .24); border-radius: 999px;
+  background: transparent;
+  font-size: .7rem; letter-spacing: .04em; cursor: pointer;
+}
+.rg-bouton:hover, .rg-bouton:focus-visible { border-color: var(--froid); color: #fff; }
+.rg-bouton[aria-pressed="true"] { border-color: var(--alerte); color: var(--alerte); }
+.rg-bouton:disabled { opacity: .45; cursor: default; }
+.rg-echange { margin-top: .7rem; }
+.rg-echange textarea {
+  display: block; width: 100%; min-height: 8.5rem; resize: vertical;
+  padding: .6rem;
+  border: 1px solid rgba(197, 205, 214, .2); border-radius: 6px;
+  background: #04060a;
+  font: .66rem/1.45 var(--mono); color: var(--fg);
+}
+.rg-echange .rg-ligne { margin-top: .5rem; }
+.rg-statut { min-height: 1.3em; margin-top: .6rem; font: .64rem/1.45 var(--mono); color: var(--froid); }
+.rg-touches { margin: .4rem 0 .8rem; font-size: .7rem; line-height: 1.7; color: rgba(241, 236, 228, .8); }
+.rg-touches kbd {
+  display: inline-block; min-width: 1.4em; padding: 0 .35rem;
+  border: 1px solid rgba(197, 205, 214, .32); border-radius: 3px;
+  font: .64rem/1.5 var(--mono); text-align: center;
+}
+.rg-alerte { color: var(--alerte); }
+
+/* Mode YouTube sur ordinateur étroit : le panneau ne peut pas se ranger à côté du lecteur,
+   il devient une feuille sous lui (hauteur posée par main.js). */
+.panneau-feuille .reglages {
+  top: auto; left: 0; right: 0; bottom: 0;
+  width: auto;
+  max-height: var(--panneau-max-h, 50vh);
+  border-left: 0; border-top: 1px solid rgba(197, 205, 214, .18);
+  border-radius: 14px 14px 0 0;
+  box-shadow: 0 -18px 40px rgba(0, 0, 0, .55);
+}
+
+/* ------- mouvement réduit ------- */
+@media (prefers-reduced-motion: reduce) {
+  .js .ouverture [data-revele] { transform: none; transition: opacity .8s ease; }
+  .ecoute__icone, .commande { transition: none; }
+}
+.js.reduit .ouverture [data-revele] { transform: none; transition: opacity .8s ease; }
+
+/* ------- téléphone (portrait) ------- */
+@media (max-width: 720px) {
+  :root { --gutter: 16px; }
+  .nav { padding: 1.1rem 16px; }
+  .logo__first { font-size: 1.1rem; margin-left: 1.5rem; }
+  .logo__last { font-size: 1.65rem; }
+
+  /* le chef au centre : le texte descend en bas, sur un dégradé sombre */
+  .ouverture__texte {
+    left: 0; right: 0; top: auto; bottom: 0;
+    width: auto;
+    padding: 7rem 16px 4.6rem;
+    background: linear-gradient(to top, rgba(0, 0, 0, .86) 52%, rgba(0, 0, 0, 0));   /* la nuée ne passe pas sous le texte */
+  }
+  .ouverture__texte .lorem { max-width: 20rem; font-size: .9rem; }
+  .ouverture__texte::before { display: none; }
+  .ecoute { margin-top: 1.1rem; }
+  .hint { display: none; }
+
+  .fond-youtube .ouverture__scene {
+    grid-template-columns: 100%;
+    align-content: start;
+    row-gap: 1.4rem;
+    padding: var(--yt-haut, 5.5rem) 0 5.5rem;
+  }
+  .fond-youtube .ouverture__scene[data-disposition="pile"] { grid-template-columns: 100%; }
+  .fond-youtube-plein .ouverture__texte { bottom: 0; }
+  .yt { width: 100%; height: auto; aspect-ratio: 16 / 9; min-height: 200px; }
+  .fond-youtube .ouverture__texte { padding: 0 16px; background: none; max-width: none; }
+  .yt__consentement { padding: .6rem .9rem; }
+  .yt__affiche, .yt__plus { display: none; }
+  .yt__texte { margin-top: .4rem; font-size: .74rem; line-height: 1.4; }
+  .yt__bouton { margin-top: .6rem; padding: .6rem 1rem; }
+  .yt__liens { margin-top: .5rem; font-size: .62rem; }
+  .yt-alerte { margin-bottom: 1rem; font-size: .6rem; }
+
+  .respiration { padding: 16vh 16px 18vh; }
+  .respiration__grille { display: block; }
+  .respiration__grille > * { margin: 0 0 4rem !important; max-width: 20rem; }
+  .respiration__grille > :nth-child(2) { margin: 0 auto 4rem !important; }
+  .respiration__grille > :nth-child(3) { margin-left: auto !important; }
+  .citation__texte { font-size: 1.55rem; }
+
+  .photo__texte, .photo--pied .photo__texte {
+    left: 0; right: 0; top: auto; bottom: 0; width: auto;
+    padding: 5rem 16px 4.6rem;
+    background: linear-gradient(to top, rgba(0, 0, 0, .78) 30%, rgba(0, 0, 0, 0));
+  }
+  .photo__texte .lorem { max-width: 20rem; font-size: .9rem; }
+
+  .agenda { padding: 14vh 16px 18vh; }
+  .agenda__tete { padding-left: 0; margin-bottom: 8vh; }
+  .dates { display: block; }
+  .date { margin: 0 0 3.2rem !important; padding: 0 0 0 1.6rem; }
+  .date::before { top: .35rem; }
+
+  .pied__ligne { flex-direction: column; gap: .8rem; padding: 1.8rem 16px 5rem; }
+  .pied__ligne p:last-child { text-align: left; }
+
+  .commandes { right: 12px; bottom: 12px; bottom: max(12px, env(safe-area-inset-bottom)); gap: .4rem; }
+  .commande { width: 2.75rem; height: 2.75rem; padding: 0; justify-content: center; }
+  .commande__texte {
+    position: absolute; width: 1px; height: 1px; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+  }
+  .panneau-ouvert .commandes { right: 12px; }
+
+  .hud { left: 12px; right: 9.5rem; bottom: 12px; width: auto; max-width: none; font-size: .56rem; height: calc(8 * 1.6 * .56rem + 1.3rem); }
+
+  /* panneau : feuille du bas, défilable, jamais plus haute que l'espace sous le lecteur YouTube */
+  .reglages {
+    top: auto; left: 0; right: 0; bottom: 0;
+    width: auto;
+    max-height: 72vh; max-height: var(--panneau-max-h, 72svh);
+    border-left: 0; border-top: 1px solid rgba(197, 205, 214, .18);
+    border-radius: 14px 14px 0 0;
+    box-shadow: 0 -18px 40px rgba(0, 0, 0, .55);
+  }
+  .reglages__tete { padding: .8rem 16px .7rem; position: relative; }
+  .reglages__tete::before {
+    content: ''; position: absolute; left: 50%; top: .35rem;
+    width: 2.4rem; height: 3px; margin-left: -1.2rem;
+    border-radius: 2px; background: rgba(197, 205, 214, .3);
+  }
+  .reglages__titre { font-size: 1.3rem; }
+  .reglages__corps { padding: 0 16px 1.6rem; }
+}
