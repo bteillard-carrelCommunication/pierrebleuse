@@ -12,12 +12,20 @@
  * Les paramètres d'URL (?fond=, ?figure=, ?hud=1) s'appliquent sans être mémorisés tant
  * qu'on ne les change pas dans le panneau. Ouverture : bouton « Réglages » ou touche P,
  * câblés par main.js ; Échap ferme.
+ *
+ * Écarts site (12/11/2026), par rapport à hypotheses/h4-etourneaux/js/reglages.js :
+ *   - les trois contextes s'appellent « En musique », « Sans musique », « Défilement »
+ *     dans le panneau (les clés du JSON restent video, ambiance, scroll) ;
+ *   - « Appliquer ces réglages à » : copie le mode édité vers un autre, en un clic ;
+ *   - le bloc « Lecture » (musique, animation, son) passe en tête du panneau : la page
+ *     n'a plus de commandes fixes, le rouage de la navigation ouvre ce panneau.
  */
 (function () {
   'use strict';
 
   const VERSION = 1;
-  const NOMS_CONTEXTES = { video: 'vidéo', ambiance: 'ambiance', scroll: 'scroll' };
+  // Écart site : noms parlants (origine : vidéo, ambiance, scroll)
+  const NOMS_CONTEXTES = { video: 'En musique', ambiance: 'Sans musique', scroll: 'Défilement' };
   const CHOIX = {
     fond: [['image', 'Image fixe'], ['video', 'Vidéo hébergée'], ['youtube', 'YouTube']],
     figure: [['auto', 'Automatique (musique)'], ['traine', 'Traîne (vol1)'], ['masse', 'Masse (vol2)'], ['voile', 'Voile (vol3)'], ['fil', 'Fil (scroll)']],
@@ -218,8 +226,8 @@
     };
 
     /* contextes : onglets + poids actuels */
-    const blocCtx = bloc('Contexte édité');
-    const onglets = el('div', { class: 'rg-onglets', role: 'tablist', 'aria-label': 'Contexte édité' });
+    const blocCtx = bloc('Mode édité');
+    const onglets = el('div', { class: 'rg-onglets', role: 'tablist', 'aria-label': 'Mode édité' });
     const ongletEls = {};
     for (const c of P.CONTEXTES) {
       const barre = el('i');
@@ -244,7 +252,52 @@
       e.preventDefault();
       choisirOnglet(P.CONTEXTES[j], true);
     });
-    blocCtx.append(onglets, el('p', { class: 'rg-note', text: 'Les curseurs montrent le contexte édité. La nuée mélange les trois contextes selon leur poids actuel : vidéo quand la musique joue, ambiance sans musique, scroll sous l\'ouverture.' }));
+    blocCtx.append(onglets, el('p', { class: 'rg-note', text: 'Les curseurs montrent le mode édité. En haut de page, la nuée suit «\u00a0En musique\u00a0» quand la musique joue, «\u00a0Sans musique\u00a0» sinon. En défilant, elle glisse vers «\u00a0Défilement\u00a0», seul en jeu une fois l\'ouverture sortie de l\'écran. Les pourcentages donnent le mélange en direct. Dans le JSON\u00a0: video, ambiance, scroll.' }));
+
+    /* Écart site (12/11/2026) : appliquer les réglages du mode édité à un autre, en un clic.
+       Un seul niveau d'annulation ; les boutons suivent l'onglet (majAppliquer). */
+    const titreAppliquer = el('p', { class: 'rg-appliquer__titre' });
+    const ligneAppliquer = el('div', { class: 'rg-ligne' });
+    const statutAppliquer = el('p', { class: 'rg-statut', role: 'status', 'aria-live': 'polite' });
+    const boutonAnnulerAppliquer = el('button', { type: 'button', class: 'rg-bouton', text: 'Annuler' });
+    let avantAppliquer = null;
+    const nomCtx = (c) => '«\u00a0' + (NOMS_CONTEXTES[c] || c) + '\u00a0»';
+    function ecrireValeurs(cibles, source) {
+      for (const c of cibles) for (const d of P.DEFS) etat.valeurs[c][d.id] = source(c)[d.id];
+      for (const d of P.DEFS) majChamp(d);
+      rappel('surValeur', '*', null, null);
+      sauverMaintenant();
+    }
+    function appliquerA(cibles) {
+      const src = etat.extra.onglet;
+      const avant = {};
+      for (const c of cibles) avant[c] = Object.assign({}, etat.valeurs[c]);
+      avantAppliquer = avant;
+      ecrireValeurs(cibles, () => etat.valeurs[src]);
+      statutAppliquer.textContent = 'Réglages de ' + nomCtx(src) + ' appliqués à ' + cibles.map(nomCtx).join(' et ') + '. ';
+      statutAppliquer.appendChild(boutonAnnulerAppliquer);
+    }
+    boutonAnnulerAppliquer.addEventListener('click', () => {
+      if (!avantAppliquer) return;
+      const avant = avantAppliquer;
+      avantAppliquer = null;
+      ecrireValeurs(Object.keys(avant), (c) => avant[c]);
+      statutAppliquer.textContent = 'Copie annulée.';
+    });
+    function majAppliquer() {
+      const src = etat.extra.onglet;
+      const autres = P.CONTEXTES.filter((c) => c !== src);
+      titreAppliquer.textContent = 'Appliquer les réglages de ' + nomCtx(src) + ' à\u00a0:';
+      ligneAppliquer.textContent = '';
+      const bouton = (texte, cibles) => {
+        const b = el('button', { type: 'button', class: 'rg-bouton', text: texte });
+        b.addEventListener('click', () => appliquerA(cibles));
+        ligneAppliquer.appendChild(b);
+      };
+      for (const c of autres) bouton(NOMS_CONTEXTES[c] || c, [c]);
+      if (autres.length > 1) bouton('Les deux', autres);
+    }
+    blocCtx.appendChild(el('div', { class: 'rg-appliquer' }, [titreAppliquer, ligneAppliquer, statutAppliquer]));
 
     /* valeurs par groupe */
     const panneauValeurs = el('div', { id: 'rg-valeurs', role: 'tabpanel' });
@@ -305,13 +358,23 @@
       panneauValeurs.setAttribute('aria-labelledby', 'rg-onglet-' + c);
       if (focus) ongletEls[c].b.focus();
       for (const d of P.DEFS) majChamp(d);
+      majAppliquer();                    // écart site : « Appliquer ces réglages à »
       if (!initial) sauver();
     }
 
-    /* écoute et son (miroir des commandes de l'ouverture) */
-    const blocEcoute = bloc('Écoute');
-    const boutonEcoute = el('button', { type: 'button', class: 'rg-bouton', 'aria-pressed': 'false', text: 'Écouter' });
+    /* écoute et son (miroir des commandes de l'ouverture).
+       Écart site (12/11/2026) : le bloc s'appelle « Lecture », reçoit le bouton de pause de
+       l'animation (la page n'a plus de commandes fixes) et passe en tête du panneau, plus bas. */
+    const blocEcoute = bloc('Lecture', 'rg-lecture');
+    const boutonEcoute = el('button', { type: 'button', class: 'rg-bouton', 'aria-pressed': 'false', text: 'Écouter la musique' });
     boutonEcoute.addEventListener('click', (e) => rappel('surAction', 'ecouter', e));
+    const boutonAnimation = el('button', { type: 'button', class: 'rg-bouton', 'aria-pressed': 'false', text: 'Pause de l\'animation' });
+    boutonAnimation.addEventListener('click', () => definirGlobal('animation', etat.globaux.animation === false));
+    function majBoutonAnimation() {
+      const pause = etat.globaux.animation === false;
+      boutonAnimation.textContent = pause ? 'Reprendre l\'animation' : 'Pause de l\'animation';
+      boutonAnimation.setAttribute('aria-pressed', pause ? 'true' : 'false');
+    }
     const radiosSon = {};
     const pastSon = el('div', { class: 'rg-pastilles', role: 'radiogroup', 'aria-label': 'Son' });
     for (const [v, lib] of SONS) {
@@ -321,7 +384,7 @@
       pastSon.appendChild(el('label', null, [r, el('span', { text: lib })]));
     }
     blocEcoute.append(
-      el('div', { class: 'rg-ligne' }, boutonEcoute),
+      el('div', { class: 'rg-ligne' }, [boutonEcoute, boutonAnimation]),
       el('p', { class: 'rg-libelle', style: 'margin-top:.8rem', text: 'Son' }),
       pastSon,
       el('p', { class: 'rg-note', text: 'La nuée suit la position de lecture : la synchronisation est la même son coupé, inaudible ou audible. Le son ne démarre que sur un clic ou une touche.' })
@@ -373,6 +436,9 @@
       caseGlobal('hud', 'HUD de mesure', 'Cadence, points, horloge, écart de synchronisation, figures.'),
       caseGlobal('animation', 'Animation', 'Décocher met la nuée en pause (même effet que « Pause de l\'animation »).')
     );
+    /* Écart site : le bouton du bloc « Lecture » suit la case « Animation » */
+    const majCaseAnimation = controles.animation.maj;
+    controles.animation.maj = () => { majCaseAnimation(); majBoutonAnimation(); };
 
     /* vidéo de fond (H4-3) : préréglage, curseurs, teinte ; en tête du panneau */
     function curseurGlobal(d) {
@@ -411,6 +477,8 @@
       ].filter(Boolean));
       corps.insertBefore(blocF, corps.firstChild);
     }
+    /* Écart site (12/11/2026) : « Lecture » en tête du panneau, avant tout le reste */
+    corps.insertBefore(blocEcoute, corps.firstChild);
 
     /* conduite manuelle (mode YouTube) */
     const blocConduite = bloc('Conduite (YouTube)', 'rg-conduite');
@@ -664,7 +732,8 @@
         }
       }
       if (typeof info.ecoute === 'boolean') {
-        const lib = info.libelle || (info.ecoute ? 'Pause' : 'Écouter');
+        // Écart site : libellés explicites, le bouton voisine avec « Pause de l'animation »
+        const lib = info.ecoute ? 'Pause de la musique' : 'Écouter la musique';
         if (boutonEcoute.textContent !== lib) boutonEcoute.textContent = lib;
         boutonEcoute.setAttribute('aria-pressed', info.ecoute ? 'true' : 'false');
       }
