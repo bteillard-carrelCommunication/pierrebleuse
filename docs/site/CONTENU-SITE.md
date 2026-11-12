@@ -239,3 +239,119 @@ Le formulaire d'inscription est inerte pour l'instant (pas de collecte de donné
 5. Liens d'écoute des disques, comptes YouTube et LinkedIn.
 6. Adresse de contact communication.
 7. Photographies : le site utilise pour l'instant les images en 992 px, en attente des HD et des crédits.
+
+---
+
+## 11. Évolutions du 12 novembre 2026 (site à la racine, matrice 12 colonnes)
+
+La page suit désormais le tableau des sections du 12/11/2026 (voir `LISEZ-MOI.md`). Textes ajoutés
+ou modifiés ; le dictionnaire de `js/contenu.js` et les fichiers de `data/` en sont la copie.
+
+**Navigation** : Agenda / Concerts, Disques / Recordings, Parcours / Biography, Presse / Press,
+Téléchargement / Downloads, Contact / Contact.
+
+**Ouverture**
+
+| Clé | Français | English |
+|---|---|---|
+| citation | « Plus je progresse, plus je me sens libre » | “The further I progress, the freer I feel” `[À CONFIRMER]` traduction proposée |
+| lecteur | Play, Pause | Play, Pause |
+| liste des titres | Choisir la musique | Choose the music |
+
+Le surtitre, les deux fonctions et la ligne « Prochain concert » ne figurent plus dans l'ouverture.
+
+**Musiques** (`data/playlist.js`)
+
+| Titre | Mention |
+|---|---|
+| Tchaïkovski, *Pathétique*, IV | Extrait, domaine public / Excerpt, public domain |
+| Berlioz, *Symphonie fantastique* | Pierre Bleuse, SWR Symphonieorchester · ARD Klassik |
+| The Centenary of Pierre Boulez | Ensemble intercontemporain & Friends · ARTE Concert |
+
+`[À CONFIRMER]` Droits des deux captations (ARD Klassik, ARTE Concert) avant mise en ligne.
+
+**Agenda** : En savoir plus / Find out more ; Tous les concerts / All concerts ; en-têtes de
+tableau : Mois / Month, Date / Date, Pays, ville / Country, city, Salle / Venue, Orchestre,
+programme / Orchestra, programme ; page des concerts : À venir / Upcoming, Concerts passés / Past
+concerts.
+
+**Disques** : Disques / Recordings ; Le mot de Pierre Bleuse / A word from Pierre Bleuse ;
+Commander / Order ; Écouter / Listen.
+
+**Parcours** : cartes Monde / World et Europe / Europe. Villes des orchestres invités (étiquettes
+des points) : Amsterdam, Londres / London, Birmingham, Paris, Hambourg / Hamburg, Francfort /
+Frankfurt, Stuttgart, Stockholm, Helsinki, Genève / Geneva, Tokyo, Singapour / Singapore, São
+Paulo, Auckland.
+
+**Presse** : Lire l'article / Read the article ; Tous les articles / All articles ; en-têtes :
+Média / Publication, Article / Article, Auteur / Author, Extrait / Quote. Nature des articles :
+À propos de *Ravel Abroad* / On *Ravel Abroad* (*Fanfare*), Portrait / Profile (*Le Monde*).
+
+**Téléchargement** (ex « Espace professionnel ») : Téléchargement / Downloads ; Biographie, en
+français / Biography, in French ; Biographie, en anglais / Biography, in English ; Photographies /
+Photographs ; Identité visuelle / Visual identity ; à venir / coming soon.
+
+**Suivre** : Suivre Pierre Bleuse / Follow Pierre Bleuse (la lettre et les réseaux, inchangés).
+
+**Contacts** (fournis le 12/11/2026)
+
+- HarrisonParrott, Worldwide general management
+- François Guyard, Senior Director, General Manager HarrisonParrott Paris, +33 660 73 72 89,
+  francois.guyard@harrisonparrott.fr
+- Yeijin Park, Artist Coordinator, +33 (0)7 62 35 03 38, yeijin.park@harrisonparrott.co.uk
+- Communication / Communications : Carrel Communication `[À CONFIRMER]` coordonnées
+
+**Pied de page** : Site en construction · musiques : Tchaïkovski, Symphonie n° 6, IV, Musopen
+(domaine public) ; Berlioz, *Symphonie fantastique*, SWR Symphonieorchester (ARD Klassik) ; *The
+Centenary of Pierre Boulez*, Ensemble intercontemporain & Friends (ARTE Concert). Réglages de la
+nuée / Cloud settings ; Pause de l'animation / Pause the animation ; Reprendre l'animation /
+Resume the animation.
+
+**Pages secondaires** : Retour à l'accueil / Back to home.
+
+**Sortis de la page d'accueil** (textes conservés plus haut) : la citation de presse de la partie
+3, la phrase de la partie 4, « Formation » et les deux liens de la partie 6, les vidéos de la
+partie 7, la phrase d'introduction de la partie 9.
+
+
+## 12. Retours de l'atelier (12/11/2026, fin d'après-midi) : libellés modifiés
+
+Les libellés ci-dessous remplacent ceux de la partie 11. Source : `js/contenu.js`.
+
+| Emplacement | Français | Anglais |
+|---|---|---|
+| Menu et titre de section | Discographie | Discography |
+| Agenda, tableau | Les concerts | The concerts |
+| Agenda, fiche | En savoir plus | Find out more |
+| Section « Suivre » | Restons en contact | Stay in touch |
+| Lettre, champ | Adresse e-mail | Email address |
+| Lettre, bouton | S'inscrire | Subscribe |
+| Lettre, mention | Inscription bientôt ouverte | Sign-up opening soon |
+| Ouverture, pictogramme de défilement | Faire défiler la page | Scroll down |
+| Bouton fixe | Haut de page | Back to top |
+| Pied de page | Mentions légales · Confidentialité · Crédits | Legal notice · Privacy · Credits |
+| Titres des pages légales | Mentions légales ; Politique de confidentialité ; Crédits | Legal notice ; Privacy policy ; Credits |
+| Vidéo du visuel 3 | Pierre Bleuse en concert, extraits d'une captation | Pierre Bleuse in concert, excerpts from a filmed performance |
+
+**Retirés de l'affichage** : « Temps fort » / Highlight (le drapeau reste dans les données),
+« Derniers concerts » / Recent concerts (les concerts passés sont sur `concerts.html`), le titre
+« Parcours » (gardé pour les lecteurs d'écran), les noms des cartes.
+
+**Presse, champ ajouté** : `resume`, court résumé de l'article, en français et en anglais. Vide
+pour les quatre articles : `[À FOURNIR]`.
+
+**Contacts, communication** (fournis le 12/11/2026) : Carrel Communication, +33 6 89 90 57 31,
+communication@pierrebleuse.com.
+
+**Pages légales** : textes complets, en français et en anglais, dans `mentions-legales.html`,
+`confidentialite.html` et `credits.html`. Les passages `[À COMPLÉTER]` y sont balisés
+`<mark class="a-completer">` ; la liste est dans `LISEZ-MOI.md`, « Pages légales ».
+
+### Retours du 12/11/2026 au soir
+
+- Marges latérales de la matrice multipliées par 1,7 (ordinateur et tablette ; téléphone inchangé).
+- Parcours : le bandeau de la carte du monde a un fond noir à 90 % sur toute la largeur ; Salt
+  Lake City ajoutée à la carte (point seul, nom de l'orchestre à fournir).
+- Visuel 3 : vidéo opaque à 95 %, nuée visible à 5 % au travers (`nuee: 'arriere-plan'`).
+- Contacts : numéros au même format (+33 6 60 73 72 89, +33 7 62 35 03 38, +33 6 89 90 57 31).
+- Rien n'est commité.

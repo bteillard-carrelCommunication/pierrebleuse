@@ -388,3 +388,69 @@ Reste à trancher :
 - Avant la mise en ligne : sort du panneau de réglages et du rouage (garder un moyen de mettre l'animation en pause), bande-son définitive, liste complète dans `site/LISEZ-MOI.md`.
 - Pages à venir appelées par les liens inertes : biographie complète, archives de l'agenda, revue de presse, inscription à la lettre.
 - Le filtre facultatif de l'agenda (Tout, France, International) n'a pas été fait.
+
+## 20. Le site à la racine, matrice 12 colonnes, un seul mode de vol (12/11/2026, après-midi)
+
+Consignes du jour appliquées en une passe. Tout le détail est dans `LISEZ-MOI.md` (à la racine).
+
+- **Arborescence** : le site quitte `site/` pour la racine. Toute la phase des hypothèses
+  (`hypotheses/`, l'ancienne home, la maquette, `css/`, `js/`, `assets/`, `outils/` d'origine) est
+  dans `_archives/phase-hypotheses/`, arborescence intacte, pages toujours fonctionnelles.
+- **Page** : treize sections dans l'ordre du tableau fourni, posées sur une matrice de 12 colonnes
+  entre deux marges (classes `.bloc-…`). Chaque section dit où passe la nuée
+  (`.nuee-premier-plan`, `.nuee-arriere-plan`) et l'opacité de son fond (`.fond-0` à `.fond-100`).
+- **Nuée** : un seul mode de vol, réglages validés du jour par défaut. Elle ne défile plus avec la
+  page. Nouveau : le volume règle le nombre de points, leur opacité, la dilatation du nuage et, au
+  plus fort, un effet de boule ; l'opacité globale est fixe. Musique arrêtée : glissement vers le
+  programme autonome ; changement de titre : fondu.
+- **Musique** : lecture automatique (au premier geste si le navigateur la refuse), trois titres
+  (`data/playlist.js`), lecteur dans l'ouverture et dans la barre du haut.
+- **Barre du haut** : logo, réseaux et langues toujours visibles ; menu et petit lecteur au début
+  du défilement. Ancres en défilement doux, liens sortants dans un nouvel onglet.
+- **Contenus** : agenda (4 fiches, tableau des dates suivantes, 4 derniers concerts, page
+  `concerts.html`), disques, parcours avec deux cartes interactives, presse (page `presse.html`),
+  téléchargement, suivre, contacts. Visuels pilotés par `data/visuels.js`.
+- **Rien n'est commité** : les déplacements sont faits avec `git mv`, à relire puis à valider.
+
+Reste à trancher : la liste « À fournir ou à confirmer » de `LISEZ-MOI.md`, en premier les droits
+des deux captations (ARD Klassik, ARTE Concert) et le sens de « découpes » pour les visuels.
+
+## 21. Retours de l'atelier : découpes, vidéo, aimantation, pages légales (12/11/2026, fin d'après-midi)
+
+Retours de l'atelier appliqués en une passe. Le détail est dans `LISEZ-MOI.md`.
+
+- **« Découpes » élucidées** : c'est le traitement des images de l'hypothèse 3 (« Lever »). Les
+  visuels 1 et 2 passent en « lumière » (`js/lumiere.js`, shader et préréglages de H3 repris sans
+  Pixi) : photo dans la pénombre, faisceaux, photo retournée à l'intérieur.
+- **Visuel 3** : la vidéo de l'hypothèse 4-3 (`assets/media/captation.mp4`), avec son. Elle part
+  à l'arrivée sur la section et prend le relais de la musique (jamais les deux sons ensemble) ;
+  la musique reprend à la sortie. La nuée vole par-dessus et suit sa bande-son.
+- **Aimantation des sections** (à travailler) : dès que 10 % d'une section sont à l'écran, la
+  page défile seule jusqu'à elle. Réglable et débrayable (panneau, `?aimant=0`).
+- **Ouverture** : pictogramme de défilement au centre ; liste des titres alignée sur l'icône de
+  lecture, sans pictogramme de liste. **Bouton de retour en haut** au quart du défilement.
+- **Fonds** : bio sans fond de section (texte sur un fond noir à 50 %, vaporeux, colonnes 10 à
+  12) ; `.fond-80` à la place de `.fond-15` ; parcours à 50 %, sans titre, sans carte de l'Europe.
+- **Agenda** : fiches alignées en haut, « En savoir plus » sur chacune, « La saison » devient
+  « Les concerts », « Temps fort » n'est plus affiché (drapeau conservé), les concerts passés ne
+  sont plus que sur `concerts.html`. « Disques » devient « Discographie ».
+- **Presse** : fiche = logo et nom du média, titre, verbatim, résumé, date, auteur, lien.
+- **« Restons en contact »** : champ et bouton inertes, réseaux en pictogrammes de la hauteur du
+  bouton. **Contacts** : communication@pierrebleuse.com, +33 6 89 90 57 31.
+- **Brume** retirée (0 tout le temps, plus de curseur).
+- **Pages légales** : `mentions-legales.html`, `confidentialite.html`, `credits.html`, en français
+  et en anglais, avec les passages à compléter en ambre.
+- **Rien n'est commité.**
+
+Reste à trancher : les droits (deux captations de diffuseurs et la vidéo, capture d'écran de
+YouTube), les passages en ambre des pages légales, le comportement de l'aimantation après essai
+sur de vrais appareils, puis la liste « À fournir ou à confirmer » de `LISEZ-MOI.md`.
+
+### Retours du 12/11/2026 au soir
+
+- Marges latérales de la matrice multipliées par 1,7 (ordinateur et tablette ; téléphone inchangé).
+- Parcours : le bandeau de la carte du monde a un fond noir à 90 % sur toute la largeur ; Salt
+  Lake City ajoutée à la carte (point seul, nom de l'orchestre à fournir).
+- Visuel 3 : vidéo opaque à 95 %, nuée visible à 5 % au travers (`nuee: 'arriere-plan'`).
+- Contacts : numéros au même format (+33 6 60 73 72 89, +33 7 62 35 03 38, +33 6 89 90 57 31).
+- Rien n'est commité.

@@ -1,0 +1,732 @@
+/* ==========================================================================
+   site.css · mise en page du site Pierre Bleuse
+
+   1. Matrice : 12 colonnes entre deux marges latérales (logo dans la marge
+      gauche, menu, réseaux et langues dans la marge droite). Chaque bloc de
+      contenu se pose sur la matrice par une classe .bloc-… ; la matrice se
+      replie à 1179 px (deux blocs par ligne) puis à 720 px (une colonne).
+   2. Profondeur : chaque section dit où passe la nuée (.nuee-premier-plan ou
+      .nuee-arriere-plan) et, en arrière-plan, l'opacité de son fond noir
+      (.fond-0 à .fond-100, de 5 en 5). Voir aussi l'en-tête d'etourneaux.css.
+   Les règles du moteur (canvas, HUD, panneau) sont dans etourneaux.css.
+   ========================================================================== */
+
+:root {
+  --bord: 2rem;                              /* barre du haut et pied : toute la largeur */
+  --marge: clamp(1.7rem, 16.15vw, 22.1rem);  /* marges latérales de la matrice (× 1,7 le 12/11/2026 : 9,5 vw auparavant) */
+  --gouttiere: clamp(1rem, 1.7vw, 2rem);
+  --barre: 1;                                /* barre du haut : 0 invisible, 1 visible (sans script : visible) */
+  --barre-h: 6.7rem;                         /* hauteur de la barre du haut une fois apparue : les sections commencent dessous */
+  --h-bouton: 2.6rem;                        /* hauteur commune du champ, du bouton et des pictogrammes de « Restons en contact » */
+}
+.js { --barre: 0; }                          /* avec script : main.js la fait apparaître au début du défilement */
+
+/* ------- langue : en anglais, pas d'éclair de français avant le remplacement ------- */
+.i18n-attente [data-t], .i18n-attente [data-rendu], .i18n-attente [data-langue-bloc] { visibility: hidden; }
+[tabindex="-1"]:focus { outline: none; }
+
+/* ==========================================================================
+   1. Matrice
+   ========================================================================== */
+.grille {
+  display: grid; grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gouttiere); align-items: start;
+  margin: 0 var(--marge);
+}
+.grille + .grille { margin-top: 12vh; }
+.grille--titre + .grille { margin-top: 0; }          /* le titre d'un rang et son contenu */
+.bloc-plein  { grid-column: 1 / -1; }          /* colonnes 1 à 12 */
+.bloc-large  { grid-column: 1 / span 9; }      /* colonnes 1 à 9 */
+.bloc-droite { grid-column: 10 / span 3; }     /* colonnes 10 à 12 */
+.bloc-quart  { grid-column: span 3; }          /* quatre blocs de trois colonnes */
+@media (max-width: 1179px) {
+  .bloc-large  { grid-column: 1 / -1; }
+  .bloc-droite { grid-column: 7 / span 6; }
+  .bloc-quart  { grid-column: span 6; }
+}
+@media (max-width: 720px) {
+  :root { --bord: 16px; --marge: 16px; }
+  .grille > * { grid-column: 1 / -1; }
+  .grille + .grille { margin-top: 9vh; }
+}
+
+/* ==========================================================================
+   2. Profondeur : place de la nuée et opacité du fond de section
+   ========================================================================== */
+.nuee-arriere-plan { position: relative; z-index: var(--z-section); }   /* la section passe devant la nuée */
+.nuee-premier-plan { position: relative; }                              /* la nuée passe devant la section */
+.nuee-premier-plan .dessus { z-index: var(--z-dessus); }                /* sauf ce bloc, qui reste lisible */
+.fond-0 { --fond: 0; }      .fond-5 { --fond: .05; }   .fond-10 { --fond: .1; }   .fond-15 { --fond: .15; }
+.fond-20 { --fond: .2; }    .fond-25 { --fond: .25; }  .fond-30 { --fond: .3; }   .fond-35 { --fond: .35; }
+.fond-40 { --fond: .4; }    .fond-45 { --fond: .45; }  .fond-50 { --fond: .5; }   .fond-55 { --fond: .55; }
+.fond-60 { --fond: .6; }    .fond-65 { --fond: .65; }  .fond-70 { --fond: .7; }   .fond-75 { --fond: .75; }
+.fond-80 { --fond: .8; }    .fond-85 { --fond: .85; }  .fond-90 { --fond: .9; }   .fond-95 { --fond: .95; }
+.fond-100 { --fond: 1; }
+/* section de contenu : fond noir à l'opacité choisie, entre la nuée et le texte. Une section fait
+   au moins un écran (l'aimantation s'arrête sur elle) et son contenu commence nettement sous la
+   barre du haut. */
+.section {
+  min-height: 100vh; min-height: 100svh;
+  padding: calc(var(--barre-h) + 11vh) 0 16vh;
+  background-color: rgb(0 0 0 / var(--fond, 0));
+}
+@media (max-width: 720px) { .section { padding: calc(var(--barre-h) + 6vh) 0 13vh; } }
+
+/* ==========================================================================
+   Texte, liens, apparitions
+   ========================================================================== */
+.texte { font-family: var(--sans); font-weight: 400; font-size: .94rem; line-height: 1.55; color: #fff; }
+.texte + .texte { margin-top: 1.2rem; }
+.section, .visuel, .pied { text-shadow: 0 1px 12px rgba(0, 0, 0, .5); }   /* la nuée passe derrière les textes */
+
+main a[href], .pied a[href] {
+  text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .24em;
+  text-decoration-color: rgba(197, 205, 214, .5);
+  transition: text-decoration-color .3s, color .3s;
+}
+main a[href]:hover, .pied a[href]:hover { text-decoration-color: #fff; color: #fff; }
+/* lien inerte : pas de href, aria-disabled, annoncé comme indisponible */
+.inerte { color: var(--muted); cursor: default; text-decoration: none; }
+.avenir {
+  display: inline-block; margin-left: .7em; padding: .2em .6em .15em;
+  border: 1px solid rgba(143, 138, 130, .5); border-radius: 999px;
+  font-family: var(--sans); font-style: normal; font-weight: 400;
+  font-size: .58rem; letter-spacing: .2em; text-transform: uppercase; line-height: 1.4;
+  color: var(--muted); white-space: nowrap; vertical-align: middle;
+}
+.lien {
+  display: inline-block; padding-bottom: .2rem;
+  font-size: .66rem; letter-spacing: .18em; text-transform: uppercase; color: #fff; white-space: nowrap;
+  text-decoration: none !important; border-bottom: 1px solid rgba(197, 205, 214, .5);
+  transition: border-color .3s;
+}
+.lien:hover { border-bottom-color: #fff; }
+.bouton {
+  display: inline-block; padding: .75rem 1.35rem;
+  border: 1px solid rgba(241, 236, 228, .45); border-radius: 999px; background: rgba(0, 0, 0, .3);
+  font-size: .66rem; font-weight: 400; letter-spacing: .18em; text-transform: uppercase; color: #fff;
+  text-decoration: none !important; cursor: pointer;
+  transition: border-color .3s, background-color .3s;
+}
+a.bouton:hover, button.bouton:not(:disabled):hover { border-color: #fff; background: rgba(197, 205, 214, .12); }
+.bouton:disabled, .bouton.inerte { color: rgba(241, 236, 228, .7); border-color: rgba(241, 236, 228, .28); cursor: default; }
+
+/* Apparition des textes : l'ouverture entre une fois au chargement (anacrouse lente),
+   les autres blocs suivent le défilement (style posé par main.js, fonction de scrollY). */
+.js [data-revele] { opacity: 0; }
+.js .ouverture [data-revele] {
+  transform: translateY(10px);
+  transition: opacity 1.8s cubic-bezier(.45, 0, .2, 1) .35s, transform 2.2s cubic-bezier(.2, .7, .2, 1) .35s;
+}
+.h4-pret .ouverture [data-revele] { opacity: 1; transform: none; }
+html.js-timeout [data-revele] { opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
+@media (prefers-reduced-motion: reduce) { .js .ouverture [data-revele] { transform: none; transition: opacity .8s ease; } }
+.js.reduit .ouverture [data-revele] { transform: none; transition: opacity .8s ease; }
+
+/* ==========================================================================
+   Barre du haut : logo à gauche ; à droite le menu et le petit lecteur (qui
+   apparaissent au début du défilement), puis les réseaux et les langues
+   (toujours visibles)
+   ========================================================================== */
+.barre {
+  position: fixed; inset: 0 0 auto 0; z-index: var(--z-nav);
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding: 1.4rem var(--bord) calc(1.1rem + var(--barre) * 1rem);   /* marge basse plus grande une fois la barre apparue */
+  pointer-events: none;
+}
+.barre > * { pointer-events: auto; }
+.barre::before {                               /* voile de la barre : il apparaît avec elle */
+  content: ''; position: absolute; inset: 0 0 -44px; z-index: -1;
+  background: linear-gradient(to bottom, #000 46%, rgba(0, 0, 0, .9) 66%, rgba(0, 0, 0, 0));
+  opacity: var(--barre); pointer-events: none;
+}
+.logo { display: grid; line-height: 1; text-decoration: none; color: #fff; text-shadow: 0 1px 18px rgba(0, 0, 0, .45); }
+.logo__first {
+  font-family: var(--serif); font-style: italic; font-weight: 400;
+  font-size: 1.35rem; letter-spacing: .01em; margin-left: 1.9rem; margin-bottom: -.2rem;
+}
+.logo__last { font-family: var(--sans); font-weight: 700; font-size: 2.05rem; letter-spacing: -.02em; }
+.logo__last .rev { display: inline-block; transform: scaleX(-1); }   /* ɘ : le e retourné */
+
+.barre__droite { display: flex; align-items: center; gap: 1.5rem; padding-top: .45rem; }
+/* ce qui apparaît au défilement : opacité liée à --barre ; hors d'atteinte tant qu'elle est basse */
+.barre__apparait { opacity: var(--barre); }
+.js:not(.barre-visible) .barre__apparait { pointer-events: none; }
+.js.barre-nulle .barre__apparait { visibility: hidden; }
+
+.barre__menu ul {
+  list-style: none; display: flex; gap: 1.5rem;
+  font-size: .72rem; letter-spacing: .18em; text-transform: uppercase;
+}
+.barre__menu a { color: rgba(241, 236, 228, .68); text-decoration: none; transition: color .3s; }
+.barre__menu a:hover, .barre__menu a:focus-visible { color: #fff; }
+
+.rs { list-style: none; display: flex; align-items: center; gap: .95rem; }
+.rs a { display: grid; place-items: center; width: 1.15rem; height: 1.15rem; color: rgba(241, 236, 228, .74); transition: color .3s; }
+.rs a[href]:hover, .rs a[href]:focus-visible { color: #fff; }
+.rs svg { width: 100%; height: 100%; fill: currentColor; }
+.rs .inerte { color: rgba(241, 236, 228, .3); }
+.rs li + li { position: relative; }
+.barre__lang {
+  font-size: .72rem; letter-spacing: .18em; text-transform: uppercase; white-space: nowrap;
+  color: rgba(241, 236, 228, .55);
+}
+.barre__lang a { color: inherit; text-decoration: none; transition: color .3s; }
+.barre__lang a:hover, .barre__lang a.is-on { color: #fff; }
+.barre__lang .sep { margin: 0 .55em; opacity: .5; }
+
+.barre__burger {
+  display: none; place-items: center;
+  width: 2rem; height: 2rem; margin: 0 -.35rem;
+  background: none; border: 0; cursor: pointer; color: rgba(241, 236, 228, .85);
+}
+.barre__burger svg { width: 1.25rem; height: 1.25rem; }
+
+/* petit lecteur de la barre : lecture / pause, pictogramme de la liste des titres */
+.mini { position: relative; display: flex; align-items: center; gap: .55rem; }
+.mini__bouton, .mini__playlist {
+  display: grid; place-items: center; width: 2rem; height: 2rem; overflow: visible;
+  background: none; border: 0; cursor: pointer;
+}
+.mini .ecoute__icone { width: 1.75rem; height: 1.75rem; }      /* le rond du bouton lecture / pause et celui de la liste */
+.mini .ecoute__icone::before { border-width: .26rem 0 .26rem .42rem; }
+.mini [data-etat="lecture"] .ecoute__icone::before, .mini [data-etat="lecture"] .ecoute__icone::after { height: .5rem; }
+.volet {
+  position: absolute; top: calc(100% + .95rem); right: -.4rem; z-index: 1;
+  width: max-content; min-width: 17rem; max-width: min(24rem, calc(100vw - 2 * var(--bord)));
+  padding: .7rem 1.1rem .8rem .9rem;
+  background: rgba(0, 0, 0, .95); border: 1px solid rgba(241, 236, 228, .16);
+}
+
+@media (max-width: 1179px) {
+  .barre__droite { gap: 1.1rem; }
+  /* avec JavaScript : le menu se replie derrière le bouton */
+  .menu-pret .barre__burger { display: grid; }
+  .menu-pret .barre__menu ul {
+    display: none;
+    position: absolute; top: calc(100% - .3rem); right: var(--bord);
+    flex-direction: column; gap: 0; min-width: 13rem; padding: .5rem 0;
+    background: rgba(0, 0, 0, .95); border: 1px solid rgba(241, 236, 228, .16);
+  }
+  .menu-pret.menu-ouvert .barre__menu ul { display: flex; }
+  .menu-pret .barre__menu a { display: block; padding: .85rem 1.3rem; }
+  /* sans JavaScript : le menu reste visible, sur une ligne qui passe sous le logo */
+  html:not(.menu-pret) .barre { flex-wrap: wrap; }
+  html:not(.menu-pret) .barre__droite { flex-wrap: wrap; justify-content: flex-end; row-gap: .6rem; }
+  html:not(.menu-pret) .barre__menu { order: 9; width: 100%; }
+  html:not(.menu-pret) .barre__menu ul { flex-wrap: wrap; justify-content: flex-end; gap: .4rem 1rem; font-size: .62rem; }
+}
+@media (max-width: 720px) {
+  .barre { padding: 1.1rem 16px .9rem; }
+  .logo__first { font-size: 1.1rem; margin-left: 1.5rem; }
+  .logo__last { font-size: 1.65rem; }
+  /* deux lignes à droite : réseaux et langues (toujours là), puis lecteur et menu (au défilement) */
+  .barre__droite {
+    display: grid; grid-template-columns: auto auto; justify-content: end; justify-items: end; align-items: center;
+    column-gap: 1rem; row-gap: .55rem; padding-top: .2rem;
+  }
+  .rs { grid-row: 1; grid-column: 1; gap: .85rem; }
+  .barre__lang { grid-row: 1; grid-column: 2; }
+  .mini { grid-row: 2; grid-column: 1; }
+  .barre__burger { grid-row: 2; grid-column: 2; }
+  .barre__menu { grid-row: 3; grid-column: 1 / -1; height: 0; }
+  .menu-pret .barre__menu ul { top: calc(100% - .2rem); right: 16px; }
+  .barre::before { inset: 0 0 -24px; }
+  .volet { right: -3.2rem; min-width: 15rem; }
+}
+
+/* ==========================================================================
+   Lecteur : bouton Play / Pause, liste des titres (ouverture et barre)
+   ========================================================================== */
+.ecoute__bouton {
+  display: inline-flex; align-items: center; gap: .75rem;
+  padding: .2rem .2rem .2rem 0;
+  background: none; border: 0; cursor: pointer;
+  font-size: .74rem; font-weight: 400; letter-spacing: .24em; text-transform: uppercase; color: #fff;
+}
+.ecoute__icone {
+  position: relative; flex: none; display: block;
+  width: 2.2rem; height: 2.2rem;
+  border: 1px solid rgba(241, 236, 228, .5); border-radius: 50%;
+  transition: border-color .4s ease, box-shadow .6s ease;
+}
+.ecoute__icone:not(.picto-playlist)::before, .ecoute__icone:not(.picto-playlist)::after { content: ''; position: absolute; top: 50%; left: 50%; }
+.ecoute__icone::before {                         /* triangle de lecture */
+  width: 0; height: 0;
+  border-style: solid; border-width: .32rem 0 .32rem .52rem;
+  border-color: transparent transparent transparent #fff;
+  transform: translate(-35%, -50%);
+}
+[data-etat="lecture"] .ecoute__icone::before,
+[data-etat="lecture"] .ecoute__icone::after {    /* deux barres : pause */
+  width: 2px; height: .62rem; border: 0; background: #fff;
+  transform: translate(-50%, -50%);
+}
+[data-etat="lecture"] .ecoute__icone::before { margin-left: -3px; }
+[data-etat="lecture"] .ecoute__icone::after { margin-left: 3px; }
+[data-ecouter]:hover .ecoute__icone,
+[data-ecouter]:focus-visible .ecoute__icone,
+[data-playlist]:hover .ecoute__icone,
+[data-playlist]:focus-visible .ecoute__icone { border-color: #fff; box-shadow: 0 0 18px rgba(197, 205, 214, .35); }
+[data-etat="lecture"] .ecoute__icone,
+[data-playlist][aria-expanded="true"] .ecoute__icone { border-color: var(--froid); }
+@media (prefers-reduced-motion: reduce) { .ecoute__icone { transition: none; } }
+
+/* pictogramme de la liste des titres : le rond du bouton lecture / pause (.ecoute__icone, mêmes
+   taille, trait, survol), avec une croche en SVG à l'intérieur, de la hauteur du triangle de lecture
+   agrandie pour sa lisibilité. Rond bleuté quand la liste est ouverte, comme pendant la lecture. */
+.picto-playlist { display: grid; place-items: center; }
+.picto-playlist svg { width: .95rem; height: .95rem; margin: 0 0 1px 1px; fill: #fff; }
+.titres { list-style: none; }
+.titre {
+  position: relative; display: block; width: 100%;
+  padding: .42rem 0 .42rem 1rem;
+  background: none; border: 0; text-align: left; cursor: pointer;
+  color: rgba(241, 236, 228, .6); transition: color .3s;
+}
+.titre::before {                                 /* point du titre en cours */
+  content: ''; position: absolute; left: 1px; top: .95rem;
+  width: 4px; height: 4px; border-radius: 50%;
+  background: var(--froid); box-shadow: 0 0 8px 2px rgba(197, 205, 214, .4);
+  opacity: 0; transition: opacity .3s;
+}
+.titre__nom { display: block; font-size: .8rem; font-weight: 400; line-height: 1.35; }
+.titre__mention { display: block; margin-top: .12rem; font-size: .66rem; line-height: 1.4; letter-spacing: .02em; color: var(--muted); }
+.titre:hover, .titre:focus-visible, .titre.est-courant { color: #fff; }
+.titre.est-courant::before { opacity: 1; }
+.titre.est-courant .titre__nom { font-weight: 500; }
+
+/* ==========================================================================
+   Ouverture : le noir, la nuée au premier plan ; en bas à droite, la citation
+   et le lecteur, sur leur halo sombre
+   ========================================================================== */
+.ouverture { height: 100vh; height: 100svh; overflow: hidden; }
+.ouverture__texte {
+  position: absolute; right: var(--marge); bottom: 12vh;
+  width: calc((100% - 2 * var(--marge) - 11 * var(--gouttiere)) / 4 + 2.25 * var(--gouttiere));   /* colonnes 10 à 12 */
+  min-width: 15.5rem;
+  text-shadow: 0 1px 14px rgba(0, 0, 0, .55);
+}
+/* le bloc s'efface quand la barre du haut apparaît : le lecteur passe dans la barre */
+.ouverture__bloc { position: relative; opacity: calc(1 - var(--barre)); }
+.js.barre-visible .ouverture__bloc { pointer-events: none; }
+.js.barre-pleine .ouverture__bloc { visibility: hidden; }
+/* halo sombre sous le bloc, au-dessus de la nuée : ses cœurs blancs n'y passent pas */
+.ouverture__bloc::before {
+  content: ''; position: absolute; inset: -4.4rem -3rem; z-index: -1;
+  background: radial-gradient(closest-side, rgba(0, 0, 0, .66), rgba(0, 0, 0, .55) 72%, rgba(0, 0, 0, 0));
+  pointer-events: none;
+}
+.ouverture__citation {
+  font-family: var(--serif); font-style: italic; font-weight: 300;
+  font-size: clamp(1.55rem, 2.1vw, 2.1rem); line-height: 1.2; color: #fff;
+}
+.lecteur { margin-top: 1.9rem; }
+/* liste des titres de l'ouverture : son texte est aligné sur l'icône de lecture ; le point du
+   titre en cours passe dans la marge */
+.lecteur__titres { margin-top: 1.15rem; }
+.lecteur__titres .titre { padding-left: 0; }
+.lecteur__titres .titre::before { left: -.85rem; }
+/* invitation à défiler : un petit pictogramme au centre, en bas ; il mène à la section suivante */
+.hint {
+  position: absolute; left: 50%; bottom: 1.5rem; z-index: var(--z-dessus);
+  display: grid; place-items: center; width: 2.6rem; height: 2.6rem; margin-left: -1.3rem;
+  border: 1px solid rgba(241, 236, 228, .3); border-radius: 50%;
+  color: rgba(241, 236, 228, .85);
+  transition: border-color .3s, color .3s;
+}
+.hint svg { width: 1.25rem; height: 1.25rem; animation: hint-descend 2.6s cubic-bezier(.45, 0, .2, 1) infinite; }
+.hint:hover, .hint:focus-visible { border-color: #fff; color: #fff; }
+@keyframes hint-descend {
+  0%, 100% { transform: translateY(-2px); opacity: .5; }
+  50% { transform: translateY(3px); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .hint svg { animation: none; } }
+.reduit .hint svg, .animation-en-pause .hint svg { animation: none; }
+.panneau-ouvert .hint { visibility: hidden !important; }
+@media (min-width: 721px) and (max-height: 620px) {
+  .ouverture__texte { bottom: 7vh; width: min(24rem, 46vw); }
+  .ouverture__citation { font-size: 1.4rem; }
+  .lecteur { margin-top: 1.1rem; }
+  .lecteur .titre__mention { display: none; }
+}
+@media (max-width: 720px) {
+  /* le texte descend en bas, pleine largeur, sur un dégradé sombre */
+  .ouverture__texte { left: 0; right: 0; bottom: 0; width: auto; min-width: 0; }
+  .ouverture__bloc {
+    padding: 6rem 16px 4.1rem;                   /* la place du pictogramme de défilement, dessous */
+    background: linear-gradient(to top, rgba(0, 0, 0, .86) 55%, rgba(0, 0, 0, 0));
+  }
+  .ouverture__bloc::before { display: none; }
+  .ouverture__citation { font-size: 1.5rem; max-width: 18rem; }
+  .lecteur { margin-top: 1.3rem; }
+  .lecteur__titres .titre::before { left: -.7rem; }
+  .hint { bottom: .9rem; width: 2.2rem; height: 2.2rem; margin-left: -1.1rem; }
+}
+@media (max-width: 720px) and (max-height: 520px) {
+  .ouverture__bloc { padding-top: 2rem; padding-bottom: 3.6rem; }
+  .lecteur .titre__mention { display: none; }
+}
+
+/* ==========================================================================
+   Sections de contenu : en-tête, rangs
+   ========================================================================== */
+.section__tete { margin-bottom: 11vh; }
+.section__titre {
+  font-family: var(--serif); font-weight: 300; font-style: italic;
+  font-size: clamp(2.4rem, 4vw, 3.6rem); line-height: 1; color: var(--fg);
+}
+.mention {
+  margin-top: 1rem;
+  font-size: .7rem; font-weight: 400; letter-spacing: .24em; text-transform: uppercase; color: var(--muted);
+}
+.rang__titre {
+  margin-bottom: 3.2rem;
+  font-size: .7rem; font-weight: 400; letter-spacing: .24em; text-transform: uppercase; color: var(--froid);
+}
+.etiquette {
+  display: inline-block; margin-right: 1.2em;
+  font-family: var(--sans); font-style: normal; font-weight: 400;
+  font-size: .62rem; letter-spacing: .24em; text-transform: uppercase; line-height: 1.5; color: var(--froid);
+}
+.liste { list-style: none; }
+.liste li {
+  padding: .9rem 0 .95rem; border-top: 1px solid rgba(197, 205, 214, .16);
+  font-size: .94rem; font-weight: 400; line-height: 1.45; color: #fff;
+}
+h3.mention { margin: 0 0 1.4rem; }
+
+/* ------- bio : pas de fond de section ; le texte porte son fond noir à 50 %, à bords vaporeux ------- */
+.bio { display: flex; flex-direction: column; justify-content: center; }
+.bio__texte { position: relative; }
+.bio__texte::before {
+  content: ''; position: absolute; inset: -1.8rem -2rem; z-index: -1;
+  border-radius: 2.6rem;
+  background: rgb(0 0 0 / .5);
+  box-shadow: 0 0 3.4rem 2.8rem rgb(0 0 0 / .5);   /* le halo prolonge le fond à la même opacité : aucun bord net */
+  pointer-events: none;
+}
+@media (max-width: 720px) { .bio__texte::before { inset: -1.4rem -6px; box-shadow: 0 0 2.4rem 1.4rem rgb(0 0 0 / .5); } }
+
+/* ------- fiches : le format de l'agenda, repris par les disques et la presse. Toutes alignées en
+   haut ; marges entre les fiches augmentées de 20 % (rangées : 6 rem au lieu de 5 ; colonnes : un
+   cinquième de gouttière en plus, pris dans la fiche pour que son bord gauche reste sur la matrice) ------- */
+.fiches { row-gap: 6rem; }
+.fiche { position: relative; padding-top: 2.4rem; padding-right: calc(var(--gouttiere) * .2); }
+.fiche::before {
+  content: ''; position: absolute; left: 1px; top: 0;
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--froid); box-shadow: 0 0 10px 2px rgba(197, 205, 214, .4);
+}
+.fiche::after {
+  content: ''; position: absolute; left: 16px; right: 0; top: 2px; height: 1px;
+  background: linear-gradient(to right, rgba(197, 205, 214, .3), rgba(197, 205, 214, 0));
+}
+@media (max-width: 720px) { .fiches { display: block; } .fiche { padding-right: 0; } .fiche + .fiche { margin-top: 5rem; } }
+.fiche__etiquettes { margin-bottom: .7rem; }
+.fiche__dates {
+  list-style: none;
+  font-size: .7rem; letter-spacing: .16em; text-transform: uppercase; line-height: 1.75; color: var(--froid);
+}
+.fiche__dates .est-passee { opacity: .42; }
+.fiche__heure { margin-left: .5em; text-transform: none; letter-spacing: .06em; color: rgba(241, 236, 228, .78); white-space: nowrap; }
+.fiche__etape { display: block; margin-bottom: .2rem; font-size: .8rem; letter-spacing: 0; text-transform: none; line-height: 1.45; color: var(--muted); }
+.fiche__dates .lien { margin: 0 0 .9rem; }
+.fiche__titre {
+  margin: 1rem 0 .75rem;
+  font-family: var(--serif); font-weight: 400;
+  font-size: clamp(1.4rem, 1.8vw, 1.8rem); line-height: 1.14; color: #fff;
+}
+.fiche__titre a { text-decoration-thickness: 1px; }
+.fiche__serie { margin-bottom: .7rem; font-size: .82rem; line-height: 1.45; color: var(--froid); }
+.fiche__lieu, .fiche__ensemble { font-size: .8rem; line-height: 1.45; color: var(--muted); }
+.fiche__ensemble { margin-top: .35rem; color: rgba(241, 236, 228, .8); }
+.fiche__label { margin-top: 1.3rem; font-size: .6rem; letter-spacing: .24em; text-transform: uppercase; color: var(--muted); }
+.fiche__liste { list-style: none; margin-top: .45rem; font-size: .8rem; line-height: 1.5; color: rgba(241, 236, 228, .88); }
+.fiche__liste li + li { margin-top: .15rem; }
+.fiche__creation { font-style: italic; color: var(--froid); }
+.fiche__note { margin-top: 1.1rem; font-size: .78rem; line-height: 1.45; font-style: italic; color: var(--muted); }
+.fiche__texte { font-size: .8rem; line-height: 1.5; color: rgba(241, 236, 228, .82); }
+.fiche__texte + .fiche__texte { margin-top: .35rem; }
+.fiche__mot { margin-top: 1rem; font-family: var(--serif); font-style: italic; font-size: 1.1rem; line-height: 1.35; color: #fff; }
+.fiche__liens { list-style: none; display: flex; flex-wrap: wrap; gap: .5rem 1.1rem; margin-top: .5rem; }
+.fiche > .lien { margin-top: 1.2rem; }
+
+/* ------- tableaux : dates suivantes, concerts passés, pages « tous les … » ------- */
+.tableau { width: 100%; border-collapse: collapse; text-align: left; }
+.tableau th, .tableau td {
+  padding: .85rem 1.4rem .9rem 0; vertical-align: top;
+  border-top: 1px solid rgba(197, 205, 214, .14);
+  font-size: .86rem; font-weight: 400; line-height: 1.45;
+}
+.tableau th:last-child, .tableau td:last-child { padding-right: 0; }
+.tableau thead th {
+  padding-top: 0; padding-bottom: .9rem; border-top: 0;
+  font-size: .6rem; letter-spacing: .24em; text-transform: uppercase; color: var(--muted);
+}
+.tableau .tableau__mois { font-size: .7rem; letter-spacing: .24em; text-transform: uppercase; color: var(--muted); white-space: nowrap; padding-top: 1rem; }
+.tableau .tableau__date { font-size: .7rem; letter-spacing: .16em; text-transform: uppercase; color: var(--froid); padding-top: 1rem; }
+.tableau .tableau__lieu { color: var(--muted); }
+.tableau__lieu b { display: block; font-weight: 400; color: rgba(241, 236, 228, .86); }
+.tableau__titre { display: block; color: #fff; }
+/* ligne visée par un « En savoir plus » (concerts.html#c-…) : sous la barre, et repérée */
+.tableau tr[id] { scroll-margin-top: calc(var(--barre-h) + 2rem); }
+.tableau tr:target > * { background: rgba(197, 205, 214, .09); }
+.tableau__ensemble { display: block; margin-top: .15rem; color: rgba(241, 236, 228, .8); }
+.tableau__programme { display: block; margin-top: .3rem; font-size: .76rem; line-height: 1.5; color: var(--muted); }
+.tableau .tableau__action { text-align: right; white-space: nowrap; }
+.tableau--passes .tableau__date { color: var(--muted); }
+.tableau--passes .tableau__titre { color: rgba(241, 236, 228, .82); }
+.tableau q { quotes: none; font-family: var(--serif); font-style: italic; font-size: 1.05rem; color: #fff; }
+.rang__suite { text-align: right; }
+@media (max-width: 720px) {
+  /* une ligne du tableau devient un bloc ; l'en-tête reste pour les lecteurs d'écran */
+  .tableau, .tableau tbody, .tableau tr, .tableau th, .tableau td { display: block; }
+  .tableau thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .tableau tr { padding: .9rem 0 1rem; border-top: 1px solid rgba(197, 205, 214, .14); }
+  .tableau th, .tableau td { padding: .12rem 0 !important; border: 0; }
+  .tableau .tableau__mois { margin-bottom: .35rem; }
+  .tableau .tableau__action { text-align: left; margin-top: .5rem; }
+  .tableau td:empty { display: none; }
+  .rang__suite { text-align: left; }
+}
+/* repli sans JavaScript : la liste simple de l'agenda */
+.agenda__simple { list-style: none; }
+.agenda__simple .ligne {
+  display: grid; grid-template-columns: minmax(0, 11rem) minmax(0, 11rem) minmax(0, 1fr); column-gap: 1.5rem;
+  padding: .7rem 0; border-top: 1px solid rgba(197, 205, 214, .12); font-size: .84rem; line-height: 1.45;
+}
+.ligne__quand { font-size: .7rem; letter-spacing: .16em; text-transform: uppercase; color: var(--froid); }
+.ligne__ville { color: var(--muted); }
+@media (max-width: 720px) { .agenda__simple .ligne { display: block; } .agenda__simple .ligne span { display: block; } }
+.agenda__vide {
+  font-family: var(--serif); font-style: italic; font-weight: 300;
+  font-size: clamp(1.6rem, 2.4vw, 2.2rem); line-height: 1.25; color: #fff;
+}
+
+/* ------- parcours : fonctions, opéra et création, carte du monde et liste des orchestres ------- */
+.parcours { padding-bottom: 0; }
+.parcours .grille + .grille { margin-top: 9vh; }
+/* bandeau de la carte : un fond noir sur toute la largeur, jusqu'au bas de la section. --bandeau
+   est l'opacité voulue, fond de la section compris : le calcul retire ce que la section pose déjà. */
+.parcours__bandeau {
+  --bandeau: .9;
+  margin-top: 9vh; padding: 9vh 0 16vh;
+  background-color: rgb(0 0 0 / .8);             /* repli : 90 % sur une section à 50 % */
+  background-color: rgb(0 0 0 / calc((var(--bandeau) - var(--fond, 0)) / max(.001, 1 - var(--fond, 0))));
+}
+.carte svg { width: 100%; height: auto; overflow: visible; }
+.carte__terre { fill: none; stroke: rgba(197, 205, 214, .26); stroke-linecap: round; }
+.carte__cadre { fill: none; stroke: rgba(197, 205, 214, .3); stroke-dasharray: 3 4; vector-effect: non-scaling-stroke; }
+.carte__ville { cursor: pointer; outline: none; }
+.carte__point { fill: var(--froid); transition: fill .3s; }
+.carte__halo { fill: rgba(197, 205, 214, .16); stroke: rgba(255, 255, 255, .0); transition: fill .3s, stroke .3s; transform-box: fill-box; transform-origin: center; transition: transform .35s cubic-bezier(.2, .7, .2, 1), fill .3s; transform: scale(.45); }
+.carte__etiquette { font-family: var(--sans); font-weight: 500; fill: #fff; paint-order: stroke; stroke: rgba(0, 0, 0, .85); stroke-linejoin: round; opacity: 0; transition: opacity .3s; pointer-events: none; }
+.carte__ville.est-actif .carte__point, .carte__ville:focus-visible .carte__point { fill: #fff; }
+.carte__ville.est-actif .carte__halo, .carte__ville:focus-visible .carte__halo { fill: rgba(255, 255, 255, .3); transform: scale(1); }
+.carte__ville.est-actif .carte__etiquette, .carte__ville:focus-visible .carte__etiquette { opacity: 1; }
+/* liste des orchestres, sous la carte : trois colonnes égales (Amériques, Europe et Afrique, Asie,
+   Russie et Océanie), séparées par la gouttière de la matrice ; une seule sous 721 px */
+.parcours__liste { margin-top: 7vh; }
+.orchestres-zones { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: var(--gouttiere); align-items: start; }
+.orchestres-zone__titre {
+  margin: 0 0 .9rem;
+  font-size: .62rem; font-weight: 400; letter-spacing: .24em; text-transform: uppercase; line-height: 1.5; color: var(--froid);
+}
+.orchestres { list-style: none; }
+.orchestres li {
+  position: relative; padding: .58rem 0 .62rem;
+  border-top: 1px solid rgba(197, 205, 214, .14);
+  font-size: .88rem; font-weight: 400; line-height: 1.4; color: rgba(241, 236, 228, .8);
+  cursor: default; transition: color .3s, padding-left .35s cubic-bezier(.2, .7, .2, 1);
+}
+.orchestres li::before {
+  content: ''; position: absolute; left: 1px; top: 1.08rem;
+  width: 4px; height: 4px; border-radius: 50%;
+  background: #fff; box-shadow: 0 0 8px 2px rgba(197, 205, 214, .45);
+  opacity: 0; transition: opacity .3s;
+}
+.orchestres li.est-actif, .orchestres li:focus-visible { color: #fff; padding-left: 1rem; outline: none; }
+.orchestres li.est-actif::before, .orchestres li:focus-visible::before { opacity: 1; }
+.orchestres__ville { margin-left: .6em; font-size: .7rem; letter-spacing: .04em; color: var(--muted); white-space: nowrap; }
+@media (max-width: 720px) {
+  .parcours .bloc-droite + .bloc-droite { margin-top: 0; }
+  .parcours__liste { margin-top: 5vh; }
+  .orchestres-zones { grid-template-columns: 1fr; row-gap: 2.4rem; }
+}
+
+/* ------- presse : logo et nom du média, titre, verbatim clé, court résumé, date et auteur, lien ------- */
+.article__media { min-height: 2.2rem; }
+.article__nom {
+  display: block;
+  font-family: var(--serif); font-weight: 400; font-style: italic;
+  font-size: clamp(1.4rem, 1.8vw, 1.8rem); line-height: 1.15; color: #fff;
+}
+.article__logo { height: 1.6rem; width: auto; max-width: 100%; margin-bottom: .7rem; filter: brightness(0) invert(1); }   /* logo en blanc */
+.article__logo + .article__nom {                 /* avec un logo, le nom devient sa légende */
+  font-family: var(--sans); font-style: normal;
+  font-size: .62rem; letter-spacing: .22em; text-transform: uppercase; line-height: 1.5; color: var(--muted);
+}
+.article__titre { margin-top: .9rem; font-size: .86rem; font-weight: 400; line-height: 1.45; color: #fff; }
+.article__verbatim {
+  margin-top: 1.1rem;
+  font-family: var(--serif); font-style: italic; font-weight: 300;
+  font-size: clamp(1.2rem, 1.5vw, 1.5rem); line-height: 1.25; color: #fff;
+}
+.article__resume { margin-top: .9rem; font-size: .8rem; line-height: 1.5; color: rgba(241, 236, 228, .82); }
+.article__date { margin-top: 1rem; font-size: .66rem; letter-spacing: .16em; text-transform: uppercase; line-height: 1.6; color: var(--froid); }
+.article__date span + span::before { content: '·'; margin: 0 .6em; }
+
+/* ------- téléchargement, contacts ------- */
+.telechargement .section__titre, .contacts .section__titre { font-size: clamp(2rem, 2.9vw, 2.8rem); margin-bottom: 2.6rem; }
+.telechargement .liste li { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
+.contact { padding: 1.1rem 0 1.2rem; border-top: 1px solid rgba(197, 205, 214, .16); font-size: .9rem; font-weight: 400; line-height: 1.6; }
+.contact__nom { font-size: 1rem; color: #fff; }
+.contact__role { color: var(--muted); font-size: .8rem; line-height: 1.45; margin-bottom: .35rem; }
+.contact a { overflow-wrap: anywhere; }
+/* trois colonnes étroites depuis l'élargissement des marges : une adresse tient sur une ligne
+   (corps réduit à la largeur de la colonne), sinon elle se coupe après l'arobase (<wbr>) */
+@media (min-width: 1180px) { .contact a[href^="mailto"] { font-size: min(.9rem, .86vw); } }
+.contact a[href^="tel"] { white-space: nowrap; }
+.contacts .mention { margin: 0 0 1.2rem; }
+.contacts__groupe + .contacts__groupe { margin-top: 3.4rem; }
+.contacts__agence { margin-bottom: .2rem; font-family: var(--serif); font-size: 1.5rem; line-height: 1.15; color: #fff; }
+
+/* ==========================================================================
+   Visuels : image, vidéo, YouTube ou couleur, à l'opacité choisie
+   (data/visuels.js ; l'opacité est celle de la classe .fond-N de la section)
+   ========================================================================== */
+.visuel { height: 100vh; height: 100svh; overflow: hidden; }
+.visuel__media {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; opacity: var(--fond, 1);
+  pointer-events: none; -webkit-touch-callout: none; user-select: none;
+}
+.visuel--youtube .visuel__media { opacity: 1; pointer-events: auto; background: #000; }   /* un lecteur YouTube ne se voile pas */
+.visuel__media.est-commandee { pointer-events: auto; }   /* vidéo avec ses commandes (mouvement réduit) */
+/* image en « lumière » (les découpes, js/lumiere.js) : le canvas remplace l'image une fois prêt.
+   En attendant, l'image est dans la pénombre (pas d'éclair au chargement) ; elle revient en pleine
+   lumière si le traitement échoue, si le contexte est perdu ou si le script ne démarre pas. */
+.visuel__lumiere {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  opacity: 0; transition: opacity .8s ease; pointer-events: none;
+}
+.lumiere-prete .visuel__lumiere { opacity: var(--fond, 1); }
+.lumiere-prete img.visuel__media { opacity: 0; transition: opacity .8s ease; }
+.js .visuel--lumiere:not(.lumiere-echec):not(.lumiere-perdue) img.visuel__media { filter: brightness(.14); }
+html.js-timeout .visuel--lumiere:not(.lumiere-prete) img.visuel__media { filter: none; }
+@media (prefers-reduced-motion: reduce) { .visuel__lumiere, .lumiere-prete img.visuel__media { transition: none; } }
+.visuel__yt { position: absolute; inset: 0; display: grid; place-items: center; background: #000; }
+.visuel__yt iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.visuel__consentement { position: relative; max-width: 31rem; padding: 1rem 1.4rem; text-align: center; }
+.visuel__consentement p { font-size: .84rem; line-height: 1.5; font-weight: 400; color: rgba(241, 236, 228, .9); }
+.visuel__consentement .bouton { margin-top: 1.1rem; }
+/* visuel porteur d'un bloc (« Suivre ») : le bloc sur la matrice, avec son halo sombre */
+.visuel__contenu { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); }
+.suivre__bloc { position: relative; }
+.suivre__bloc::before {
+  content: ''; position: absolute; inset: -3.4rem -3rem; z-index: -1;
+  background: radial-gradient(closest-side, rgba(0, 0, 0, .74), rgba(0, 0, 0, .6) 70%, rgba(0, 0, 0, 0));
+  pointer-events: none;
+}
+.suivre__titre { font-family: var(--serif); font-style: italic; font-weight: 300; font-size: clamp(1.8rem, 2.4vw, 2.4rem); line-height: 1.1; color: #fff; margin-bottom: 1.6rem; }
+.suivre .mention { margin: 0 0 .7rem; color: #fff; }
+/* inscription à la lettre : champ (inerte pour l'instant), bouton, et les réseaux en pictogrammes
+   de la hauteur du bouton */
+.lettre { margin-top: 1.2rem; }
+.champ {
+  display: block; width: 100%; height: var(--h-bouton); padding: 0 1.2rem;
+  border: 1px solid rgba(241, 236, 228, .45); border-radius: 999px; background: rgba(0, 0, 0, .35);
+  font-size: .82rem; font-weight: 400; color: #fff;
+}
+.champ::placeholder { color: rgba(241, 236, 228, .62); opacity: 1; }
+.champ:disabled { cursor: default; opacity: 1; }
+.lettre__rang { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem .5rem; margin-top: .7rem; }
+.lettre__rang .bouton { display: inline-flex; align-items: center; height: var(--h-bouton); padding: 0 1.35rem; }
+.reseaux { list-style: none; display: flex; gap: .45rem; }
+.reseaux a {
+  display: grid; place-items: center; width: var(--h-bouton); height: var(--h-bouton);
+  border: 1px solid rgba(241, 236, 228, .45); border-radius: 50%; background: rgba(0, 0, 0, .3);
+  color: #fff; transition: border-color .3s, background-color .3s;
+}
+.reseaux a[href]:hover, .reseaux a[href]:focus-visible { border-color: #fff; background: rgba(197, 205, 214, .12); }
+.reseaux svg { width: 1.05rem; height: 1.05rem; fill: currentColor; }
+.reseaux .inerte { color: rgba(241, 236, 228, .45); border-color: rgba(241, 236, 228, .22); }
+.lettre__note { margin-top: .85rem; font-size: .6rem; letter-spacing: .2em; text-transform: uppercase; color: rgba(241, 236, 228, .7); }
+@media (max-width: 720px) {
+  .visuel__contenu { top: auto; bottom: 0; transform: none; padding: 5rem 0 2.6rem; background: linear-gradient(to top, rgba(0, 0, 0, .82) 45%, rgba(0, 0, 0, 0)); }
+  .suivre__bloc::before { display: none; }
+}
+
+/* ==========================================================================
+   Pied de page : fond noir, toute la largeur (comme la barre du haut)
+   ========================================================================== */
+.pied {
+  display: flex; justify-content: space-between; align-items: flex-start; gap: 1.2rem 3rem; flex-wrap: wrap;
+  padding: 2.6rem calc(var(--bord) + 3.9rem) 2.8rem var(--bord);   /* à droite : la place du bouton de retour en haut */
+  background-color: rgb(0 0 0 / var(--fond, 1));
+  font-size: .72rem; line-height: 1.6; letter-spacing: .04em; color: var(--muted);
+}
+.pied__liens > * + *::before { content: '·'; display: inline-block; margin: 0 .65em 0 .4em; color: var(--muted); }
+.pied__credit { max-width: 46rem; text-align: right; }
+.pied__outils { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .3rem 1.4rem; margin-top: .7rem; }
+.pied__outil { background: none; border: 0; cursor: pointer; color: var(--muted); text-decoration: underline; text-decoration-color: rgba(143, 138, 130, .5); text-underline-offset: .24em; }
+.pied__outil:hover, .pied__outil:focus-visible, .pied__outil[aria-pressed="true"], .pied__outil[aria-expanded="true"] { color: #fff; }
+@media (max-width: 720px) { .pied { display: block; padding: 2.4rem var(--bord) 4.6rem; } .pied__credit { text-align: left; margin-top: .9rem; } .pied__outils { justify-content: flex-start; } }
+
+/* ==========================================================================
+   Pages secondaires (tous les concerts, tous les articles) : tableau simple
+   ========================================================================== */
+.page { padding: 11rem 0 16vh; }
+.page .section__tete { margin-bottom: 7vh; }
+.page__retour { margin-bottom: 2.4rem; font-size: .7rem; letter-spacing: .18em; text-transform: uppercase; }
+.page h2.rang__titre { margin: 9vh 0 2.4rem; }
+.page .barre { --barre: 1; }
+@media (max-width: 720px) { .page { padding-top: 8.5rem; } }
+
+/* ------- pages de texte : mentions légales, confidentialité, crédits ------- */
+.legal { grid-column: 1 / span 8; }
+@media (max-width: 1179px) { .legal { grid-column: 1 / -1; } }
+.legal h2 {
+  margin: 3.6rem 0 1.1rem;
+  font-family: var(--serif); font-weight: 400;
+  font-size: clamp(1.4rem, 1.8vw, 1.8rem); line-height: 1.15; color: #fff;
+}
+.legal > :first-child { margin-top: 0; }
+.legal p, .legal li, .legal dd { font-size: .92rem; font-weight: 400; line-height: 1.6; color: rgba(241, 236, 228, .9); }
+.legal p + p, .legal ul + p, .legal p + ul, .legal dl + p, .legal p + dl { margin-top: .9rem; }
+.legal ul { list-style: none; }
+.legal li { position: relative; padding-left: 1.1rem; }
+.legal li + li { margin-top: .5rem; }
+.legal li::before {
+  content: ''; position: absolute; left: 1px; top: .68em;
+  width: 4px; height: 4px; border-radius: 50%; background: var(--froid);
+}
+.legal dl { display: grid; grid-template-columns: minmax(0, 13rem) minmax(0, 1fr); gap: .55rem 1.5rem; }
+.legal dt { padding-top: .3rem; font-size: .66rem; letter-spacing: .18em; text-transform: uppercase; line-height: 1.5; color: var(--muted); }
+.legal__maj { margin-top: 3.6rem; font-size: .76rem; color: var(--muted); }
+@media (max-width: 720px) { .legal dl { display: block; } .legal dd { margin-bottom: .9rem; } }
+/* ce qui reste à fournir avant la mise en ligne : repérable d'un coup d'œil */
+.a-completer { background: none; color: var(--alerte); border-bottom: 1px dotted currentColor; }
+
+/* ==========================================================================
+   Retour en haut de page : bouton fixe, en bas à droite, posé par contenu.js ;
+   il apparaît au quart du défilement de la page (.haut-visible sur <html>)
+   ========================================================================== */
+.retour-haut {
+  position: fixed; right: var(--bord); bottom: 1.5rem; z-index: 9;      /* sous la barre du haut, devant les sections */
+  display: grid; place-items: center; width: 2.6rem; height: 2.6rem;
+  border: 1px solid rgba(241, 236, 228, .4); border-radius: 50%; background: rgba(0, 0, 0, .6);
+  color: #fff;
+  opacity: 0; visibility: hidden;
+  transition: opacity .4s ease, visibility 0s linear .4s, border-color .3s;
+}
+.retour-haut svg { width: 1.25rem; height: 1.25rem; }
+.haut-visible .retour-haut { opacity: 1; visibility: visible; transition: opacity .4s ease, border-color .3s; }
+.retour-haut:hover, .retour-haut:focus-visible { border-color: #fff; }
+.panneau-ouvert .retour-haut { right: calc(var(--panneau-l) + var(--bord)); }
+@media (max-width: 720px) {
+  .retour-haut { bottom: 1rem; }
+  .panneau-ouvert .retour-haut { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .retour-haut, .haut-visible .retour-haut { transition: none; } }

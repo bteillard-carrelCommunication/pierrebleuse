@@ -2,399 +2,413 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Pierre Bleuse — bac à sable</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Pierre Bleuse, chef d'orchestre</title>
+  <meta name="description" content="Site officiel de Pierre Bleuse, chef d'orchestre : agenda des concerts, biographie, disques, presse, contacts.">
   <meta name="robots" content="noindex">
+  <link rel="icon" href="data:,">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,500;1,300&family=Inter:wght@300;400&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg: #050505; --fg: #f1ece4; --muted: #8a8278; --line: rgba(241, 236, 228, 0.12);
-      --accent: #c5a572; --lav: #5A638D; --ok: #8fb39a; --todo: #6b6560;
-      --serif: 'Cormorant Garamond', Georgia, serif;
-      --sans: 'Inter', system-ui, sans-serif;
-      --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-    body {
-      background-color: var(--bg); color: var(--fg);
-      font-family: var(--sans); font-weight: 300; -webkit-font-smoothing: antialiased;
-      /* papier millimétré de l'atelier */
-      background-image:
-        linear-gradient(rgba(241, 236, 228, 0.035) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(241, 236, 228, 0.035) 1px, transparent 1px);
-      background-size: 32px 32px;
-    }
-    a { color: inherit; }
-    .wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
-    @media (min-width: 720px) { .wrap { padding: 0 40px; } }
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
 
-    /* ---- bandeau chantier ---- */
-    .tape {
-      font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase;
-      color: var(--bg); background: var(--accent); overflow: hidden; white-space: nowrap;
-    }
-    .tape span { display: inline-block; padding: 0.45rem 0; animation: tape 40s linear infinite; }
-    @keyframes tape { to { transform: translateX(-50%); } }
+  <link rel="stylesheet" href="css/etourneaux.css?v=20261112h">
+  <link rel="stylesheet" href="css/site.css?v=20261112h">
 
-    /* ---- en-tête ---- */
-    header { padding: 4.5rem 0 3.5rem; border-bottom: 1px solid var(--line); }
-    .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 2rem; flex-wrap: wrap; }
-    .logo { font-family: var(--serif); line-height: 0.88; }
-    .logo i { display: block; font-size: 1.35rem; font-weight: 300; letter-spacing: 0.05em; padding-left: 0.45rem; }
-    .logo b { display: block; font-size: clamp(3.2rem, 9vw, 6.5rem); font-weight: 500; letter-spacing: 0.01em; }
-    .stamp {
-      font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.2em; text-transform: uppercase;
-      border: 1px solid var(--accent); color: var(--accent); padding: 0.7rem 1rem; transform: rotate(-3deg);
-      line-height: 1.7; text-align: center; margin-top: 0.5rem;
-    }
-    .stamp strong { display: block; font-weight: 400; font-size: 0.95rem; letter-spacing: 0.3em; }
-    .intro { display: grid; gap: 2rem; margin-top: 3rem; }
-    @media (min-width: 900px) { .intro { grid-template-columns: 1.4fr 1fr; align-items: end; } }
-    .intro p.lead { font-family: var(--serif); font-size: clamp(1.4rem, 2.6vw, 2rem); line-height: 1.25; font-weight: 300; }
-    .intro p.lead em { color: var(--accent); }
-    .meta { font-family: var(--mono); font-size: 0.75rem; color: var(--muted); line-height: 2; }
-    .meta b { color: var(--fg); font-weight: 400; }
-    .toc { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; margin-top: 2.5rem; font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; }
-    .toc a { text-decoration: none; color: var(--muted); transition: color 0.3s; }
-    .toc a:hover { color: var(--accent); }
-    .toc a::before { content: '→ '; }
-
-    /* ---- sections ---- */
-    section { padding: 4.5rem 0; border-bottom: 1px solid var(--line); }
-    .sh { display: grid; grid-template-columns: auto 1fr; align-items: baseline; gap: 0.6rem 1rem; margin-bottom: 2.25rem; }
-    .sh .n { font-family: var(--mono); font-size: 0.75rem; color: var(--accent); }
-    .sh h2 { font-family: var(--serif); font-weight: 300; font-size: clamp(1.9rem, 3.6vw, 2.8rem); }
-    .sh p { grid-column: 1 / -1; color: var(--muted); font-size: 0.92rem; max-width: 62ch; line-height: 1.6; }
-
-    /* ---- cartes d'expérience ---- */
-    .grid { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); }
-    .card {
-      position: relative; display: flex; flex-direction: column;
-      border: 1px solid var(--line); background: rgba(5, 5, 5, 0.75);
-      text-decoration: none; color: inherit; transition: border-color 0.4s ease;
-    }
-    a.card:hover, .card.has-stretch:hover { border-color: var(--accent); }
-    .stretch { text-decoration: none; }
-    .stretch::after { content: ''; position: absolute; inset: 0; z-index: 1; }
-    .card .foot a { position: relative; z-index: 2; }
-    .card.is-todo { border-style: dashed; }
-    .card .body { padding: 1.4rem 1.4rem 1.6rem; display: flex; flex-direction: column; gap: 0.75rem; flex: 1; }
-    .tag { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; gap: 1rem; }
-    .status { white-space: nowrap; display: inline-flex; align-items: center; gap: 0.45rem; }
-    .status::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
-    .s-reco { color: var(--accent); } .s-live { color: var(--ok); } .s-arch { color: var(--muted); } .s-todo { color: var(--todo); }
-    .card h3 { font-family: var(--serif); font-weight: 300; font-size: 1.85rem; line-height: 1.05; }
-    .card h3 small { display: block; font-size: 1.1rem; font-style: italic; color: var(--muted); margin-top: 0.2rem; }
-    .card p { color: var(--muted); font-size: 0.9rem; line-height: 1.55; }
-    .card .q { font-family: var(--serif); font-style: italic; font-size: 1.12rem; color: var(--fg); }
-    .card .foot { margin-top: auto; padding-top: 0.75rem; font-family: var(--mono); font-size: 0.7rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; }
-    .card .foot a { color: var(--muted); text-decoration: none; border-bottom: 1px dotted; }
-    .card .foot a:hover { color: var(--accent); }
-    .score { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 0.6rem; font-family: var(--mono); font-size: 0.7rem; color: var(--muted); }
-    .score .bar { height: 2px; background: var(--line); position: relative; }
-    .score .bar i { position: absolute; inset: 0 auto 0 0; background: var(--accent); }
-    .score b { color: var(--fg); font-weight: 400; }
-
-    /* ---- vignette : clin d'œil à l'effet de stries ---- */
-    .thumb { position: relative; aspect-ratio: 992 / 619; overflow: hidden; background: #111; }
-    .thumb img { display: block; width: 100%; height: 100%; object-fit: cover; filter: grayscale(0.25) brightness(0.85); transition: filter 0.6s ease, transform 1.2s cubic-bezier(.2,.7,.2,1); }
-    .thumb::after {
-      content: ''; position: absolute; inset: 0;
-      background: var(--img) center / cover; transform: rotate(180deg);
-      -webkit-mask-image: repeating-linear-gradient(90deg, #000 0 18px, transparent 18px 46px);
-              mask-image: repeating-linear-gradient(90deg, #000 0 18px, transparent 18px 46px);
-      mix-blend-mode: normal; opacity: 0; clip-path: inset(50% 0 50% 0);
-      transition: opacity 0.6s ease, clip-path 1s cubic-bezier(.2,.7,.2,1);
-    }
-    .thumb.lav::after { background: linear-gradient(rgba(90, 99, 141, 0.5), rgba(90, 99, 141, 0.5)), var(--img) center / cover; }
-    a.card:hover .thumb img, .card.has-stretch:hover .thumb img, a.tile:hover .thumb img { filter: none; transform: scale(1.04); }
-    a.card:hover .thumb::after, .card.has-stretch:hover .thumb::after, a.tile:hover .thumb::after { opacity: 0.9; clip-path: inset(0 0 0 0); }
-    .thumb .void { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.2em; color: var(--todo);
-      background: repeating-linear-gradient(90deg, transparent 0 22px, rgba(241,236,228,0.04) 22px 30px); }
-
-    /* ---- matière ---- */
-    .tiles { display: grid; gap: 0.75rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); }
-    .tile { text-decoration: none; display: block; }
-    .tile figcaption { font-family: var(--mono); font-size: 0.68rem; color: var(--muted); padding-top: 0.5rem; line-height: 1.5; }
-    .tile figcaption b { color: var(--fg); font-weight: 400; }
-    h4 { font-family: var(--mono); font-size: 0.72rem; font-weight: 400; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin: 2.5rem 0 1rem; }
-    h4:first-of-type { margin-top: 0; }
-    .swatches { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem; }
-    .sw { font-family: var(--mono); font-size: 0.65rem; color: var(--muted); display: flex; align-items: center; gap: 0.4rem; border: 1px solid var(--line); padding: 0.3rem 0.6rem 0.3rem 0.3rem; }
-    .sw i { width: 16px; height: 16px; background: var(--c); }
-
-    /* ---- carnet ---- */
-    .docs { list-style: none; display: grid; gap: 0; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); border-top: 1px solid var(--line); }
-    .docs li { border-bottom: 1px solid var(--line); }
-    .docs a { display: grid; grid-template-columns: 1fr auto; gap: 0.25rem 1rem; padding: 1rem 0.25rem; text-decoration: none; transition: background 0.3s, padding 0.3s; }
-    .docs a:hover { background: rgba(197, 165, 114, 0.05); padding-left: 0.75rem; }
-    .docs strong { font-weight: 400; font-size: 0.95rem; }
-    .docs code { font-family: var(--mono); font-size: 0.7rem; color: var(--accent); align-self: center; }
-    .docs li.split > a { padding-bottom: 0.2rem; }
-    .docs li.split > span { display: block; padding: 0 0.25rem 1rem; }
-    .docs li.split > span a { display: inline; padding: 0; color: var(--accent); text-decoration: none; border-bottom: 1px dotted; }
-    .docs span { grid-column: 1 / -1; color: var(--muted); font-size: 0.82rem; line-height: 1.5; }
-
-    /* ---- journal ---- */
-    .log { list-style: none; position: relative; padding-left: 1.75rem; }
-    .log::before { content: ''; position: absolute; left: 4px; top: 0.4rem; bottom: 0.4rem; width: 1px; background: linear-gradient(var(--accent), var(--line)); }
-    .log li { position: relative; padding: 0 0 2rem; max-width: 70ch; }
-    .log li::before { content: ''; position: absolute; left: calc(-1.75rem + 1px); top: 0.35rem; width: 7px; height: 7px; border-radius: 50%; background: var(--bg); border: 1px solid var(--accent); }
-    .log li.next::before { border-style: dashed; border-color: var(--todo); }
-    .log time { font-family: var(--mono); font-size: 0.72rem; color: var(--accent); letter-spacing: 0.1em; }
-    .log li.next time { color: var(--todo); }
-    .log h5 { font-family: var(--serif); font-weight: 500; font-size: 1.3rem; margin: 0.2rem 0 0.35rem; }
-    .log p { color: var(--muted); font-size: 0.9rem; line-height: 1.6; }
-    .log blockquote { font-family: var(--serif); font-style: italic; font-size: 1.15rem; color: var(--fg); margin: 0.5rem 0; padding-left: 1rem; border-left: 1px solid var(--lav); }
-
-    footer.colophon { padding: 3rem 0 4rem; font-family: var(--mono); font-size: 0.72rem; color: var(--muted); line-height: 1.9; }
-    footer.colophon code { color: var(--fg); }
-
-    @media (prefers-reduced-motion: reduce) {
-      .tape span { animation: none; }
-      .thumb img, .thumb::after, .docs a { transition: none; }
-      html { scroll-behavior: auto; }
-    }
-  </style>
+  <script>
+    document.documentElement.classList.add('js');
+    // Filet de sécurité : si le moteur n'a pas démarré au bout de 4 s, tous les textes s'affichent
+    // et la barre du haut aussi.
+    setTimeout(function () {
+      if (!window.__h4Booted) { document.documentElement.classList.add('js-timeout'); document.documentElement.style.setProperty('--barre', '1'); }
+    }, 4000);
+  </script>
+  <!-- Langue et textes : avant tout le reste (pose <html lang>, prépare le menu) -->
+  <script src="js/contenu.js?v=20261112h"></script>
 </head>
 <body>
 
-  <div class="tape" aria-hidden="true"><span>
-    Bac à sable · maquettes de travail · lorem ipsum · photos 992 px en attente des HD · rien n'est définitif · on casse, on recommence ·
-    Bac à sable · maquettes de travail · lorem ipsum · photos 992 px en attente des HD · rien n'est définitif · on casse, on recommence ·
-  </span></div>
-
-  <header>
-    <div class="wrap">
-      <div class="top">
-        <div class="logo" aria-label="Pierre Bleuse"><i>Pierre</i><b>Blɘusɘ</b></div>
-        <div class="stamp">Atelier<strong>Bac à sable</strong>ne pas diffuser</div>
-      </div>
-      <div class="intro">
-        <p class="lead">L'établi du futur site&nbsp;: on y cherche comment faire d'une page web <em>une performance en soi</em>, à la hauteur du geste d'un chef. Chaque lien ci-dessous est un essai, pas une page finie.</p>
-        <div class="meta">
-          <div><b>Client</b> Pierre Bleuse, chef d'orchestre</div>
-          <div><b>DA</b> Philippe Pouyfourcat · identité V4</div>
-          <div><b>Pile</b> Lenis · GSAP ScrollTrigger · Pixi.js / WebGL</div>
-          <div><b>Dernière itération</b> 28/10/2026 · H4-2 Nuit, H4-3 Captation</div>
+  <!-- Barre du haut. Toujours visibles : le logo, les réseaux (Instagram, Facebook, YouTube) et les
+       langues. Apparaissent au début du défilement (.barre__apparait) : le menu, le petit lecteur. -->
+  <header class="barre" data-nav>
+    <a class="logo" href="./" data-haut aria-label="Pierre Bleuse">
+      <span class="logo__first">Pierre</span>
+      <span class="logo__last" aria-hidden="true">Bl<span class="rev">e</span>us<span class="rev">e</span></span>
+    </a>
+    <div class="barre__droite">
+      <nav class="barre__menu barre__apparait" aria-label="Menu" data-t-attr="aria-label:nav.menu">
+        <ul id="menu" data-menu-liste>
+          <li><a href="#agenda" data-t="nav.agenda">Agenda</a></li>
+          <li><a href="#disques" data-t="nav.disques">Discographie</a></li>
+          <li><a href="#parcours" data-t="nav.parcours">Parcours</a></li>
+          <li><a href="#presse" data-t="nav.presse">Presse</a></li>
+          <li><a href="#telechargement" data-t="nav.telechargement">Téléchargement</a></li>
+          <li><a href="#contact" data-t="nav.contact">Contact</a></li>
+        </ul>
+      </nav>
+      <!-- Petit lecteur : lecture / pause, et le pictogramme (disque et note) qui ouvre la liste des titres -->
+      <div class="mini barre__apparait js-seulement" data-lecteur>
+        <button type="button" class="mini__bouton" data-ecouter data-etat="arret" aria-pressed="false" aria-label="Play"><span class="ecoute__icone" aria-hidden="true"></span></button>
+        <button type="button" class="mini__playlist" data-playlist aria-expanded="false" aria-controls="playlist-volet" aria-label="Choisir la musique" data-t-attr="aria-label:lecteur.titres"><span class="ecoute__icone picto-playlist" aria-hidden="true"><svg viewBox="0 0 16 16" focusable="false"><ellipse cx="6.1" cy="12.2" rx="2.85" ry="2.05" transform="rotate(-22 6.1 12.2)"/><rect x="7.95" y="2.2" width="1.15" height="10"/><path d="M9.1 2.2c.15 2 1.5 2.75 2.55 3.6 1.1.9 1.55 2.25.95 3.85.3-1.45-.45-2.45-1.5-3.05-.65-.35-1.3-.6-2-.75z"/></svg></span></button>
+        <div class="volet" id="playlist-volet" data-playlist-volet hidden>
+          <ul class="titres" data-titres aria-label="Choisir la musique" data-t-attr="aria-label:lecteur.titres"></ul>
         </div>
       </div>
-      <nav class="toc" aria-label="Sommaire">
-        <a href="#hypotheses">Hypothèses</a>
-        <a href="#premiers-essais">Premiers essais</a>
-        <a href="#matiere">Matière</a>
-        <a href="#carnet">Carnet</a>
-        <a href="#journal">Journal</a>
-      </nav>
+      <ul class="rs">
+        <li><a href="https://www.instagram.com/pierrebleuse/" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7zm5 3.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zm0 2a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zm4.75-3.3a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2z"/></svg></a></li>
+        <li><a href="https://www.facebook.com/pierre.bleuse" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 22v-8.5h2.9l.45-3.4H13.5V7.95c0-.98.28-1.65 1.7-1.65h1.8V3.25a24 24 0 0 0-2.65-.15c-2.6 0-4.4 1.6-4.4 4.5v2.5H7v3.4h2.95V22h3.55z"/></svg></a></li>
+        <li><a class="inerte" role="link" aria-disabled="true" aria-label="YouTube"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M21.6 7.2a2.5 2.5 0 0 0-1.76-1.77C18.25 5 12 5 12 5s-6.25 0-7.84.43A2.5 2.5 0 0 0 2.4 7.2 26 26 0 0 0 2 12a26 26 0 0 0 .4 4.8 2.5 2.5 0 0 0 1.76 1.77C5.75 19 12 19 12 19s6.25 0 7.84-.43a2.5 2.5 0 0 0 1.76-1.77A26 26 0 0 0 22 12a26 26 0 0 0-.4-4.8zM10 15V9l5.2 3-5.2 3z"/></svg></a></li>
+      </ul>
+      <div class="barre__lang">
+        <a href="?lang=fr" data-langue="fr" lang="fr" hreflang="fr" class="is-on" aria-current="true">FR</a><span class="sep" aria-hidden="true">|</span><a href="?lang=en" data-langue="en" lang="en" hreflang="en">EN</a>
+      </div>
+      <!-- Fenêtres étroites : le menu se replie derrière ce bouton (js/contenu.js) -->
+      <button class="barre__burger barre__apparait" type="button" data-menu aria-label="Menu" aria-expanded="false" aria-controls="menu" data-t-attr="aria-label:nav.menu">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 6.5h14M3 13.5h14" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>
+      </button>
     </div>
   </header>
 
+  <!-- La nuée : un seul canvas fixe, décoratif, en « éclaircir », entre le fond noir et les sections
+       « arrière-plan ». Son opacité CSS est le réglage « Opacité globale », fixe. -->
+  <canvas class="nuee" data-nuee aria-hidden="true"></canvas>
+
   <main>
 
-    <!-- 01 — les hypothèses du reboot -->
-    <section id="hypotheses">
-      <div class="wrap">
-        <div class="sh">
-          <span class="n">01</span><h2>Quatre hypothèses de site-performance</h2>
-          <p>Même ossature en cinq temps, même matière, même grammaire de mouvement (progressivité, finesse, douceur). Notes du jury indépendant sur 50 (douceur, performance, excellence, lisibilité, mobile) pour les trois premières.</p>
-        </div>
-        <div class="grid">
-          <a class="card" href="hypotheses/h3-lever/">
-            <div class="thumb" style="--img:url(assets/bleuse-5.jpg)"><img src="assets/bleuse-5.jpg" alt="" loading="lazy"></div>
-            <div class="body">
-              <div class="tag"><span>H3 · Lever</span><span class="status s-reco">recommandée</span></div>
-              <h3>Lever<small>la lumière et le silence</small></h3>
-              <p>La retenue comme signe de stature&nbsp;: la lumière révèle, jamais la découpe. La trace de la baguette conduit l'œil.</p>
-              <p class="q">« Le silence avant la première note. »</p>
-              <div class="score"><span>jury</span><span class="bar"><i style="width:79%"></i></span><b>39,5</b></div>
-            </div>
-          </a>
-          <a class="card" href="hypotheses/h1-rubato/">
-            <div class="thumb lav" style="--img:url(assets/bleuse-1.jpg)"><img src="assets/bleuse-1.jpg" alt="" loading="lazy"></div>
-            <div class="body">
-              <div class="tag"><span>H1 · Rubato</span><span class="status s-live">à l'étude</span></div>
-              <h3>Rubato<small>le temps musical</small></h3>
-              <p>Les compositions du DA, intactes, mais phrasées comme une partition&nbsp;: anacrouse, pupitres, résolution longue, respiration.</p>
-              <p class="q">« Un chef, c'est quelqu'un qui décide quand. »</p>
-              <div class="score"><span>jury</span><span class="bar"><i style="width:70.4%"></i></span><b>35,2</b></div>
-            </div>
-          </a>
-          <a class="card" href="hypotheses/h2-tutti/">
-            <div class="thumb lav" style="--img:url(assets/bleuse-3.jpg)"><img src="assets/bleuse-3.jpg" alt="" loading="lazy"></div>
-            <div class="body">
-              <div class="tag"><span>H2 · Tutti</span><span class="status s-live">à l'étude</span></div>
-              <h3>Tutti<small>cent voix, un geste</small></h3>
-              <p>Un point de lumière par musicien. Le scroll est le geste du chef&nbsp;: il rassemble les voix, les photos apparaissent à travers elles.</p>
-              <p class="q">« Un chef n'est rien seul. »</p>
-              <div class="score"><span>jury</span><span class="bar"><i style="width:64.8%"></i></span><b>32,4</b></div>
-            </div>
-          </a>
-          <a class="card" href="hypotheses/h4-etourneaux/">
-            <div class="thumb" style="--img:url(hypotheses/h4-etourneaux/assets/vignette.jpg)"><img src="hypotheses/h4-etourneaux/assets/vignette.jpg" alt="" loading="lazy"></div>
-            <div class="body">
-              <div class="tag"><span>H4 · Vol d'étourneaux</span><span class="status s-live">en test</span></div>
-              <h3>Vol d'étourneaux<small>la nuée et le geste</small></h3>
-              <p>Exploration de mouvements organiques de particules inspirés des vols d'étourneaux, avec superposition graphique, transparence paramétrable et interactions musicales et au scroll.</p>
-              <p class="q">« Mille voix, un seul vol. »</p>
-              <div class="foot"><span>faisabilité · musique · scroll</span></div>
-            </div>
-          </a>
-          <a class="card" href="hypotheses/h4-2-nuit/">
-            <div class="thumb" style="--img:url(hypotheses/h4-2-nuit/vignette.jpg)"><img src="hypotheses/h4-2-nuit/vignette.jpg" alt="" loading="lazy"></div>
-            <div class="body">
-              <div class="tag"><span>H4-2 · Nuit</span><span class="status s-live">en test</span></div>
-              <h3>Nuit<small>la nuée seule</small></h3>
-              <p>Le vol d'étourneaux sans la photo&nbsp;: un fond noir, la nuée seule, même cadrage, même musique, même scroll que H4.</p>
-              <p class="q">« Le noir, puis le vol. »</p>
-              <div class="foot"><span>variante de H4 · fond noir</span></div>
-            </div>
-          </a>
-          <a class="card" href="hypotheses/h4-3-captation/">
-            <div class="thumb" style="--img:url(hypotheses/h4-3-captation/vignette.jpg)"><img src="hypotheses/h4-3-captation/vignette.jpg" alt="" loading="lazy"></div>
-            <div class="body">
-              <div class="tag"><span>H4-3 · Captation</span><span class="status s-live">en test</span></div>
-              <h3>Captation<small>la nuée sur le concert</small></h3>
-              <p>La captation de Prades en fond plein cadre, lancée dès l'arrivée, filtrée ou assombrie (scène bleue, noir et blanc, lavande, négatif…), la nuée par-dessus. Vidéo hébergée&nbsp;; YouTube en option pour la maquette.</p>
-              <p class="q">« Le concert, et le vol au-dessus. »</p>
-              <div class="foot"><span>variante de H4 · YouTube ou vidéo hébergée</span></div>
-            </div>
-          </a>
-          <div class="card is-todo">
-            <div class="thumb"><div class="void">EN ATTENTE</div></div>
-            <div class="body">
-              <div class="tag"><span>Piste · Lever +</span><span class="status s-todo">à construire</span></div>
-              <h3>Lever +<small>l'hybride recommandé</small></h3>
-              <p>Base Lever, premier écran lisible, nav de Rubato, plan de salle de Tutti, découpes du DA à 0,5 dans les faisceaux. Six points à trancher avec le DA d'abord.</p>
-              <div class="foot"><span>hypotheses/h4-lever-plus/</span></div>
-            </div>
-          </div>
-        </div>
-        <div class="card" style="margin-top:1.25rem">
-          <a class="body" href="hypotheses/" style="text-decoration:none;flex-direction:row;justify-content:space-between;align-items:center;flex-wrap:wrap">
-            <span class="tag" style="display:block">Sommaire des hypothèses</span>
-            <span style="font-family:var(--serif);font-size:1.3rem">Vue d'ensemble des quatre pistes →</span>
-          </a>
-        </div>
-      </div>
-    </section>
-
-    <!-- 02 — itérations stries, avant le reboot -->
-    <section id="premiers-essais">
-      <div class="wrap">
-        <div class="sh">
-          <span class="n">02</span><h2>Premiers essais&nbsp;: les stries</h2>
-          <p>15-16 octobre. Le shader de stries sur photo originale, calé au pixel sur les maquettes du DA. Principe validé, mais jugé «&nbsp;trop mécanique&nbsp;» le 17/10&nbsp;: d'où le reboot.</p>
-        </div>
-        <div class="grid">
-          <a class="card" href="maquette-v1.html">
-            <div class="thumb lav" style="--img:url(assets/bleuse-3.jpg)"><img src="assets/bleuse-4.jpg" alt="" loading="lazy"></div>
-            <div class="body">
-              <div class="tag"><span>V1 · home</span><span class="status s-arch">archivée</span></div>
-              <h3>Maquette de home<small>trois photos, trois effets</small></h3>
-              <p>bleuse-1 (stries + bandeau), bleuse-3 (grille lavande, détourage Vision), bleuse-5 en pied de page (deux voiles). Textes en lorem ipsum.</p>
-              <div class="foot"><span>maquette-v1.html</span></div>
-            </div>
-          </a>
-          <div class="card has-stretch">
-            <div class="thumb" style="--img:url(assets/bleuse-1.jpg)"><img src="assets/bleuse-2.jpg" alt="" loading="lazy"></div>
-            <div class="body">
-              <div class="tag"><span>Banc d'essai</span><span class="status s-arch">outil</span></div>
-              <h3><a class="stretch" href="_draft1.html">Banc des stries</a><small>un hero, des réglages</small></h3>
-              <p>Pour régler le shader photo par photo. Touche <b>R</b>&nbsp;: superpose la maquette du DA pour comparer.</p>
-              <div class="foot"><a href="_draft1.html">bleuse-3</a><a href="_draft1.html?photo=1">?photo=1 · bleuse-1</a></div>
-            </div>
+    <!-- HERO · nuée au premier plan. La citation et le lecteur, en bas à droite, sur leur halo sombre. -->
+    <section class="ouverture nuee-premier-plan" id="ouverture" data-ouverture aria-labelledby="titre-page">
+      <h1 class="sr-only" id="titre-page" data-t="meta.titre">Pierre Bleuse, chef d'orchestre</h1>
+      <div class="ouverture__texte dessus" data-revele>
+        <div class="ouverture__bloc">
+          <blockquote class="ouverture__citation" data-t="ouverture.citation">«&nbsp;Plus je progresse, plus je me sens libre&nbsp;»</blockquote>
+          <!-- Lecteur : Play / Pause, puis la liste des titres (data/playlist.js), remplie par js/main.js
+               et alignée sur l'icône de lecture. Le pictogramme de la liste n'est que dans la barre du haut. -->
+          <div class="lecteur js-seulement" data-lecteur>
+            <button type="button" class="ecoute__bouton" data-ecouter data-etat="arret" aria-pressed="false">
+              <span class="ecoute__icone" aria-hidden="true"></span><span class="ecoute__libelle" data-ecouter-libelle>Play</span>
+            </button>
+            <ul class="titres lecteur__titres" data-titres aria-label="Choisir la musique" data-t-attr="aria-label:lecteur.titres"></ul>
           </div>
         </div>
       </div>
+      <!-- Invitation à défiler : un petit pictogramme au centre, en bas ; il mène à la section suivante -->
+      <a class="hint" href="#bio" data-hint aria-label="Faire défiler la page" data-t-attr="aria-label:ouverture.defiler">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 9.5l5.5 5.5 5.5-5.5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
     </section>
 
-    <!-- 03 — matière première -->
-    <section id="matiere">
-      <div class="wrap">
-        <div class="sh">
-          <span class="n">03</span><h2>Matière</h2>
-          <p>Ce qu'on a sur l'établi&nbsp;: photos sources (992 px, HD en attente), maquettes du DA, masques de détourage et planches de l'identité V4.</p>
-        </div>
-
-        <h4>Photos et maquettes du DA</h4>
-        <div class="tiles">
-          <a class="tile" href="assets/bleuse-1.jpg"><figure><div class="thumb" style="--img:url(assets/bleuse-1.jpg)"><img src="assets/bleuse-1.jpg" alt="Pierre Bleuse, mains ouvertes, fond doré" loading="lazy"></div><figcaption><b>bleuse-1</b> · mains ouvertes, bokeh doré</figcaption></figure></a>
-          <a class="tile" href="assets/bleuse-2.jpg"><figure><div class="thumb"><img src="assets/bleuse-2.jpg" alt="Maquette du DA sur bleuse-1" loading="lazy"></div><figcaption><b>bleuse-2</b> · maquette DA : stries + bandeau</figcaption></figure></a>
-          <a class="tile" href="assets/bleuse-3.jpg"><figure><div class="thumb lav" style="--img:url(assets/bleuse-3.jpg)"><img src="assets/bleuse-3.jpg" alt="Pierre Bleuse dirigeant l'orchestre" loading="lazy"></div><figcaption><b>bleuse-3</b> · en frac devant l'orchestre</figcaption></figure></a>
-          <a class="tile" href="assets/bleuse-4.jpg"><figure><div class="thumb"><img src="assets/bleuse-4.jpg" alt="Maquette du DA sur bleuse-3" loading="lazy"></div><figcaption><b>bleuse-4</b> · maquette DA : grille lavande</figcaption></figure></a>
-          <a class="tile" href="assets/bleuse-5.jpg"><figure><div class="thumb" style="--img:url(assets/bleuse-5.jpg)"><img src="assets/bleuse-5.jpg" alt="Pierre Bleuse accroupi sur scène" loading="lazy"></div><figcaption><b>bleuse-5</b> · accroupi, près du clavecin</figcaption></figure></a>
-          <a class="tile" href="assets/bleuse-6.png"><figure><div class="thumb"><img src="assets/bleuse-6.png" alt="Maquette du DA sur bleuse-5" loading="lazy"></div><figcaption><b>bleuse-6</b> · maquette DA : deux voiles</figcaption></figure></a>
-          <a class="tile" href="assets/bleuse-1-masque.png"><figure><div class="thumb"><img src="assets/bleuse-1-masque.png" alt="Masque de détourage de bleuse-1" loading="lazy"></div><figcaption><b>masque</b> · bleuse-1 (Apple Vision)</figcaption></figure></a>
-          <a class="tile" href="assets/bleuse-3-masque.png"><figure><div class="thumb"><img src="assets/bleuse-3-masque.png" alt="Masque de détourage de bleuse-3" loading="lazy"></div><figcaption><b>masque</b> · bleuse-3 (Apple Vision)</figcaption></figure></a>
-        </div>
-
-        <h4>Identité visuelle V4 du DA</h4>
-        <div class="tiles">
-          <a class="tile" href="hypotheses/_ref/identite-v4-logo-home.jpg"><figure><div class="thumb"><img src="hypotheses/_ref/identite-v4-logo-home.jpg" alt="Planche : logo sur la home" loading="lazy"></div><figcaption><b>logo / home</b> · « Pierre Blɘusɘ »</figcaption></figure></a>
-          <a class="tile" href="hypotheses/_ref/identite-v4-plisse.jpg"><figure><div class="thumb"><img src="hypotheses/_ref/identite-v4-plisse.jpg" alt="Planche : le plissé" loading="lazy"></div><figcaption><b>plissé</b> · stries = plis de la chemise</figcaption></figure></a>
-          <a class="tile" href="hypotheses/_ref/identite-v4-blocs.jpg"><figure><div class="thumb"><img src="hypotheses/_ref/identite-v4-blocs.jpg" alt="Planche : blocs" loading="lazy"></div><figcaption><b>blocs</b> · fragments inversés</figcaption></figure></a>
-          <a class="tile" href="hypotheses/_ref/identite-v4-scene-bleue.jpg"><figure><div class="thumb"><img src="hypotheses/_ref/identite-v4-scene-bleue.jpg" alt="Planche : scène bleue" loading="lazy"></div><figcaption><b>scène bleue</b> · lumière de scène</figcaption></figure></a>
-          <a class="tile" href="hypotheses/_ref/identite-v4-scene-bleue-2.jpg"><figure><div class="thumb"><img src="hypotheses/_ref/identite-v4-scene-bleue-2.jpg" alt="Planche : scène bleue, variante" loading="lazy"></div><figcaption><b>scène bleue 2</b> · variante</figcaption></figure></a>
-          <a class="tile" href="hypotheses/_ref/graduation-chromatique-1.jpg"><figure><div class="thumb"><img src="hypotheses/_ref/graduation-chromatique-1.jpg" alt="Planche : graduation chromatique" loading="lazy"></div><figcaption><b>graduation 1</b> · solarisations</figcaption></figure></a>
-          <a class="tile" href="hypotheses/_ref/graduation-chromatique-2.jpg"><figure><div class="thumb"><img src="hypotheses/_ref/graduation-chromatique-2.jpg" alt="Planche : graduation chromatique, suite" loading="lazy"></div><figcaption><b>graduation 2</b> · lavande, cyan, vert</figcaption></figure></a>
-        </div>
-        <div class="swatches">
-          <span class="sw" style="--c:#5A638D"><i></i>#5A638D lavande</span>
-          <span class="sw" style="--c:#c5a572"><i></i>#C5A572 or</span>
-          <span class="sw" style="--c:#f1ece4"><i></i>#F1ECE4 crème</span>
-          <span class="sw" style="--c:#000"><i></i>#000 noir scène</span>
+    <!-- BIO · pas de fond de section (fond 0 %) : la nuée vole derrière le texte, qui porte son propre
+         fond noir à 50 %, à bords vaporeux · texte : colonnes 10 à 12 -->
+    <section class="section bio nuee-arriere-plan fond-0" id="bio" data-section>
+      <div class="grille">
+        <div class="bio__texte bloc-droite" data-revele>
+          <p class="texte" data-t="bio.p1">Pierre Bleuse est directeur musical de l'Ensemble intercontemporain et directeur artistique du Festival Pablo Casals de Prades. Chef principal de l'Orchestre symphonique d'Odense de 2021 à 2026, il est l'invité d'orchestres comme le Royal Concertgebouw Orchestra, le London Philharmonic Orchestra, l'Orchestre de Paris ou le Tokyo Symphony Orchestra.</p>
+          <p class="texte" data-t="bio.p2">Violoniste de formation, il dirige le grand répertoire symphonique et la musique d'aujourd'hui avec la même attention&nbsp;: faire dialoguer les œuvres plutôt que les opposer.</p>
         </div>
       </div>
     </section>
 
-    <!-- 04 — documents -->
-    <section id="carnet">
-      <div class="wrap">
-        <div class="sh">
-          <span class="n">04</span><h2>Carnet de bord</h2>
-          <p>Les notes qui accompagnent les essais&nbsp;: décisions, réglages, specs et outils.</p>
+    <!-- VISUEL 1 · nuée en arrière-plan, visuel à 100 % · pleine largeur, pleine hauteur, sans texte
+         (data/visuels.js) · image en « lumière » : les découpes de l'hypothèse 3 (js/lumiere.js) ;
+         sans JavaScript ou sans WebGL, l'image seule -->
+    <section class="visuel visuel--image visuel--lumiere nuee-arriere-plan fond-100" id="visuel-1" data-section data-visuel="visuel-1" data-lumiere="bleuse-3">
+      <img class="visuel__media" src="assets/img/bleuse-3.jpg" alt="Pierre Bleuse dirigeant l'orchestre en concert" style="object-position: 60% 35%" decoding="async">
+    </section>
+
+    <!-- AGENDA · nuée en arrière-plan, fond 80 % · quatre dates (3 colonnes chacune, « En savoir plus »),
+         tableau des dates suivantes (« Les concerts »), bouton « Tous les concerts » (colonnes 10 à 12).
+         Les concerts passés sont sur concerts.html. -->
+    <section class="section agenda nuee-arriere-plan fond-80" id="agenda" data-section aria-labelledby="agenda-titre">
+      <div class="grille grille--titre">
+        <header class="section__tete bloc-plein" data-revele>
+          <h2 class="section__titre" id="agenda-titre" data-t="agenda.titre">Agenda</h2>
+          <p class="mention" data-t="agenda.mention">Saison 2026-2027</p>
+        </header>
+      </div>
+      <div data-agenda data-rendu>
+        <div class="grille">
+          <!-- AGENDA-STATIQUE:DEBUT (repli sans JavaScript, généré par outils/generer-agenda.py, ne pas modifier à la main) -->
+          <ol class="agenda__simple bloc-plein" data-revele>
+            <li class="ligne"><span class="ligne__quand">15 octobre 2026</span> <span class="ligne__ville">Malmö</span> <span class="ligne__titre">Malmö SymfoniOrkester</span></li>
+            <li class="ligne"><span class="ligne__quand">23–25 octobre 2026</span> <span class="ligne__ville">Porto</span> <span class="ligne__titre">Orquestra Sinfónica do Porto Casa da Música</span></li>
+            <li class="ligne"><span class="ligne__quand">29–30 octobre 2026</span> <span class="ligne__ville">Bucarest</span> <span class="ligne__titre">Filarmonica George Enescu</span></li>
+            <li class="ligne"><span class="ligne__quand">6 novembre 2026</span> <span class="ligne__ville">Disque</span> <span class="ligne__titre">Ravel Abroad</span></li>
+            <li class="ligne"><span class="ligne__quand">7 novembre 2026</span> <span class="ligne__ville">Bâle</span> <span class="ligne__titre">Kammerorchester Basel, Pierre-Laurent Aimard</span></li>
+            <li class="ligne"><span class="ligne__quand">14 novembre 2026</span> <span class="ligne__ville">Paris</span> <span class="ligne__titre">EIC &amp; Friends, Bertrand Chamayou</span></li>
+            <li class="ligne"><span class="ligne__quand">19 novembre 2026</span> <span class="ligne__ville">Odense</span> <span class="ligne__titre">Au revoir, Pierre</span></li>
+            <li class="ligne"><span class="ligne__quand">27–29 novembre 2026</span> <span class="ligne__ville">Madrid</span> <span class="ligne__titre">Orquesta y Coro Nacionales de España</span></li>
+            <li class="ligne"><span class="ligne__quand">3 décembre 2026</span> <span class="ligne__ville">Paris</span> <span class="ligne__titre">In Between trance</span></li>
+            <li class="ligne"><span class="ligne__quand">18 décembre 2026</span> <span class="ligne__ville">Valladolid</span> <span class="ligne__titre">Concert de Noël</span></li>
+            <li class="ligne"><span class="ligne__quand">13 janvier 2027</span> <span class="ligne__ville">Paris</span> <span class="ligne__titre">EIC 50&nbsp;: 50 regards sur la beauté</span></li>
+            <li class="ligne"><span class="ligne__quand">5 février 2027</span> <span class="ligne__ville">Paris</span> <span class="ligne__titre">Festival Présences 2027</span></li>
+            <li class="ligne"><span class="ligne__quand">13–28 mars 2027</span> <span class="ligne__ville">Amsterdam</span> <span class="ligne__titre">Red Fox</span></li>
+            <li class="ligne"><span class="ligne__quand">26 mars 2027</span> <span class="ligne__ville">Paris</span> <span class="ligne__titre">Lamentations</span></li>
+            <li class="ligne"><span class="ligne__quand">11–15 avril 2027</span> <span class="ligne__ville">Cologne, Bâle, Munich</span> <span class="ligne__titre">Kirschblüte&nbsp;: tournée avec Hayato Sumino</span></li>
+            <li class="ligne"><span class="ligne__quand">23 avril 2027</span> <span class="ligne__ville">Paris</span> <span class="ligne__titre">EIC 50&nbsp;: Dialogues des ombres</span></li>
+            <li class="ligne"><span class="ligne__quand">28–29 avril 2027</span> <span class="ligne__ville">Göteborg</span> <span class="ligne__titre">Mahler, Symphonie n°&nbsp;5</span></li>
+            <li class="ligne"><span class="ligne__quand">16 mai 2027</span> <span class="ligne__ville">Milan</span> <span class="ligne__titre">Teatro alla Scala, festival Milano Musica</span></li>
+          </ol>
+          <!-- AGENDA-STATIQUE:FIN -->
         </div>
-        <ul class="docs">
-          <li><a href="https://claude.ai/artifact/EBS7rGLt6QdS2hx1DJLRaB" target="_blank" rel="noopener"><strong>Analyse pour le débat avec le DA</strong><code>doc ↗</code><span>Cadre, grammaire, les trois hypothèses, verdict du jury, ce qu'il reste à trancher.</span></a></li>
-          <li><a href="HANDOFF.md"><strong>Passation</strong><code>HANDOFF.md</code><span>Tout l'historique : contexte, choix d'architecture, itérations, mesures.</span></a></li>
-          <li><a href="hypotheses/BRIEF-COMMUN.md"><strong>Brief commun</strong><code>BRIEF-COMMUN.md</code><span>La grammaire de mouvement en 12 règles et la structure en cinq temps.</span></a></li>
-          <li class="split"><a href="hypotheses/h1-rubato/LISEZ-MOI.md"><strong>Rubato · réglages</strong><code>LISEZ-MOI</code></a><span>Courbe phrase(), rubato, respiration. <a href="hypotheses/h1-rubato/SPEC.md">Spec</a> · <a href="hypotheses/h1-rubato/">Maquette</a></span></li>
-          <li class="split"><a href="hypotheses/h2-tutti/LISEZ-MOI.md"><strong>Tutti · réglages</strong><code>LISEZ-MOI</code></a><span>Particules, formations, familles d'instruments. <a href="hypotheses/h2-tutti/SPEC.md">Spec</a> · <a href="hypotheses/h2-tutti/">Maquette</a></span></li>
-          <li class="split"><a href="hypotheses/h3-lever/LISEZ-MOI.md"><strong>Lever · réglages</strong><code>LISEZ-MOI</code></a><span>Shader de lumière, faisceaux, trace de la baguette. <a href="hypotheses/h3-lever/SPEC.md">Spec</a> · <a href="hypotheses/h3-lever/">Maquette</a></span></li>
-          <li class="split"><a href="hypotheses/h4-etourneaux/FAISABILITE.md"><strong>Vol d'étourneaux · faisabilité</strong><code>FAISABILITE</code></a><span>YouTube, vidéo hébergée, synchronisation musicale, rendu, performances. <a href="hypotheses/h4-etourneaux/SPEC.md">Spec</a> · <a href="hypotheses/h4-etourneaux/LISEZ-MOI.md">Réglages</a> · <a href="hypotheses/h4-etourneaux/">Prototype</a></span></li>
-          <li class="split"><a href="hypotheses/h4-3-captation/LISEZ-MOI.md"><strong>Nuit · Captation · réglages</strong><code>LISEZ-MOI</code></a><span>Variantes de H4&nbsp;: fond noir, vidéo de fond filtrée, YouTube plein cadre, remplacer la vidéo. <a href="hypotheses/h4-2-nuit/LISEZ-MOI.md">Nuit</a> · <a href="hypotheses/h4-2-nuit/">Maquette Nuit</a> · <a href="hypotheses/h4-3-captation/">Maquette Captation</a></span></li>
-          <li><a href="outils/LISEZ-MOI.md"><strong>Outils</strong><code>outils/</code><span>Masques Vision, relevés au pixel, planches-contact, harnais Chrome et WebKit.</span></a></li>
-        </ul>
       </div>
     </section>
 
-    <!-- 05 — chronologie -->
-    <section id="journal">
-      <div class="wrap">
-        <div class="sh"><span class="n">05</span><h2>Journal</h2></div>
-        <ol class="log">
-          <li><time>15/10/2026</time><h5>Premier shader de stries</h5><p>Choix du rendu en code depuis la photo originale plutôt que des calques PNG. Calage au pixel sur bleuse-2 puis bleuse-4 (écart moyen 2,3/255), détourage du chef par Apple Vision.</p></li>
-          <li><time>16/10/2026</time><h5>Butée, mobile, voiles</h5><p>Compositions portrait, preset bleuse-5 aux deux voiles, home en lorem ipsum, vérification par cinq agents.</p></li>
-          <li><time>17/10/2026</time><h5>Retour du DA</h5><blockquote>« Le site ne devrait pas être juste une composition d'images mais une performance artistique en soi. »</blockquote><p>Effets jugés trop mécaniques&nbsp;: chercher progressivité, finesse, douceur.</p></li>
-          <li><time>22/10/2026</time><h5>Reboot&nbsp;: trois hypothèses</h5><p>Rubato, Tutti, Lever construites, vérifiées et corrigées. Jury à trois regards (DA, programmateur, public mobile)&nbsp;: Lever en tête.</p></li>
-          <li><time>27/10/2026</time><h5>H4&nbsp;: vol d'étourneaux</h5><p>Nuée de particules sur la captation de Prades 2022, pilotée par la musique (analyse préalable et position de lecture) et par le scroll. Investigation YouTube, vidéo hébergée, Web Audio et rendu, prototype avec réglages.</p></li>
-          <li><time>28/10/2026</time><h5>H4-2 Nuit, H4-3 Captation</h5><p>Deux variantes du vol d'étourneaux sur le même moteur&nbsp;: la nuée seule sur le noir&nbsp;; la captation en fond plein cadre (YouTube rogné pour la maquette, vidéo hébergée pour la mise en ligne), avec filtres et assombrissement.</p></li>
-          <li class="next"><time>à venir</time><h5>Lever +</h5><p>Trancher six points avec le DA, puis construire l'hybride. Recevoir les photos HD.</p></li>
-        </ol>
+    <!-- VISUEL 2 · nuée en arrière-plan, visuel à 100 % · image en « lumière », comme le visuel 1 -->
+    <section class="visuel visuel--image visuel--lumiere nuee-arriere-plan fond-100" id="visuel-2" data-section data-visuel="visuel-2" data-lumiere="bleuse-1">
+      <img class="visuel__media" src="assets/img/bleuse-1.jpg" alt="" style="object-position: 52% 42%" decoding="async">
+    </section>
+
+    <!-- DISCOGRAPHIE · nuée en arrière-plan, fond 80 % · quatre disques par ligne (3 colonnes chacun) : data/disques.js -->
+    <section class="section disques nuee-arriere-plan fond-80" id="disques" data-section aria-labelledby="disques-titre">
+      <div class="grille grille--titre">
+        <header class="section__tete bloc-plein" data-revele>
+          <h2 class="section__titre" id="disques-titre" data-t="disques.titre">Discographie</h2>
+        </header>
+      </div>
+      <div class="grille fiches" data-disques data-rendu>
+        <article class="fiche bloc-quart"><p class="fiche__dates">2026 · OUR Recordings</p><h3 class="fiche__titre"><i>Ravel Abroad</i></h3><p class="fiche__texte">Orchestre symphonique d'Odense</p></article>
+        <article class="fiche bloc-quart"><p class="fiche__dates">2026 · Alpha Classics</p><h3 class="fiche__titre"><i>Unsuk Chin</i></h3><p class="fiche__texte">Ensemble intercontemporain</p></article>
+        <article class="fiche bloc-quart"><p class="fiche__dates">2026 · Dacapo</p><h3 class="fiche__titre"><i>Viola Concertos</i></h3><p class="fiche__texte">Rafaell Altino, Orchestre symphonique d'Odense</p></article>
+        <article class="fiche bloc-quart"><p class="fiche__dates">2024 · Alpha Classics</p><h3 class="fiche__titre"><i>Ligeti</i></h3><p class="fiche__texte">Ensemble intercontemporain</p><p class="fiche__texte">Diapason d'or de l'année, Choc de <i>Classica</i></p></article>
+      </div>
+    </section>
+
+    <!-- PARCOURS · nuée en arrière-plan, fond 50 % · pas de titre affiché (il reste pour les lecteurs
+         d'écran) · fonctions puis opéra et création (colonnes 10 à 12), puis le bandeau de la carte,
+         sur fond noir à 90 % : carte du monde interactive (colonnes 1 à 9) et liste des orchestres
+         (colonnes 10 à 12) -->
+    <section class="section parcours nuee-arriere-plan fond-50" id="parcours" data-section data-parcours aria-labelledby="parcours-titre">
+      <h2 class="sr-only" id="parcours-titre" data-t="parcours.titre">Parcours</h2>
+      <div class="grille">
+        <div class="bloc-droite" data-revele>
+          <h3 class="mention" data-t="parcours.fonctions">Fonctions</h3>
+          <ul class="liste">
+            <li data-t="parcours.fonction1">Directeur musical, Ensemble intercontemporain, depuis 2023</li>
+            <li data-t="parcours.fonction2">Directeur artistique, Festival Pablo Casals de Prades, depuis 2021</li>
+            <li data-t="parcours.fonction3">Chef principal, Orchestre symphonique d'Odense, 2021 à 2026</li>
+          </ul>
+        </div>
+      </div>
+      <div class="grille">
+        <div class="bloc-droite" data-revele>
+          <h3 class="mention" data-t="parcours.opera">Opéra et création</h3>
+          <ul class="liste">
+            <li data-t="parcours.opera1"><i>Red Fox</i> de Du Yun, création mondiale, Dutch National Opera, 2027</li>
+            <li data-t="parcours.opera2"><i>Répons</i> de Pierre Boulez, ouverture du centenaire, Philharmonie de Paris, 2025</li>
+            <li data-t="parcours.opera3">BBC Proms avec l'Ensemble intercontemporain, Royal Albert Hall, 2025</li>
+            <li data-t="parcours.opera4"><i>Orgia</i> d'Hèctor Parra, Teatro Arriaga de Bilbao, 2023, Gran Teatre del Liceu de Barcelone, 2024</li>
+          </ul>
+        </div>
+      </div>
+      <!-- Bandeau de la carte : fond noir sur toute la largeur, à 90 % ; la carte du monde (1 à 12),
+           puis la liste des orchestres dessous, en trois colonnes égales : Amériques, Europe et
+           Afrique, Asie, Russie et Océanie (zone de chaque orchestre : data/orchestres.js) -->
+      <div class="parcours__bandeau">
+      <div class="grille">
+        <!-- Carte du monde : dessinée par js/sections.js (data/cartes.js, data/orchestres.js) -->
+        <div class="bloc-plein parcours__cartes" data-cartes data-revele></div>
+        <div class="bloc-plein parcours__liste" data-revele>
+          <h3 class="mention" data-t="parcours.invites">Orchestres invités (sélection)</h3>
+          <div class="orchestres-zones" data-orchestres data-rendu>
+            <div class="orchestres-zone">
+              <h4 class="orchestres-zone__titre" data-t="parcours.zone.ameriques">Amériques</h4>
+              <ul class="orchestres">
+                <li>Orquestra Sinfônica do Estado de São Paulo</li>
+                <li>Salt Lake City</li>
+              </ul>
+            </div>
+            <div class="orchestres-zone">
+              <h4 class="orchestres-zone__titre" data-t="parcours.zone.europe-afrique">Europe et Afrique</h4>
+              <ul class="orchestres">
+                <li>Royal Concertgebouw Orchestra</li>
+                <li>London Philharmonic Orchestra</li>
+                <li>BBC Symphony Orchestra</li>
+                <li>City of Birmingham Symphony Orchestra</li>
+                <li>Orchestre de Paris</li>
+                <li>Orchestre national de France</li>
+                <li>NDR Elbphilharmonie Orchester</li>
+                <li>hr-Sinfonieorchester Frankfurt</li>
+                <li>SWR Symphonieorchester</li>
+                <li>Royal Stockholm Philharmonic Orchestra</li>
+                <li>Swedish Radio Symphony Orchestra</li>
+                <li>Finnish Radio Symphony Orchestra</li>
+                <li>Orchestre de la Suisse Romande</li>
+              </ul>
+            </div>
+            <div class="orchestres-zone">
+              <h4 class="orchestres-zone__titre" data-t="parcours.zone.asie-oceanie">Asie, Russie et Océanie</h4>
+              <ul class="orchestres">
+                <li>Tokyo Symphony Orchestra</li>
+                <li>Singapore Symphony Orchestra</li>
+                <li>Auckland Philharmonia</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+    </section>
+
+    <!-- VISUEL 3 · la captation, avec son (data/visuels.js) · nuée en arrière-plan, vidéo à 95 % : la
+         vidéo est presque opaque, la nuée (qui suit sa bande-son) se devine à 5 % au travers · la
+         vidéo part quand on arrive sur la section et prend le relais de la musique, jamais les deux
+         sons ensemble ; quand on quitte la section, elle s'arrête et la musique reprend (js/main.js).
+         Sans JavaScript : son image d'attente. -->
+    <section class="visuel visuel--video nuee-arriere-plan fond-95" id="visuel-3" data-section data-visuel="visuel-3">
+      <video class="visuel__media" src="assets/media/captation.mp4" poster="assets/media/captation-affiche.jpg" muted loop playsinline preload="none" disablepictureinpicture aria-label="Pierre Bleuse en concert, extraits d'une captation"></video>
+    </section>
+
+    <!-- PRESSE · nuée en arrière-plan, fond 80 % · quatre articles (3 colonnes chacun) : data/presse.js.
+         Une fiche : logo et nom du média, titre de l'article, verbatim clé, court résumé, date, auteur, lien.
+         Bouton « Tous les articles » (colonnes 10 à 12) -->
+    <section class="section presse nuee-arriere-plan fond-80" id="presse" data-section aria-labelledby="presse-titre">
+      <div class="grille grille--titre">
+        <header class="section__tete bloc-plein" data-revele>
+          <h2 class="section__titre" id="presse-titre" data-t="presse.titre">Presse</h2>
+        </header>
+      </div>
+      <div class="grille fiches" data-presse data-rendu>
+        <article class="fiche bloc-quart"><p class="article__media"><span class="article__nom">Fanfare</span></p><h3 class="article__titre">À propos de <i>Ravel Abroad</i></h3><blockquote class="article__verbatim" lang="en">“A simply astonishing disc.”</blockquote><p class="article__date"><span class="article__auteur">Colin Clarke</span></p></article>
+        <article class="fiche bloc-quart"><p class="article__media"><span class="article__nom">Le Monde</span></p><h3 class="article__titre">Portrait</h3><p class="article__date"><span>22 juin 2024</span><span class="article__auteur">Pierre Gervasoni</span></p><a class="lien" href="https://www.lemonde.fr/culture/article/2024/06/22/pierre-bleuse-directeur-musical-de-l-ensemble-intercontemporain-veut-faire-entendre-tout-ce-qui-se-passe-sur-la-planete_6242263_3246.html" target="_blank" rel="noopener">Lire l'article</a></article>
+        <article class="fiche bloc-quart"><p class="article__media"><span class="article__nom">The Guardian</span></p><h3 class="article__titre">Critique du disque <i>Unsuk Chin</i></h3><p class="article__date"><span>13 février 2026</span><span class="article__auteur">Fiona Maddocks</span></p><a class="lien" href="https://www.theguardian.com/music/2026/feb/13/ensemble-intercontemporain-unsuk-chin-album-review-pierre-bleuse-samuel-favre-dimitri-vassilakis-gougalon-double-concerto" target="_blank" rel="noopener">Lire l'article</a></article>
+        <article class="fiche bloc-quart"><p class="article__media"><span class="article__nom">Gramophone</span></p><h3 class="article__titre">Critique du disque <i>Ligeti</i></h3><p class="article__date"><span>juin 2024</span><span class="article__auteur">Richard Whitehouse</span></p><a class="lien" href="https://gramophone.co.uk/review/ligeti-concertos-and-chamber-music-bleuse" target="_blank" rel="noopener">Lire l'article</a></article>
+      </div>
+      <div class="grille">
+        <p class="rang__suite bloc-droite" data-revele><a class="bouton" href="presse.html" data-t="presse.tous">Tous les articles</a></p>
+      </div>
+    </section>
+
+    <!-- TÉLÉCHARGEMENT · nuée en arrière-plan, fond 80 % · titre et liste des liens : colonnes 10 à 12.
+         Liens inertes tant que les fichiers ne sont pas fournis. -->
+    <section class="section telechargement nuee-arriere-plan fond-80" id="telechargement" data-section aria-labelledby="tel-titre">
+      <div class="grille">
+        <div class="bloc-droite">
+          <h2 class="section__titre" id="tel-titre" data-revele data-t="tel.titre">Téléchargement</h2>
+          <ul class="liste" data-revele>
+            <li><span data-t="tel.bioFr">Biographie, en français</span> <span class="avenir" data-t="commun.aVenir">à venir</span></li>
+            <li><span data-t="tel.bioEn">Biographie, en anglais</span> <span class="avenir" data-t="commun.aVenir">à venir</span></li>
+            <li><span data-t="tel.photos">Photographies</span> <span class="avenir" data-t="commun.aVenir">à venir</span></li>
+            <li><span data-t="tel.identite">Identité visuelle</span> <span class="avenir" data-t="commun.aVenir">à venir</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESTONS EN CONTACT · fond : visuel 4 (data/visuels.js) · inscription à la lettre et réseaux : colonnes 10 à 12 -->
+    <section class="visuel visuel--image suivre nuee-arriere-plan fond-100" id="suivre" data-section data-visuel="visuel-4" aria-labelledby="suivre-titre">
+      <img class="visuel__media" src="assets/img/bleuse-5.jpg" alt="Pierre Bleuse accroupi sur la scène, près du clavecin" style="object-position: 64% 50%" decoding="async">
+      <div class="visuel__contenu">
+        <div class="grille">
+          <div class="bloc-droite suivre__bloc" data-revele>
+            <h2 class="suivre__titre" id="suivre-titre" data-t="suivre.titre">Restons en contact</h2>
+            <h3 class="mention" data-t="lettre.titre">La lettre</h3>
+            <p class="texte" data-t="lettre.texte">Les concerts du mois et les actualités, une fois par mois.</p>
+            <!-- Inscription inerte : le champ et le bouton sont désactivés, rien n'est envoyé ni conservé.
+                 Les réseaux : des pictogrammes de la hauteur du bouton (Instagram, Facebook, YouTube, LinkedIn). -->
+            <form class="lettre" action="#" onsubmit="return false" novalidate>
+              <label class="sr-only" for="lettre-mail" data-t="lettre.champ">Adresse e-mail</label>
+              <input class="champ" id="lettre-mail" type="email" name="email" autocomplete="email" placeholder="Adresse e-mail" data-t-attr="placeholder:lettre.champ" disabled>
+              <div class="lettre__rang">
+                <button type="submit" class="bouton" disabled data-t="lettre.bouton">S'inscrire</button>
+                <ul class="reseaux">
+                  <li><a href="https://www.instagram.com/pierrebleuse/" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7zm5 3.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zm0 2a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zm4.75-3.3a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2z"/></svg></a></li>
+                  <li><a href="https://www.facebook.com/pierre.bleuse" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 22v-8.5h2.9l.45-3.4H13.5V7.95c0-.98.28-1.65 1.7-1.65h1.8V3.25a24 24 0 0 0-2.65-.15c-2.6 0-4.4 1.6-4.4 4.5v2.5H7v3.4h2.95V22h3.55z"/></svg></a></li>
+                  <li><a class="inerte" role="link" aria-disabled="true" aria-label="YouTube"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M21.6 7.2a2.5 2.5 0 0 0-1.76-1.77C18.25 5 12 5 12 5s-6.25 0-7.84.43A2.5 2.5 0 0 0 2.4 7.2 26 26 0 0 0 2 12a26 26 0 0 0 .4 4.8 2.5 2.5 0 0 0 1.76 1.77C5.75 19 12 19 12 19s6.25 0 7.84-.43a2.5 2.5 0 0 0 1.76-1.77A26 26 0 0 0 22 12a26 26 0 0 0-.4-4.8zM10 15V9l5.2 3-5.2 3z"/></svg></a></li>
+                  <li><a class="inerte" role="link" aria-disabled="true" aria-label="LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.94 5a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM3.2 8.6h3.5V21H3.2V8.6zm5.7 0h3.35v1.7h.05c.47-.88 1.6-1.8 3.3-1.8 3.53 0 4.18 2.32 4.18 5.34V21h-3.5v-6.3c0-1.5-.03-3.43-2.1-3.43-2.1 0-2.42 1.63-2.42 3.32V21H8.9V8.6z"/></svg></a></li>
+                </ul>
+              </div>
+              <p class="lettre__note" data-t="lettre.note">Inscription bientôt ouverte</p>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACTS · fond noir, nuée en arrière-plan, fond 80 % · liste : colonnes 10 à 12 -->
+    <section class="section contacts nuee-arriere-plan fond-80" id="contact" data-section aria-labelledby="contact-titre">
+      <div class="grille">
+        <div class="bloc-droite">
+          <h2 class="section__titre" id="contact-titre" data-revele data-t="contact.titre">Contacts</h2>
+          <div class="contacts__groupe" data-revele>
+            <p class="contacts__agence"><a href="https://www.harrisonparrott.com/artists/pierre-bleuse" target="_blank" rel="noopener">HarrisonParrott</a></p>
+            <p class="mention" lang="en">Worldwide general management</p>
+            <div class="contact">
+              <p class="contact__nom">François Guyard</p>
+              <p class="contact__role" lang="en">Senior Director, General Manager HarrisonParrott Paris</p>
+              <p><a href="tel:+33660737289">+33 6 60 73 72 89</a></p>
+              <p><a href="mailto:francois.guyard@harrisonparrott.fr">francois.guyard@<wbr>harrisonparrott.fr</a></p>
+            </div>
+            <div class="contact">
+              <p class="contact__nom">Yeijin Park</p>
+              <p class="contact__role" lang="en">Artist Coordinator</p>
+              <p><a href="tel:+33762350338">+33 7 62 35 03 38</a></p>
+              <p><a href="mailto:yeijin.park@harrisonparrott.co.uk">yeijin.park@<wbr>harrisonparrott.co.uk</a></p>
+            </div>
+          </div>
+          <div class="contacts__groupe" data-revele>
+            <p class="mention" data-t="contact.communication">Communication</p>
+            <div class="contact">
+              <p class="contact__nom">Carrel Communication</p>
+              <p><a href="tel:+33689905731">+33 6 89 90 57 31</a></p>
+              <p><a href="mailto:communication@pierrebleuse.com">communication@<wbr>pierrebleuse.com</a></p>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
   </main>
 
-  <footer class="colophon">
-    <div class="wrap">
-      Pierre Bleuse — toujours avec un <b>S</b>.<br>
-      Servi en local&nbsp;: <code>php -S localhost:8765 -t .</code> · dépôt <a href="https://github.com/bteillard-carrelCommunication/pierrebleuse" target="_blank" rel="noopener">github / pierrebleuse</a>
+  <!-- PIED DE PAGE · fond noir à 100 %, toute la largeur (comme la barre du haut) -->
+  <footer class="pied nuee-arriere-plan fond-100" id="pied" data-section>
+    <p class="pied__liens"><span>Pierre Bleuse</span> <a href="mentions-legales.html" data-t="pied.mentions">Mentions légales</a> <a href="confidentialite.html" data-t="pied.confidentialite">Confidentialité</a> <a href="credits.html" data-t="pied.credits">Crédits</a></p>
+    <div class="pied__credit">
+      <p data-t="pied.credit">Site en construction · musiques&nbsp;: Tchaïkovski, Symphonie n°&nbsp;6, IV, Musopen (domaine public)&nbsp;; Berlioz, <i>Symphonie fantastique</i>, SWR Symphonieorchester (ARD Klassik)&nbsp;; <i>The Centenary of Pierre Boulez</i>, Ensemble intercontemporain &amp; Friends (ARTE Concert)</p>
+      <!-- Pause de l'animation (WCAG 2.2.2) et outil de mise au point de la nuée (touche P) -->
+      <p class="pied__outils js-seulement">
+        <button type="button" class="pied__outil" data-pause-animation aria-pressed="false" data-t="pied.pause">Pause de l'animation</button>
+        <button type="button" class="pied__outil" data-ouvrir-reglages aria-expanded="false" aria-controls="reglages" aria-keyshortcuts="P" data-t="pied.reglages">Réglages de la nuée</button>
+      </p>
     </div>
   </footer>
 
+  <!-- HUD de mesure (?hud=1 ou réglage HUD) -->
+  <pre class="hud" data-hud aria-hidden="true" hidden></pre>
+
+  <!-- Musique de fond : un seul élément, dont js/main.js change la source (data/playlist.js) -->
+  <audio data-audio preload="none"></audio>
+
+  <!-- Données, puis rendu synchrone, avant le moteur qui recense les [data-revele] à son chargement -->
+  <script src="data/agenda.js?v=20261112h"></script>
+  <script src="data/playlist.js?v=20261112h"></script>
+  <script src="data/visuels.js?v=20261112h"></script>
+  <script src="data/disques.js?v=20261112h"></script>
+  <script src="data/presse.js?v=20261112h"></script>
+  <!-- FAUX ARTICLES pour la maquette : à retirer avant la mise en ligne (voir le fichier) -->
+  <script src="data/presse-exemples.js?v=20261112h"></script>
+  <script src="data/orchestres.js?v=20261112h"></script>
+  <script src="data/cartes.js?v=20261112h"></script>
+  <script src="js/agenda.js?v=20261112h"></script>
+  <script src="js/sections.js?v=20261112h"></script>
+  <script>
+    try { window.SiteContenu.appliquer(document); }
+    catch (e) { document.documentElement.classList.remove('i18n-attente'); console.error(e); }
+    try { window.SiteAgenda.rendreAccueil(); } catch (e) { console.error(e); }
+    try { window.SiteSections.rendre(); } catch (e) { console.error(e); }
+    try { window.SiteContenu.liensSortants(document); } catch (e) { console.error(e); }
+  </script>
+
+  <!-- Bibliothèques : versions figées -->
+  <script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
+  <!-- Moteur de la nuée, visuels « lumière » et lecteur de musique -->
+  <script src="js/lumiere.js?v=20261112h"></script>
+  <script src="js/parametres.js?v=20261112h"></script>
+  <script src="js/musique.js?v=20261112h"></script>
+  <script src="js/sync.js?v=20261112h"></script>
+  <script src="js/nuee.js?v=20261112h"></script>
+  <script src="js/reglages.js?v=20261112h"></script>
+  <script src="js/main.js?v=20261112h"></script>
 </body>
 </html>

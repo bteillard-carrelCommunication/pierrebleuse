@@ -1,0 +1,241 @@
+/* etourneaux.css · socle du site et moteur de la nuée
+   (base typographique, canvas, HUD de mesure, panneau de réglages)
+
+   Cormorant Garamond (serif) + Inter (linéale), petites étiquettes mono. Fond noir, blanc cassé,
+   lumière froide de la nuée. La mise en page du site est dans site.css.
+
+   Calques, de l'arrière vers l'avant (un seul contexte d'empilement, la racine) :
+     1. le fond noir (body) ;
+     2. la nuée : un canvas fixe en « éclaircir » (z 2) ;
+     3. les sections « nuée en arrière-plan » (.nuee-arriere-plan, z 3), avec leur fond noir
+        plus ou moins opaque (.fond-N) ;
+     puis la barre du haut (z 10), le HUD (z 14), le panneau de réglages (z 20).
+   Une section « nuée au premier plan » (.nuee-premier-plan) ne crée pas de contexte
+   d'empilement : son contenu reste sous la nuée, sauf les blocs qui portent --z-dessus. */
+
+:root {
+  --bg: #000;
+  --fg: #f1ece4;
+  --muted: #8f8a82;
+  --lavande: #5a638d;
+  --froid: #c5cdd6;              /* blanc froid des cœurs de la nuée */
+  --nuit: #0a1524;               /* halo bleu nuit des points épars */
+  --alerte: #e3b25c;
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
+  --panneau-l: 360px;
+
+  --z-nuee: 2;
+  --z-section: 3;
+  --z-dessus: 4;                 /* bloc d'une section « premier plan » qui reste devant la nuée */
+  --z-nav: 10;
+  --z-hud: 14;
+  --z-panneau: 20;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: auto; -webkit-text-size-adjust: 100%; }
+html, body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--sans);
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+body { overflow-x: clip; }
+html.lenis { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-stopped { overflow: clip; }
+
+img, video, canvas, svg { display: block; }
+a { color: inherit; }
+button, input, select, textarea { font: inherit; color: inherit; }
+[hidden] { display: none !important; }
+:focus-visible { outline: 1px solid var(--froid); outline-offset: 3px; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* Commandes qui n'ont de sens qu'avec le script : visibles une fois l'amorçage terminé */
+.js-seulement { visibility: hidden; }
+.h4-pret .js-seulement { visibility: visible; }
+
+/* ------- la nuée : un canvas fixe, décoratif, en « éclaircir » ------- */
+.nuee {
+  position: fixed; left: 0; top: 0;
+  width: 100%;
+  height: 100vh; height: 100lvh;    /* hauteur stable : pas de réallocation quand la barre d'URL se replie */
+  z-index: var(--z-nuee);
+  mix-blend-mode: lighten;          /* noir neutre : ce qui est dessous traverse toujours la nuée */
+  pointer-events: none;
+  touch-action: pan-y;
+  opacity: 0;                       /* posée par main.js (réglage « Opacité globale », fixe) */
+  --focal-x: .6; --focal-y: .4;     /* point focal du cadrage 16:9 de la nuée, lu par main.js */
+}
+@media (max-aspect-ratio: 9/10) { .nuee { --focal-x: .62; } }
+.sans-nuee .nuee { display: none; }
+
+/* ------- HUD de mesure ------- */
+.hud {
+  position: fixed; left: var(--bord, 2rem); bottom: 1.4rem; z-index: var(--z-hud);
+  width: 30rem; max-width: calc(100vw - 2 * var(--bord, 2rem));
+  padding: .65rem .8rem;
+  background: rgba(3, 5, 8, .84);
+  border: 1px solid rgba(197, 205, 214, .16); border-radius: 6px;
+  font: 400 .64rem/1.6 var(--mono);
+  color: rgba(220, 228, 238, .92);
+  white-space: pre; overflow: hidden;
+  pointer-events: none;
+}
+
+/* ------- panneau de réglages (construit par reglages.js) ------- */
+.reglages {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: var(--z-panneau);
+  width: var(--panneau-l); max-width: 100vw;
+  display: flex; flex-direction: column;
+  background: #05070b;
+  border-left: 1px solid rgba(197, 205, 214, .14);
+  box-shadow: -24px 0 48px rgba(0, 0, 0, .45);
+  color: var(--fg);
+  font-family: var(--sans); font-size: .8rem; font-weight: 400;
+}
+.reglages__tete {
+  display: flex; align-items: center; gap: .8rem;
+  padding: 1.05rem 1.2rem .9rem;
+  border-bottom: 1px solid rgba(197, 205, 214, .1);
+}
+.reglages__titres { flex: 1; }
+.reglages__titre {
+  font-family: var(--serif); font-style: italic; font-weight: 400;
+  font-size: 1.55rem; line-height: 1;
+}
+.reglages__titre:focus { outline: none; }
+.reglages__sous {
+  margin-top: .3rem;
+  font: .6rem var(--mono); letter-spacing: .12em; text-transform: uppercase;
+  color: var(--muted);
+}
+.reglages__fermer {
+  flex: none; width: 2.2rem; height: 2.2rem;
+  border: 1px solid rgba(241, 236, 228, .2); border-radius: 50%;
+  background: none; cursor: pointer;
+  font-size: 1.1rem; line-height: 1;
+}
+.reglages__fermer:hover, .reglages__fermer:focus-visible { border-color: rgba(241, 236, 228, .6); }
+.reglages__corps {
+  flex: 1; overflow-y: auto; overscroll-behavior: contain;
+  padding: .2rem 1.2rem 2.2rem;
+  scrollbar-width: thin; scrollbar-color: rgba(197, 205, 214, .25) transparent;
+}
+.rg-bloc { padding: 1rem 0 1.05rem; border-bottom: 1px solid rgba(197, 205, 214, .08); }
+.rg-bloc:last-child { border-bottom: 0; }
+.rg-bloc__titre {
+  margin-bottom: .8rem;
+  font: 500 .6rem var(--mono); letter-spacing: .16em; text-transform: uppercase;
+  color: var(--muted);
+}
+.rg-note { margin-top: .6rem; font-size: .66rem; line-height: 1.45; color: var(--muted); }
+.rg-note--alerte { color: var(--alerte); }
+.rg-champ {
+  display: grid; grid-template-columns: 1fr auto; align-items: baseline;
+  gap: .15rem .6rem;
+  margin-bottom: .9rem;
+}
+.rg-champ label { font-size: .78rem; color: rgba(241, 236, 228, .9); }
+.rg-champ output { font: .68rem var(--mono); color: var(--froid); white-space: nowrap; }
+.rg-champ.est-modifie label::after { content: ' ·'; color: var(--froid); }
+.rg-aide { grid-column: 1 / -1; font-size: .64rem; line-height: 1.4; color: var(--muted); }
+.rg-champ input[type="range"] { grid-column: 1 / -1; }
+.reglages input[type="range"] {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 1.4rem; margin: .1rem 0 0;
+  background: transparent; cursor: pointer;
+}
+.reglages input[type="range"]::-webkit-slider-runnable-track { height: 2px; background: rgba(197, 205, 214, .22); border-radius: 1px; }
+.reglages input[type="range"]::-moz-range-track { height: 2px; background: rgba(197, 205, 214, .22); border-radius: 1px; }
+.reglages input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 13px; height: 13px; margin-top: -5.5px;
+  border-radius: 50%; border: 0; background: var(--froid);
+  box-shadow: 0 0 0 3px rgba(5, 7, 11, .96);
+}
+.reglages input[type="range"]::-moz-range-thumb {
+  width: 13px; height: 13px; border-radius: 50%; border: 0; background: var(--froid);
+}
+.reglages input[type="range"]:focus-visible { outline: 1px solid var(--froid); outline-offset: 2px; }
+.rg-case { display: flex; align-items: flex-start; gap: .55rem; margin: .5rem 0; font-size: .78rem; line-height: 1.35; cursor: pointer; }
+.rg-case input { margin-top: .15rem; accent-color: var(--froid); flex: none; }
+.rg-case small { display: block; font-size: .64rem; color: var(--muted); }
+.rg-case--alerte small { color: var(--alerte); }
+.rg-groupe { margin: .4rem 0 .7rem; border: 0; }
+.rg-groupe legend, .rg-libelle { display: block; margin-bottom: .4rem; font-size: .78rem; color: rgba(241, 236, 228, .9); }
+.rg-pastilles { display: flex; flex-wrap: wrap; gap: .3rem; }
+.rg-pastilles label { position: relative; cursor: pointer; }
+.rg-pastilles input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.rg-pastilles span {
+  display: inline-block; padding: .32rem .65rem;
+  border: 1px solid rgba(197, 205, 214, .2); border-radius: 999px;
+  font-size: .7rem;
+}
+.rg-pastilles input:checked + span { border-color: var(--froid); background: rgba(197, 205, 214, .1); color: #fff; }
+.rg-pastilles input:focus-visible + span { outline: 1px solid var(--froid); outline-offset: 2px; }
+.rg-select {
+  width: 100%; padding: .45rem .55rem;
+  border: 1px solid rgba(197, 205, 214, .22); border-radius: 6px;
+  background: #07090d; font-size: .78rem;
+}
+.rg-ligne { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; }
+.rg-bouton {
+  padding: .5rem .85rem;
+  border: 1px solid rgba(197, 205, 214, .24); border-radius: 999px;
+  background: transparent;
+  font-size: .7rem; letter-spacing: .04em; cursor: pointer;
+}
+.rg-bouton:hover, .rg-bouton:focus-visible { border-color: var(--froid); color: #fff; }
+.rg-bouton[aria-pressed="true"] { border-color: var(--alerte); color: var(--alerte); }
+.rg-bouton:disabled { opacity: .45; cursor: default; }
+.rg-echange { margin-top: .7rem; }
+.rg-echange textarea {
+  display: block; width: 100%; min-height: 8.5rem; resize: vertical;
+  padding: .6rem;
+  border: 1px solid rgba(197, 205, 214, .2); border-radius: 6px;
+  background: #04060a;
+  font: .66rem/1.45 var(--mono); color: var(--fg);
+}
+.rg-echange .rg-ligne { margin-top: .5rem; }
+.rg-statut { min-height: 1.3em; margin-top: .6rem; font: .64rem/1.45 var(--mono); color: var(--froid); }
+.rg-touches { margin: .4rem 0 .8rem; font-size: .7rem; line-height: 1.7; color: rgba(241, 236, 228, .8); }
+.rg-touches kbd {
+  display: inline-block; min-width: 1.4em; padding: 0 .35rem;
+  border: 1px solid rgba(197, 205, 214, .32); border-radius: 3px;
+  font: .64rem/1.5 var(--mono); text-align: center;
+}
+.rg-alerte { color: var(--alerte); }
+.rg-releve { min-height: 2.6em; margin: -.2rem 0 .9rem; color: var(--muted); }
+.rg-lecture .rg-ligne { margin-top: 0; }
+
+/* ------- téléphone ------- */
+@media (max-width: 720px) {
+  .hud { left: 12px; right: 12px; bottom: 12px; width: auto; max-width: none; font-size: .56rem; }
+  /* panneau : feuille du bas, défilable */
+  .reglages {
+    top: auto; left: 0; right: 0; bottom: 0;
+    width: auto;
+    max-height: 72vh; max-height: 72svh;
+    border-left: 0; border-top: 1px solid rgba(197, 205, 214, .18);
+    border-radius: 14px 14px 0 0;
+    box-shadow: 0 -18px 40px rgba(0, 0, 0, .55);
+  }
+  .reglages__tete { padding: .8rem 16px .7rem; position: relative; }
+  .reglages__tete::before {
+    content: ''; position: absolute; left: 50%; top: .35rem;
+    width: 2.4rem; height: 3px; margin-left: -1.2rem;
+    border-radius: 2px; background: rgba(197, 205, 214, .3);
+  }
+  .reglages__titre { font-size: 1.3rem; }
+  .reglages__corps { padding: 0 16px 1.6rem; }
+}
