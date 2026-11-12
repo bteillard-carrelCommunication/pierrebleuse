@@ -4,7 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Pierre Bleuse, chef d'orchestre</title>
+  <!-- DESCRIPTION-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
   <meta name="description" content="Site officiel de Pierre Bleuse, chef d'orchestre : agenda des concerts, biographie, disques, presse, contacts.">
+  <!-- DESCRIPTION-STATIQUE:FIN -->
   <meta name="robots" content="noindex">
   <link rel="icon" href="data:,">
 
@@ -12,8 +14,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/etourneaux.css?v=20261112h">
-  <link rel="stylesheet" href="css/site.css?v=20261112h">
+  <link rel="stylesheet" href="css/etourneaux.css?v=20261112i">
+  <link rel="stylesheet" href="css/site.css?v=20261112i">
 
   <script>
     document.documentElement.classList.add('js');
@@ -23,8 +25,9 @@
       if (!window.__h4Booted) { document.documentElement.classList.add('js-timeout'); document.documentElement.style.setProperty('--barre', '1'); }
     }, 4000);
   </script>
-  <!-- Langue et textes : avant tout le reste (pose <html lang>, prépare le menu) -->
-  <script src="js/contenu.js?v=20261112h"></script>
+  <!-- Textes éditables (data/textes.js), puis langue et dictionnaire : avant tout le reste (pose <html lang>, prépare le menu) -->
+  <script src="data/textes.js?v=20261112i"></script>
+  <script src="js/contenu.js?v=20261112i"></script>
 </head>
 <body>
 
@@ -54,10 +57,12 @@
           <ul class="titres" data-titres aria-label="Choisir la musique" data-t-attr="aria-label:lecteur.titres"></ul>
         </div>
       </div>
-      <ul class="rs">
-        <li><a href="https://www.instagram.com/pierrebleuse/" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7zm5 3.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zm0 2a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zm4.75-3.3a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2z"/></svg></a></li>
-        <li><a href="https://www.facebook.com/pierre.bleuse" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 22v-8.5h2.9l.45-3.4H13.5V7.95c0-.98.28-1.65 1.7-1.65h1.8V3.25a24 24 0 0 0-2.65-.15c-2.6 0-4.4 1.6-4.4 4.5v2.5H7v3.4h2.95V22h3.55z"/></svg></a></li>
-        <li><a class="inerte" role="link" aria-disabled="true" aria-label="YouTube"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M21.6 7.2a2.5 2.5 0 0 0-1.76-1.77C18.25 5 12 5 12 5s-6.25 0-7.84.43A2.5 2.5 0 0 0 2.4 7.2 26 26 0 0 0 2 12a26 26 0 0 0 .4 4.8 2.5 2.5 0 0 0 1.76 1.77C5.75 19 12 19 12 19s6.25 0 7.84-.43a2.5 2.5 0 0 0 1.76-1.77A26 26 0 0 0 22 12a26 26 0 0 0-.4-4.8zM10 15V9l5.2 3-5.2 3z"/></svg></a></li>
+      <ul class="rs" data-reseaux="barre">
+        <!-- RESEAUX-BARRE-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
+        <li data-reseau="instagram"><a href="https://www.instagram.com/pierrebleuse/" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7zm5 3.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zm0 2a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zm4.75-3.3a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2z"/></svg></a></li>
+        <li data-reseau="facebook"><a href="https://www.facebook.com/pierre.bleuse" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 22v-8.5h2.9l.45-3.4H13.5V7.95c0-.98.28-1.65 1.7-1.65h1.8V3.25a24 24 0 0 0-2.65-.15c-2.6 0-4.4 1.6-4.4 4.5v2.5H7v3.4h2.95V22h3.55z"/></svg></a></li>
+        <li data-reseau="youtube"><a class="inerte" role="link" aria-disabled="true" aria-label="YouTube"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M21.6 7.2a2.5 2.5 0 0 0-1.76-1.77C18.25 5 12 5 12 5s-6.25 0-7.84.43A2.5 2.5 0 0 0 2.4 7.2 26 26 0 0 0 2 12a26 26 0 0 0 .4 4.8 2.5 2.5 0 0 0 1.76 1.77C5.75 19 12 19 12 19s6.25 0 7.84-.43a2.5 2.5 0 0 0 1.76-1.77A26 26 0 0 0 22 12a26 26 0 0 0-.4-4.8zM10 15V9l5.2 3-5.2 3z"/></svg></a></li>
+        <!-- RESEAUX-BARRE-STATIQUE:FIN -->
       </ul>
       <div class="barre__lang">
         <a href="?lang=fr" data-langue="fr" lang="fr" hreflang="fr" class="is-on" aria-current="true">FR</a><span class="sep" aria-hidden="true">|</span><a href="?lang=en" data-langue="en" lang="en" hreflang="en">EN</a>
@@ -80,7 +85,9 @@
       <h1 class="sr-only" id="titre-page" data-t="meta.titre">Pierre Bleuse, chef d'orchestre</h1>
       <div class="ouverture__texte dessus" data-revele>
         <div class="ouverture__bloc">
+          <!-- CITATION-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
           <blockquote class="ouverture__citation" data-t="ouverture.citation">«&nbsp;Plus je progresse, plus je me sens libre&nbsp;»</blockquote>
+          <!-- CITATION-STATIQUE:FIN -->
           <!-- Lecteur : Play / Pause, puis la liste des titres (data/playlist.js), remplie par js/main.js
                et alignée sur l'icône de lecture. Le pictogramme de la liste n'est que dans la barre du haut. -->
           <div class="lecteur js-seulement" data-lecteur>
@@ -102,8 +109,10 @@
     <section class="section bio nuee-arriere-plan fond-0" id="bio" data-section>
       <div class="grille">
         <div class="bio__texte bloc-droite" data-revele>
+          <!-- BIOGRAPHIE-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
           <p class="texte" data-t="bio.p1">Pierre Bleuse est directeur musical de l'Ensemble intercontemporain et directeur artistique du Festival Pablo Casals de Prades. Chef principal de l'Orchestre symphonique d'Odense de 2021 à 2026, il est l'invité d'orchestres comme le Royal Concertgebouw Orchestra, le London Philharmonic Orchestra, l'Orchestre de Paris ou le Tokyo Symphony Orchestra.</p>
           <p class="texte" data-t="bio.p2">Violoniste de formation, il dirige le grand répertoire symphonique et la musique d'aujourd'hui avec la même attention&nbsp;: faire dialoguer les œuvres plutôt que les opposer.</p>
+          <!-- BIOGRAPHIE-STATIQUE:FIN -->
         </div>
       </div>
     </section>
@@ -112,7 +121,9 @@
          (data/visuels.js) · image en « lumière » : les découpes de l'hypothèse 3 (js/lumiere.js) ;
          sans JavaScript ou sans WebGL, l'image seule -->
     <section class="visuel visuel--image visuel--lumiere nuee-arriere-plan fond-100" id="visuel-1" data-section data-visuel="visuel-1" data-lumiere="bleuse-3">
+      <!-- VISUEL-1-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
       <img class="visuel__media" src="assets/img/bleuse-3.jpg" alt="Pierre Bleuse dirigeant l'orchestre en concert" style="object-position: 60% 35%" decoding="async">
+      <!-- VISUEL-1-STATIQUE:FIN -->
     </section>
 
     <!-- AGENDA · nuée en arrière-plan, fond 80 % · quatre dates (3 colonnes chacune, « En savoir plus »),
@@ -122,12 +133,14 @@
       <div class="grille grille--titre">
         <header class="section__tete bloc-plein" data-revele>
           <h2 class="section__titre" id="agenda-titre" data-t="agenda.titre">Agenda</h2>
+          <!-- SAISON-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
           <p class="mention" data-t="agenda.mention">Saison 2026-2027</p>
+          <!-- SAISON-STATIQUE:FIN -->
         </header>
       </div>
       <div data-agenda data-rendu>
         <div class="grille">
-          <!-- AGENDA-STATIQUE:DEBUT (repli sans JavaScript, généré par outils/generer-agenda.py, ne pas modifier à la main) -->
+          <!-- AGENDA-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
           <ol class="agenda__simple bloc-plein" data-revele>
             <li class="ligne"><span class="ligne__quand">15 octobre 2026</span> <span class="ligne__ville">Malmö</span> <span class="ligne__titre">Malmö SymfoniOrkester</span></li>
             <li class="ligne"><span class="ligne__quand">23–25 octobre 2026</span> <span class="ligne__ville">Porto</span> <span class="ligne__titre">Orquestra Sinfónica do Porto Casa da Música</span></li>
@@ -155,7 +168,9 @@
 
     <!-- VISUEL 2 · nuée en arrière-plan, visuel à 100 % · image en « lumière », comme le visuel 1 -->
     <section class="visuel visuel--image visuel--lumiere nuee-arriere-plan fond-100" id="visuel-2" data-section data-visuel="visuel-2" data-lumiere="bleuse-1">
+      <!-- VISUEL-2-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
       <img class="visuel__media" src="assets/img/bleuse-1.jpg" alt="" style="object-position: 52% 42%" decoding="async">
+      <!-- VISUEL-2-STATIQUE:FIN -->
     </section>
 
     <!-- DISCOGRAPHIE · nuée en arrière-plan, fond 80 % · quatre disques par ligne (3 colonnes chacun) : data/disques.js -->
@@ -166,10 +181,12 @@
         </header>
       </div>
       <div class="grille fiches" data-disques data-rendu>
+        <!-- DISQUES-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
         <article class="fiche bloc-quart"><p class="fiche__dates">2026 · OUR Recordings</p><h3 class="fiche__titre"><i>Ravel Abroad</i></h3><p class="fiche__texte">Orchestre symphonique d'Odense</p></article>
         <article class="fiche bloc-quart"><p class="fiche__dates">2026 · Alpha Classics</p><h3 class="fiche__titre"><i>Unsuk Chin</i></h3><p class="fiche__texte">Ensemble intercontemporain</p></article>
         <article class="fiche bloc-quart"><p class="fiche__dates">2026 · Dacapo</p><h3 class="fiche__titre"><i>Viola Concertos</i></h3><p class="fiche__texte">Rafaell Altino, Orchestre symphonique d'Odense</p></article>
         <article class="fiche bloc-quart"><p class="fiche__dates">2024 · Alpha Classics</p><h3 class="fiche__titre"><i>Ligeti</i></h3><p class="fiche__texte">Ensemble intercontemporain</p><p class="fiche__texte">Diapason d'or de l'année, Choc de <i>Classica</i></p></article>
+        <!-- DISQUES-STATIQUE:FIN -->
       </div>
     </section>
 
@@ -182,21 +199,25 @@
       <div class="grille">
         <div class="bloc-droite" data-revele>
           <h3 class="mention" data-t="parcours.fonctions">Fonctions</h3>
-          <ul class="liste">
-            <li data-t="parcours.fonction1">Directeur musical, Ensemble intercontemporain, depuis 2023</li>
-            <li data-t="parcours.fonction2">Directeur artistique, Festival Pablo Casals de Prades, depuis 2021</li>
-            <li data-t="parcours.fonction3">Chef principal, Orchestre symphonique d'Odense, 2021 à 2026</li>
+          <ul class="liste" data-parcours-liste="fonctions" data-rendu>
+            <!-- PARCOURS-FONCTIONS-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
+            <li>Directeur musical, Ensemble intercontemporain, depuis 2023</li>
+            <li>Directeur artistique, Festival Pablo Casals de Prades, depuis 2021</li>
+            <li>Chef principal, Orchestre symphonique d'Odense, 2021 à 2026</li>
+            <!-- PARCOURS-FONCTIONS-STATIQUE:FIN -->
           </ul>
         </div>
       </div>
       <div class="grille">
         <div class="bloc-droite" data-revele>
           <h3 class="mention" data-t="parcours.opera">Opéra et création</h3>
-          <ul class="liste">
-            <li data-t="parcours.opera1"><i>Red Fox</i> de Du Yun, création mondiale, Dutch National Opera, 2027</li>
-            <li data-t="parcours.opera2"><i>Répons</i> de Pierre Boulez, ouverture du centenaire, Philharmonie de Paris, 2025</li>
-            <li data-t="parcours.opera3">BBC Proms avec l'Ensemble intercontemporain, Royal Albert Hall, 2025</li>
-            <li data-t="parcours.opera4"><i>Orgia</i> d'Hèctor Parra, Teatro Arriaga de Bilbao, 2023, Gran Teatre del Liceu de Barcelone, 2024</li>
+          <ul class="liste" data-parcours-liste="opera" data-rendu>
+            <!-- PARCOURS-OPERA-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
+            <li><i>Red Fox</i> de Du Yun, création mondiale, Dutch National Opera, 2027</li>
+            <li><i>Répons</i> de Pierre Boulez, ouverture du centenaire, Philharmonie de Paris, 2025</li>
+            <li>BBC Proms avec l'Ensemble intercontemporain, Royal Albert Hall, 2025</li>
+            <li><i>Orgia</i> d'Hèctor Parra, Teatro Arriaga de Bilbao, 2023, Gran Teatre del Liceu de Barcelone, 2024</li>
+            <!-- PARCOURS-OPERA-STATIQUE:FIN -->
           </ul>
         </div>
       </div>
@@ -210,6 +231,7 @@
         <div class="bloc-plein parcours__liste" data-revele>
           <h3 class="mention" data-t="parcours.invites">Orchestres invités (sélection)</h3>
           <div class="orchestres-zones" data-orchestres data-rendu>
+            <!-- ORCHESTRES-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
             <div class="orchestres-zone">
               <h4 class="orchestres-zone__titre" data-t="parcours.zone.ameriques">Amériques</h4>
               <ul class="orchestres">
@@ -243,6 +265,7 @@
                 <li>Auckland Philharmonia</li>
               </ul>
             </div>
+            <!-- ORCHESTRES-STATIQUE:FIN -->
           </div>
         </div>
       </div>
@@ -255,7 +278,9 @@
          sons ensemble ; quand on quitte la section, elle s'arrête et la musique reprend (js/main.js).
          Sans JavaScript : son image d'attente. -->
     <section class="visuel visuel--video nuee-arriere-plan fond-95" id="visuel-3" data-section data-visuel="visuel-3">
+      <!-- VISUEL-3-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
       <video class="visuel__media" src="assets/media/captation.mp4" poster="assets/media/captation-affiche.jpg" muted loop playsinline preload="none" disablepictureinpicture aria-label="Pierre Bleuse en concert, extraits d'une captation"></video>
+      <!-- VISUEL-3-STATIQUE:FIN -->
     </section>
 
     <!-- PRESSE · nuée en arrière-plan, fond 80 % · quatre articles (3 colonnes chacun) : data/presse.js.
@@ -268,10 +293,12 @@
         </header>
       </div>
       <div class="grille fiches" data-presse data-rendu>
+        <!-- PRESSE-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
         <article class="fiche bloc-quart"><p class="article__media"><span class="article__nom">Fanfare</span></p><h3 class="article__titre">À propos de <i>Ravel Abroad</i></h3><blockquote class="article__verbatim" lang="en">“A simply astonishing disc.”</blockquote><p class="article__date"><span class="article__auteur">Colin Clarke</span></p></article>
         <article class="fiche bloc-quart"><p class="article__media"><span class="article__nom">Le Monde</span></p><h3 class="article__titre">Portrait</h3><p class="article__date"><span>22 juin 2024</span><span class="article__auteur">Pierre Gervasoni</span></p><a class="lien" href="https://www.lemonde.fr/culture/article/2024/06/22/pierre-bleuse-directeur-musical-de-l-ensemble-intercontemporain-veut-faire-entendre-tout-ce-qui-se-passe-sur-la-planete_6242263_3246.html" target="_blank" rel="noopener">Lire l'article</a></article>
         <article class="fiche bloc-quart"><p class="article__media"><span class="article__nom">The Guardian</span></p><h3 class="article__titre">Critique du disque <i>Unsuk Chin</i></h3><p class="article__date"><span>13 février 2026</span><span class="article__auteur">Fiona Maddocks</span></p><a class="lien" href="https://www.theguardian.com/music/2026/feb/13/ensemble-intercontemporain-unsuk-chin-album-review-pierre-bleuse-samuel-favre-dimitri-vassilakis-gougalon-double-concerto" target="_blank" rel="noopener">Lire l'article</a></article>
         <article class="fiche bloc-quart"><p class="article__media"><span class="article__nom">Gramophone</span></p><h3 class="article__titre">Critique du disque <i>Ligeti</i></h3><p class="article__date"><span>juin 2024</span><span class="article__auteur">Richard Whitehouse</span></p><a class="lien" href="https://gramophone.co.uk/review/ligeti-concertos-and-chamber-music-bleuse" target="_blank" rel="noopener">Lire l'article</a></article>
+        <!-- PRESSE-STATIQUE:FIN -->
       </div>
       <div class="grille">
         <p class="rang__suite bloc-droite" data-revele><a class="bouton" href="presse.html" data-t="presse.tous">Tous les articles</a></p>
@@ -279,16 +306,18 @@
     </section>
 
     <!-- TÉLÉCHARGEMENT · nuée en arrière-plan, fond 80 % · titre et liste des liens : colonnes 10 à 12.
-         Liens inertes tant que les fichiers ne sont pas fournis. -->
+         Un fichier, ou « à venir » tant qu'il n'est pas fourni : data/telechargements.js. -->
     <section class="section telechargement nuee-arriere-plan fond-80" id="telechargement" data-section aria-labelledby="tel-titre">
       <div class="grille">
         <div class="bloc-droite">
           <h2 class="section__titre" id="tel-titre" data-revele data-t="tel.titre">Téléchargement</h2>
-          <ul class="liste" data-revele>
-            <li><span data-t="tel.bioFr">Biographie, en français</span> <span class="avenir" data-t="commun.aVenir">à venir</span></li>
-            <li><span data-t="tel.bioEn">Biographie, en anglais</span> <span class="avenir" data-t="commun.aVenir">à venir</span></li>
-            <li><span data-t="tel.photos">Photographies</span> <span class="avenir" data-t="commun.aVenir">à venir</span></li>
-            <li><span data-t="tel.identite">Identité visuelle</span> <span class="avenir" data-t="commun.aVenir">à venir</span></li>
+          <ul class="liste" data-revele data-telechargements data-rendu>
+            <!-- TELECHARGEMENTS-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
+            <li><span>Biographie, en français</span> <span class="avenir">à venir</span></li>
+            <li><span>Biographie, en anglais</span> <span class="avenir">à venir</span></li>
+            <li><span>Photographies</span> <span class="avenir">à venir</span></li>
+            <li><span>Identité visuelle</span> <span class="avenir">à venir</span></li>
+            <!-- TELECHARGEMENTS-STATIQUE:FIN -->
           </ul>
         </div>
       </div>
@@ -296,13 +325,17 @@
 
     <!-- RESTONS EN CONTACT · fond : visuel 4 (data/visuels.js) · inscription à la lettre et réseaux : colonnes 10 à 12 -->
     <section class="visuel visuel--image suivre nuee-arriere-plan fond-100" id="suivre" data-section data-visuel="visuel-4" aria-labelledby="suivre-titre">
+      <!-- VISUEL-4-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
       <img class="visuel__media" src="assets/img/bleuse-5.jpg" alt="Pierre Bleuse accroupi sur la scène, près du clavecin" style="object-position: 64% 50%" decoding="async">
+      <!-- VISUEL-4-STATIQUE:FIN -->
       <div class="visuel__contenu">
         <div class="grille">
           <div class="bloc-droite suivre__bloc" data-revele>
             <h2 class="suivre__titre" id="suivre-titre" data-t="suivre.titre">Restons en contact</h2>
             <h3 class="mention" data-t="lettre.titre">La lettre</h3>
+            <!-- LETTRE-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
             <p class="texte" data-t="lettre.texte">Les concerts du mois et les actualités, une fois par mois.</p>
+            <!-- LETTRE-STATIQUE:FIN -->
             <!-- Inscription inerte : le champ et le bouton sont désactivés, rien n'est envoyé ni conservé.
                  Les réseaux : des pictogrammes de la hauteur du bouton (Instagram, Facebook, YouTube, LinkedIn). -->
             <form class="lettre" action="#" onsubmit="return false" novalidate>
@@ -310,11 +343,13 @@
               <input class="champ" id="lettre-mail" type="email" name="email" autocomplete="email" placeholder="Adresse e-mail" data-t-attr="placeholder:lettre.champ" disabled>
               <div class="lettre__rang">
                 <button type="submit" class="bouton" disabled data-t="lettre.bouton">S'inscrire</button>
-                <ul class="reseaux">
-                  <li><a href="https://www.instagram.com/pierrebleuse/" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7zm5 3.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zm0 2a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zm4.75-3.3a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2z"/></svg></a></li>
-                  <li><a href="https://www.facebook.com/pierre.bleuse" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 22v-8.5h2.9l.45-3.4H13.5V7.95c0-.98.28-1.65 1.7-1.65h1.8V3.25a24 24 0 0 0-2.65-.15c-2.6 0-4.4 1.6-4.4 4.5v2.5H7v3.4h2.95V22h3.55z"/></svg></a></li>
-                  <li><a class="inerte" role="link" aria-disabled="true" aria-label="YouTube"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M21.6 7.2a2.5 2.5 0 0 0-1.76-1.77C18.25 5 12 5 12 5s-6.25 0-7.84.43A2.5 2.5 0 0 0 2.4 7.2 26 26 0 0 0 2 12a26 26 0 0 0 .4 4.8 2.5 2.5 0 0 0 1.76 1.77C5.75 19 12 19 12 19s6.25 0 7.84-.43a2.5 2.5 0 0 0 1.76-1.77A26 26 0 0 0 22 12a26 26 0 0 0-.4-4.8zM10 15V9l5.2 3-5.2 3z"/></svg></a></li>
-                  <li><a class="inerte" role="link" aria-disabled="true" aria-label="LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.94 5a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM3.2 8.6h3.5V21H3.2V8.6zm5.7 0h3.35v1.7h.05c.47-.88 1.6-1.8 3.3-1.8 3.53 0 4.18 2.32 4.18 5.34V21h-3.5v-6.3c0-1.5-.03-3.43-2.1-3.43-2.1 0-2.42 1.63-2.42 3.32V21H8.9V8.6z"/></svg></a></li>
+                <ul class="reseaux" data-reseaux="tous">
+                  <!-- RESEAUX-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
+                  <li data-reseau="instagram"><a href="https://www.instagram.com/pierrebleuse/" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7zm5 3.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zm0 2a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zm4.75-3.3a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2z"/></svg></a></li>
+                  <li data-reseau="facebook"><a href="https://www.facebook.com/pierre.bleuse" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 22v-8.5h2.9l.45-3.4H13.5V7.95c0-.98.28-1.65 1.7-1.65h1.8V3.25a24 24 0 0 0-2.65-.15c-2.6 0-4.4 1.6-4.4 4.5v2.5H7v3.4h2.95V22h3.55z"/></svg></a></li>
+                  <li data-reseau="youtube"><a class="inerte" role="link" aria-disabled="true" aria-label="YouTube"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M21.6 7.2a2.5 2.5 0 0 0-1.76-1.77C18.25 5 12 5 12 5s-6.25 0-7.84.43A2.5 2.5 0 0 0 2.4 7.2 26 26 0 0 0 2 12a26 26 0 0 0 .4 4.8 2.5 2.5 0 0 0 1.76 1.77C5.75 19 12 19 12 19s6.25 0 7.84-.43a2.5 2.5 0 0 0 1.76-1.77A26 26 0 0 0 22 12a26 26 0 0 0-.4-4.8zM10 15V9l5.2 3-5.2 3z"/></svg></a></li>
+                  <li data-reseau="linkedin"><a class="inerte" role="link" aria-disabled="true" aria-label="LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.94 5a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM3.2 8.6h3.5V21H3.2V8.6zm5.7 0h3.35v1.7h.05c.47-.88 1.6-1.8 3.3-1.8 3.53 0 4.18 2.32 4.18 5.34V21h-3.5v-6.3c0-1.5-.03-3.43-2.1-3.43-2.1 0-2.42 1.63-2.42 3.32V21H8.9V8.6z"/></svg></a></li>
+                  <!-- RESEAUX-STATIQUE:FIN -->
                 </ul>
               </div>
               <p class="lettre__note" data-t="lettre.note">Inscription bientôt ouverte</p>
@@ -324,11 +359,12 @@
       </div>
     </section>
 
-    <!-- CONTACTS · fond noir, nuée en arrière-plan, fond 80 % · liste : colonnes 10 à 12 -->
+    <!-- CONTACTS · fond noir, nuée en arrière-plan, fond 80 % · liste : colonnes 10 à 12 · data/contacts.js -->
     <section class="section contacts nuee-arriere-plan fond-80" id="contact" data-section aria-labelledby="contact-titre">
       <div class="grille">
-        <div class="bloc-droite">
+        <div class="bloc-droite" data-contacts>
           <h2 class="section__titre" id="contact-titre" data-revele data-t="contact.titre">Contacts</h2>
+          <!-- CONTACTS-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
           <div class="contacts__groupe" data-revele>
             <p class="contacts__agence"><a href="https://www.harrisonparrott.com/artists/pierre-bleuse" target="_blank" rel="noopener">HarrisonParrott</a></p>
             <p class="mention" lang="en">Worldwide general management</p>
@@ -346,13 +382,14 @@
             </div>
           </div>
           <div class="contacts__groupe" data-revele>
-            <p class="mention" data-t="contact.communication">Communication</p>
+            <p class="mention">Communication</p>
             <div class="contact">
               <p class="contact__nom">Carrel Communication</p>
               <p><a href="tel:+33689905731">+33 6 89 90 57 31</a></p>
               <p><a href="mailto:communication@pierrebleuse.com">communication@<wbr>pierrebleuse.com</a></p>
             </div>
           </div>
+          <!-- CONTACTS-STATIQUE:FIN -->
         </div>
       </div>
     </section>
@@ -363,7 +400,9 @@
   <footer class="pied nuee-arriere-plan fond-100" id="pied" data-section>
     <p class="pied__liens"><span>Pierre Bleuse</span> <a href="mentions-legales.html" data-t="pied.mentions">Mentions légales</a> <a href="confidentialite.html" data-t="pied.confidentialite">Confidentialité</a> <a href="credits.html" data-t="pied.credits">Crédits</a></p>
     <div class="pied__credit">
+      <!-- CREDIT-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
       <p data-t="pied.credit">Site en construction · musiques&nbsp;: Tchaïkovski, Symphonie n°&nbsp;6, IV, Musopen (domaine public)&nbsp;; Berlioz, <i>Symphonie fantastique</i>, SWR Symphonieorchester (ARD Klassik)&nbsp;; <i>The Centenary of Pierre Boulez</i>, Ensemble intercontemporain &amp; Friends (ARTE Concert)</p>
+      <!-- CREDIT-STATIQUE:FIN -->
       <!-- Pause de l'animation (WCAG 2.2.2) et outil de mise au point de la nuée (touche P) -->
       <p class="pied__outils js-seulement">
         <button type="button" class="pied__outil" data-pause-animation aria-pressed="false" data-t="pied.pause">Pause de l'animation</button>
@@ -379,17 +418,21 @@
   <audio data-audio preload="none"></audio>
 
   <!-- Données, puis rendu synchrone, avant le moteur qui recense les [data-revele] à son chargement -->
-  <script src="data/agenda.js?v=20261112h"></script>
-  <script src="data/playlist.js?v=20261112h"></script>
-  <script src="data/visuels.js?v=20261112h"></script>
-  <script src="data/disques.js?v=20261112h"></script>
-  <script src="data/presse.js?v=20261112h"></script>
+  <script src="data/agenda.js?v=20261112i"></script>
+  <script src="data/playlist.js?v=20261112i"></script>
+  <script src="data/visuels.js?v=20261112i"></script>
+  <script src="data/disques.js?v=20261112i"></script>
+  <script src="data/presse.js?v=20261112i"></script>
   <!-- FAUX ARTICLES pour la maquette : à retirer avant la mise en ligne (voir le fichier) -->
-  <script src="data/presse-exemples.js?v=20261112h"></script>
-  <script src="data/orchestres.js?v=20261112h"></script>
-  <script src="data/cartes.js?v=20261112h"></script>
-  <script src="js/agenda.js?v=20261112h"></script>
-  <script src="js/sections.js?v=20261112h"></script>
+  <script src="data/presse-exemples.js?v=20261112i"></script>
+  <script src="data/orchestres.js?v=20261112i"></script>
+  <script src="data/cartes.js?v=20261112i"></script>
+  <script src="data/parcours.js?v=20261112i"></script>
+  <script src="data/telechargements.js?v=20261112i"></script>
+  <script src="data/contacts.js?v=20261112i"></script>
+  <script src="data/reseaux.js?v=20261112i"></script>
+  <script src="js/agenda.js?v=20261112i"></script>
+  <script src="js/sections.js?v=20261112i"></script>
   <script>
     try { window.SiteContenu.appliquer(document); }
     catch (e) { document.documentElement.classList.remove('i18n-attente'); console.error(e); }
@@ -403,12 +446,12 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 
   <!-- Moteur de la nuée, visuels « lumière » et lecteur de musique -->
-  <script src="js/lumiere.js?v=20261112h"></script>
-  <script src="js/parametres.js?v=20261112h"></script>
-  <script src="js/musique.js?v=20261112h"></script>
-  <script src="js/sync.js?v=20261112h"></script>
-  <script src="js/nuee.js?v=20261112h"></script>
-  <script src="js/reglages.js?v=20261112h"></script>
-  <script src="js/main.js?v=20261112h"></script>
+  <script src="js/lumiere.js?v=20261112i"></script>
+  <script src="js/parametres.js?v=20261112i"></script>
+  <script src="js/musique.js?v=20261112i"></script>
+  <script src="js/sync.js?v=20261112i"></script>
+  <script src="js/nuee.js?v=20261112i"></script>
+  <script src="js/reglages.js?v=20261112i"></script>
+  <script src="js/main.js?v=20261112i"></script>
 </body>
 </html>

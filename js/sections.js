@@ -11,8 +11,16 @@
      presse     data/presse.js      [data-presse]      quatre articles ; [data-articles] : le tableau de presse.html
      parcours   data/orchestres.js  [data-orchestres]  liste des orchestres
                 data/cartes.js      [data-cartes]      carte du monde, points liés à la liste
+                data/parcours.js    [data-parcours-liste]   fonctions, opéra et création
+     téléchargements  data/telechargements.js  [data-telechargements]  un fichier, ou « à venir »
+     contacts   data/contacts.js    [data-contacts]    groupes de contacts
+     réseaux    data/reseaux.js     [data-reseaux]     adresses des réseaux (barre du haut, « Restons en contact »)
 
-   Chaque rendu remplace le repli statique du HTML (français, sans JavaScript).
+   Chaque rendu remplace le repli statique du HTML (français, sans JavaScript),
+   que Pupitre réécrit à chaque publication entre deux repères (…-STATIQUE:DEBUT
+   et …-STATIQUE:FIN). Pour les listes du parcours, les téléchargements, les
+   contacts et les réseaux, le repli et le rendu ont la même forme : en français,
+   une différence est consignée dans SiteContenu.ecarts.
    Un champ vide ne s'affiche pas : rien n'est inventé ici.
    ========================================================================== */
 (function () {
@@ -356,6 +364,109 @@
     });
   }
 
+  /* ---------- Parcours (listes), téléchargements, contacts, réseaux -------- */
+
+  /* Contrôle de cohérence, en français : le repli statique doit être ce que le rendu produit. */
+  var sonde = document.createElement('div');
+  function forme(htmlTexte) {
+    sonde.innerHTML = htmlTexte;
+    return sonde.innerHTML.replace(/<!--[\s\S]*?-->/g, '').replace(/\s+/g, ' ').replace(/> </g, '><').trim();
+  }
+  function controler(nom, statique, rendu) {
+    if (C.langue === 'fr' && forme(statique) !== forme(rendu)) C.ecarts.push('repli : ' + nom);
+  }
+
+  /* Fonctions, opéra et création : deux listes de data/parcours.js */
+  function rendreListesParcours() {
+    var P = window.PARCOURS;
+    if (!P) return;
+    Array.prototype.forEach.call(document.querySelectorAll('[data-parcours-liste]'), function (ul) {
+      var nom = ul.getAttribute('data-parcours-liste');
+      if (!Array.isArray(P[nom])) return;
+      var s = P[nom].map(C.choisir).filter(Boolean).map(function (l) { return '<li>' + h(l) + '</li>'; }).join('');
+      controler('parcours, ' + nom, ul.innerHTML, s);
+      ul.innerHTML = s;
+    });
+  }
+
+  /* Téléchargements : le fichier s'il est fourni, sinon « à venir » */
+  function rendreTelechargements() {
+    var ul = document.querySelector('[data-telechargements]');
+    var D = window.TELECHARGEMENTS;
+    if (!ul || !Array.isArray(D)) return;
+    var s = D.map(function (d) {
+      var libelle = h(C.choisir(d.libelle));
+      if (d.fichier) return '<li><a href="' + C.echapper(d.fichier) + '" download>' + libelle + '</a></li>';
+      return '<li><span>' + libelle + '</span> <span class="avenir">' + h(C.t('commun.aVenir')) + '</span></li>';
+    }).join('');
+    controler('téléchargements', ul.innerHTML, s);
+    ul.innerHTML = s;
+  }
+
+  /* Contacts : des groupes (structure, mention, personnes). `langue` : la mention et les fonctions
+     du groupe sont écrites dans cette langue et ne se traduisent pas (attribut lang). */
+  function courriel(adresse) {
+    var i = adresse.indexOf('@');
+    if (i < 0) return h(adresse);
+    return h(adresse.slice(0, i + 1)) + '<wbr>' + h(adresse.slice(i + 1));   /* coupure permise après l'arobase */
+  }
+  function rendreContacts() {
+    var zone = document.querySelector('[data-contacts]');
+    var G = window.CONTACTS;
+    if (!zone || !Array.isArray(G)) return;
+    var s = G.map(function (g) {
+      var lang = g.langue ? ' lang="' + C.echapper(g.langue) + '"' : '';
+      var b = '<div class="contacts__groupe" data-revele>';
+      if (g.structure) b += '<p class="contacts__agence">' + (g.lien ? sortant(g.lien, h(g.structure)) : h(g.structure)) + '</p>';
+      var mention = C.choisir(g.mention);
+      if (mention) b += '<p class="mention"' + lang + '>' + h(mention) + '</p>';
+      (g.personnes || []).forEach(function (p) {
+        b += '<div class="contact">';
+        if (p.nom) b += '<p class="contact__nom">' + h(p.nom) + '</p>';
+        var role = C.choisir(p.role);
+        if (role) b += '<p class="contact__role"' + lang + '>' + h(role) + '</p>';
+        if (p.telephone) b += '<p><a href="tel:' + C.echapper(String(p.telephone).replace(/[^\d+]/g, '')) + '">' + h(p.telephone) + '</a></p>';
+        if (p.email) b += '<p><a href="mailto:' + C.echapper(p.email) + '">' + courriel(p.email) + '</a></p>';
+        b += '</div>';
+      });
+      return b + '</div>';
+    }).join('');
+    var anciens = Array.prototype.slice.call(zone.querySelectorAll('.contacts__groupe'));
+    controler('contacts', anciens.map(function (n) { return n.outerHTML; }).join(''), s);
+    anciens.forEach(function (n) { n.parentNode.removeChild(n); });
+    zone.insertAdjacentHTML('beforeend', s);
+  }
+
+  /* Réseaux : les pictogrammes sont dans le HTML (écrits par Pupitre), data/reseaux.js donne les
+     adresses. Un réseau sans adresse reste affiché, inerte. */
+  function rendreReseaux() {
+    var R = window.RESEAUX;
+    if (!Array.isArray(R)) return;
+    var parId = {};
+    R.forEach(function (r) { parId[r.id] = r; });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-reseaux]'), function (ul) {
+      var barre = ul.getAttribute('data-reseaux') === 'barre';
+      var attendus = R.filter(function (r) { return !barre || r.barre; }).map(function (r) { return r.id; });
+      var presents = [];
+      Array.prototype.forEach.call(ul.querySelectorAll('[data-reseau]'), function (li) {
+        var r = parId[li.getAttribute('data-reseau')];
+        var a = li.querySelector('a');
+        if (!r || !a || (barre && !r.barre)) { li.parentNode.removeChild(li); return; }
+        presents.push(r.id);
+        if ((a.getAttribute('href') || '') !== (r.url || '')) presents.push('adresse');
+        if (r.url) {
+          a.setAttribute('href', r.url); a.setAttribute('target', '_blank'); a.setAttribute('rel', 'noopener');
+          a.classList.remove('inerte'); a.removeAttribute('role'); a.removeAttribute('aria-disabled');
+        } else {
+          a.removeAttribute('href'); a.removeAttribute('target'); a.removeAttribute('rel');
+          a.classList.add('inerte'); a.setAttribute('role', 'link'); a.setAttribute('aria-disabled', 'true');
+        }
+        a.setAttribute('aria-label', r.nom || r.id);
+      });
+      if (C.langue === 'fr' && presents.join() !== attendus.join()) C.ecarts.push('repli : réseaux');
+    });
+  }
+
   /* ---------- Tout rendre -------------------------------------------------- */
 
   function tenter(nom, fn) {
@@ -368,6 +479,10 @@
       tenter('presse', rendrePresse);
       tenter('articles', rendreArticles);
       tenter('parcours', rendreParcours);
+      tenter('listes du parcours', rendreListesParcours);
+      tenter('téléchargements', rendreTelechargements);
+      tenter('contacts', rendreContacts);
+      tenter('réseaux', rendreReseaux);
     },
     ecrireDate: ecrireDate
   };

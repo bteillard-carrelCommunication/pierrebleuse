@@ -11,10 +11,15 @@
       doux, bouton de retour en haut de page), liens sortants ouverts dans un
       nouvel onglet.
 
-   Source des textes : docs/site/CONTENU-SITE.md. Le HTML statique porte le
-   français (repli sans JavaScript) ; en français, appliquer() compare ce repli
-   au dictionnaire et consigne les différences dans SiteContenu.ecarts
-   (contrôle de cohérence, doit rester vide).
+   Deux sources de textes. Les libellés d'interface (menu, boutons, intitulés
+   de colonnes) sont dans le dictionnaire ci-dessous. Les textes éditables
+   (citation, biographie, mention de saison, texte de la lettre, crédit du
+   pied de page, description de la page) viennent de data/textes.js, écrit par
+   Pupitre et chargé avant ce fichier : ils complètent le dictionnaire.
+
+   Le HTML statique porte le français (repli sans JavaScript) ; en français,
+   appliquer() compare ce repli au dictionnaire et consigne les différences
+   dans SiteContenu.ecarts (contrôle de cohérence, doit rester vide).
    ========================================================================== */
 (function () {
   'use strict';
@@ -60,9 +65,6 @@
 
   var T = {
     'meta.titre': ['Pierre Bleuse, chef d\'orchestre', 'Pierre Bleuse, conductor'],
-    'meta.description': [
-      'Site officiel de Pierre Bleuse, chef d\'orchestre : agenda des concerts, biographie, disques, presse, contacts.',
-      'Official website of conductor Pierre Bleuse: concert schedule, biography, recordings, press, contacts.'],
 
     'nav.menu': ['Menu', 'Menu'],
     'nav.agenda': ['Agenda', 'Concerts'],
@@ -72,21 +74,12 @@
     'nav.telechargement': ['Téléchargement', 'Downloads'],
     'nav.contact': ['Contact', 'Contact'],
 
-    'ouverture.citation': ['« Plus je progresse, plus je me sens libre »', '“The further I progress, the freer I feel”'],
     'ouverture.defiler': ['Faire défiler la page', 'Scroll down'],
     'lecteur.play': ['Play', 'Play'],
     'lecteur.pause': ['Pause', 'Pause'],
     'lecteur.titres': ['Choisir la musique', 'Choose the music'],
 
-    'bio.p1': [
-      'Pierre Bleuse est directeur musical de l\'Ensemble intercontemporain et directeur artistique du Festival Pablo Casals de Prades. Chef principal de l\'Orchestre symphonique d\'Odense de 2021 à 2026, il est l\'invité d\'orchestres comme le Royal Concertgebouw Orchestra, le London Philharmonic Orchestra, l\'Orchestre de Paris ou le Tokyo Symphony Orchestra.',
-      'Pierre Bleuse is Music Director of the Ensemble intercontemporain and Artistic Director of the Pablo Casals Festival in Prades. Chief Conductor of the Odense Symphony Orchestra from 2021 to 2026, he is a guest of orchestras including the Royal Concertgebouw Orchestra, the London Philharmonic Orchestra, the Orchestre de Paris and the Tokyo Symphony Orchestra.'],
-    'bio.p2': [
-      'Violoniste de formation, il dirige le grand répertoire symphonique et la musique d\'aujourd\'hui avec la même attention : faire dialoguer les œuvres plutôt que les opposer.',
-      'A violinist by training, he brings the same attention to the great symphonic repertoire and to the music of today, letting works speak to one another rather than setting them apart.'],
-
     'agenda.titre': ['Agenda', 'Concerts'],
-    'agenda.mention': ['Saison 2026-2027', '2026/27 season'],
     'agenda.affiche': ['À l\'affiche', 'Coming up'],
     'agenda.saison': ['Les concerts', 'The concerts'],
     'agenda.tempsFort': ['Temps fort', 'Highlight'],      /* plus affiché : gardé avec le drapeau tempsFort des données */
@@ -115,14 +108,7 @@
 
     'parcours.titre': ['Parcours', 'Biography'],
     'parcours.fonctions': ['Fonctions', 'Positions'],
-    'parcours.fonction1': ['Directeur musical, Ensemble intercontemporain, depuis 2023', 'Music Director, Ensemble intercontemporain, since 2023'],
-    'parcours.fonction2': ['Directeur artistique, Festival Pablo Casals de Prades, depuis 2021', 'Artistic Director, Pablo Casals Festival, Prades, since 2021'],
-    'parcours.fonction3': ['Chef principal, Orchestre symphonique d\'Odense, 2021 à 2026', 'Chief Conductor, Odense Symphony Orchestra, 2021 to 2026'],
     'parcours.opera': ['Opéra et création', 'Opera and new music'],
-    'parcours.opera1': ['*Red Fox* de Du Yun, création mondiale, Dutch National Opera, 2027', '*Red Fox* by Du Yun, world premiere, Dutch National Opera, 2027'],
-    'parcours.opera2': ['*Répons* de Pierre Boulez, ouverture du centenaire, Philharmonie de Paris, 2025', '*Répons* by Pierre Boulez, opening of the centenary, Philharmonie de Paris, 2025'],
-    'parcours.opera3': ['BBC Proms avec l\'Ensemble intercontemporain, Royal Albert Hall, 2025', 'BBC Proms with the Ensemble intercontemporain, Royal Albert Hall, 2025'],
-    'parcours.opera4': ['*Orgia* d\'Hèctor Parra, Teatro Arriaga de Bilbao, 2023, Gran Teatre del Liceu de Barcelone, 2024', '*Orgia* by Hèctor Parra, Teatro Arriaga, Bilbao, 2023, Gran Teatre del Liceu, Barcelona, 2024'],
     'parcours.invites': ['Orchestres invités (sélection)', 'Guest conducting (selection)'],
     'parcours.zone.ameriques': ['Amériques', 'Americas'],
     'parcours.zone.europe-afrique': ['Europe et Afrique', 'Europe and Africa'],
@@ -139,27 +125,18 @@
     'presse.col.extrait': ['Extrait', 'Quote'],
 
     'tel.titre': ['Téléchargement', 'Downloads'],
-    'tel.bioFr': ['Biographie, en français', 'Biography, in French'],
-    'tel.bioEn': ['Biographie, en anglais', 'Biography, in English'],
-    'tel.photos': ['Photographies', 'Photographs'],
-    'tel.identite': ['Identité visuelle', 'Visual identity'],
 
     'suivre.titre': ['Restons en contact', 'Stay in touch'],
     'lettre.titre': ['La lettre', 'Newsletter'],
-    'lettre.texte': ['Les concerts du mois et les actualités, une fois par mois.', 'The month\'s concerts and news, once a month.'],
     'lettre.champ': ['Adresse e-mail', 'Email address'],
     'lettre.bouton': ['S\'inscrire', 'Subscribe'],
     'lettre.note': ['Inscription bientôt ouverte', 'Sign-up opening soon'],
 
     'contact.titre': ['Contacts', 'Contacts'],
-    'contact.communication': ['Communication', 'Communications'],
 
     'pied.mentions': ['Mentions légales', 'Legal notice'],
     'pied.confidentialite': ['Confidentialité', 'Privacy'],
     'pied.credits': ['Crédits', 'Credits'],
-    'pied.credit': [
-      'Site en construction · musiques : Tchaïkovski, Symphonie n° 6, IV, Musopen (domaine public) ; Berlioz, *Symphonie fantastique*, SWR Symphonieorchester (ARD Klassik) ; *The Centenary of Pierre Boulez*, Ensemble intercontemporain & Friends (ARTE Concert)',
-      'Website in progress · music: Tchaikovsky, Symphony No. 6, IV, Musopen (public domain); Berlioz, *Symphonie fantastique*, SWR Symphonieorchester (ARD Klassik); *The Centenary of Pierre Boulez*, Ensemble intercontemporain & Friends (ARTE Concert)'],
     'pied.reglages': ['Réglages de la nuée', 'Cloud settings'],
     'pied.pause': ['Pause de l\'animation', 'Pause the animation'],
     'pied.reprise': ['Reprendre l\'animation', 'Resume the animation'],
@@ -174,6 +151,24 @@
       'This video is hosted by YouTube. Loading it places YouTube (Google) cookies on your device. Nothing is loaded without your consent.'],
     'yt.bouton': ['Charger la vidéo', 'Load the video']
   };
+
+  /* Textes éditables : data/textes.js (window.TEXTES), chaque champ en { fr, en }. La biographie
+     est une liste de paragraphes : bio.p1, bio.p2… Sans ce fichier, les clés manquent et le
+     français du HTML reste en place. */
+  (function () {
+    var D = window.TEXTES || {};
+    function completer(cle, champ) {
+      if (champ == null) return;
+      if (typeof champ === 'string') { T[cle] = [champ, champ]; return; }
+      if (typeof champ.fr === 'string') T[cle] = [champ.fr, champ.en || champ.fr];
+    }
+    completer('meta.description', D.description);
+    completer('ouverture.citation', D.citation);
+    completer('agenda.mention', D.saison);
+    completer('lettre.texte', D.lettre);
+    completer('pied.credit', D.credit);
+    (Array.isArray(D.biographie) ? D.biographie : []).forEach(function (p, i) { completer('bio.p' + (i + 1), p); });
+  })();
 
   /* ---------- 1. Outils de texte ----------------------------------------- */
 
@@ -268,7 +263,7 @@
     var cleTitre = racineDoc.getAttribute('data-titre');
     document.title = cleTitre && T[cleTitre] ? brut(t(cleTitre)) + ' · Pierre Bleuse' : brut(t('meta.titre'));
     var desc = document.querySelector('meta[name="description"]');
-    if (desc) desc.setAttribute('content', brut(t('meta.description')));
+    if (desc && T['meta.description']) desc.setAttribute('content', brut(t('meta.description')));
 
     /* Bascule de langue : deux liens qui rechargent la page dans l'autre
        langue, en gardant les autres paramètres (?date=, ?reduit=…). */

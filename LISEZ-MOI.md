@@ -7,7 +7,9 @@ fonctionnent toujours, on n'y modifie plus rien.
 Ouvrir : `http://localhost:8888/pierrebleuse/` (MAMP). Le site n'est pas en ligne :
 `<meta name="robots" content="noindex">` reste en place jusqu'au lancement.
 
-Dernier état : consignes du 12/11/2026 en fin de soirée appliquées (pages légales, pictogramme, orchestres, faux articles de presse ; voir « Choix faits » en fin de page).
+Dernier état : les contenus du site sont administrables. Tout ce qui s'édite est dans `data/`,
+au format que Pupitre écrit (voir « Données » et « Repli sans JavaScript »). Le rendu n'a pas
+changé : il est identique au témoin du 12/11/2026 (`python3 outils/temoin.py`).
 
 ## Arborescence
 
@@ -18,17 +20,20 @@ Dernier état : consignes du 12/11/2026 en fin de soirée appliquées (pages lé
 | `mentions-legales.html`, `confidentialite.html`, `credits.html` | pages légales, rédigées en français et en anglais, avec des passages à compléter |
 | `css/etourneaux.css` | socle (typographie, variables, calques), canvas de la nuée, HUD, panneau de réglages |
 | `css/site.css` | mise en page : matrice 12 colonnes, profondeur, barre du haut, lecteur, sections, pages de texte |
-| `js/contenu.js` | textes français et anglais, typographie, menu, ancres en défilement doux, bouton de retour en haut, liens sortants |
+| `js/contenu.js` | libellés d'interface en français et en anglais (menu, boutons, intitulés de colonnes), typographie, menu, ancres en défilement doux, bouton de retour en haut, liens sortants |
 | `js/agenda.js` | règles de l'agenda, rendu de l'accueil et de `concerts.html` |
-| `js/sections.js` | rendu des visuels, des disques, de la presse, de la carte et de la liste des orchestres |
+| `js/sections.js` | rendu des visuels, des disques, de la presse, de la carte et de la liste des orchestres, des listes du parcours, des téléchargements, des contacts et des réseaux |
 | `js/lumiere.js` | visuels « lumière » : les découpes de l'hypothèse 3, en WebGL |
 | `js/main.js` | boucle de la nuée, lecteur de musique, vidéo du visuel 3, aimantation des sections, barre du haut, apparitions |
 | `js/nuee.js`, `parametres.js`, `reglages.js`, `musique.js`, `sync.js` | moteur de la nuée, réglages, panneau, pistes, horloge |
+| `data/textes.js` | citation, biographie, mention de saison, texte de la lettre, crédit du pied de page, description de la page ; chargé avant `js/contenu.js`, dont il complète le dictionnaire |
+| `data/agenda.json`, `data/agenda.js` | l'agenda : uniquement les représentations annoncées par leur organisateur |
 | `data/playlist.js` | titres du lecteur |
-| `data/*-extrait.json`, `data/captation.json` | analyse de chaque bande-son (ce que suit la nuée) |
 | `data/visuels.js` | visuels : image (telle quelle ou en « lumière »), vidéo, YouTube ou couleur ; opacité et place de la nuée |
-| `data/agenda.json` | **source** de l'agenda ; `data/agenda.js` en est généré |
 | `data/disques.js`, `data/presse.js`, `data/orchestres.js` | contenus des sections du même nom |
+| `data/parcours.js` | fonctions, opéra et création : deux listes |
+| `data/contacts.js`, `data/reseaux.js`, `data/telechargements.js` | contacts, réseaux, fichiers à télécharger |
+| `data/*-extrait.json`, `data/captation.json` | analyse de chaque bande-son (ce que suit la nuée) |
 | `data/presse-exemples.js`, `assets/presse/exemples/` | **faux articles et faux logos pour la maquette**, à retirer avant la mise en ligne |
 | `data/cartes.js` | terres de la carte du monde, généré (contient aussi l'Europe, qui n'est plus affichée) |
 | `assets/img/` | photographies (992 px) et masques du sujet (`*-masque.png`) des visuels « lumière » |
@@ -40,6 +45,144 @@ Dernier état : consignes du 12/11/2026 en fin de soirée appliquées (pages lé
 | `_sources/musique/` | fichiers .mov fournis (non suivis par git, hors du site) |
 
 Socle inchangé : HTML, CSS et JS sans npm ni bundler ; Lenis et GSAP par CDN, versions figées.
+
+## Données : les fichiers de `data/`
+
+Tout ce qui s'édite sur le site vient de `data/`. Ces fichiers sont écrits par Pupitre
+(`pupitre/`, voir son LISEZ-MOI) à chaque publication : on ne les modifie pas à la main. Ils ont
+tous la même forme : une ligne de commentaire « Généré par Pupitre, ne pas modifier à la main »,
+puis `window.NOM = ` suivi d'un JSON strict. Ils sont chargés comme scripts classiques, avant le
+moteur de la nuée. Le site ne lit rien d'autre : il n'interroge jamais Pupitre.
+
+Un champ texte est soit une chaîne (identique dans les deux langues), soit un objet
+`{ "fr": …, "en": … }`. `*…*` rend l'italique. Un champ vide ou absent ne s'affiche pas.
+
+| Fichier | Variable | Contenu |
+|---|---|---|
+| `data/textes.js` | `TEXTES` | `description`, `citation`, `biographie` (liste de paragraphes), `saison`, `lettre`, `credit` |
+| `data/agenda.json`, `data/agenda.js` | `AGENDA_DONNEES` | `maisons`, `evenements` (voir « Agenda ») |
+| `data/playlist.js` | `PLAYLIST` | liste de titres |
+| `data/visuels.js` | `VISUELS` | un objet par emplacement (`visuel-1` à `visuel-4`) |
+| `data/disques.js` | `DISQUES` | liste de disques, du plus récent au plus ancien |
+| `data/presse.js` | `PRESSE` | liste d'articles ; les quatre premiers sont sur l'accueil |
+| `data/orchestres.js` | `ORCHESTRES` | orchestres invités : la liste et les points de la carte |
+| `data/parcours.js` | `PARCOURS` | `fonctions`, `opera` : deux listes de lignes |
+| `data/contacts.js` | `CONTACTS` | groupes de contacts |
+| `data/reseaux.js` | `RESEAUX` | réseaux de l'artiste |
+| `data/telechargements.js` | `TELECHARGEMENTS` | fichiers à télécharger |
+
+`data/presse-exemples.js` (faux articles de maquette), `data/cartes.js` (terres de la carte) et
+les analyses de bandes-son (`*.json`) ne sont pas écrits par Pupitre.
+
+**`TEXTES`.** Chaque champ est un `{ fr, en }`. `js/contenu.js` les range dans son dictionnaire
+sous les clés `meta.description`, `ouverture.citation`, `bio.p1`, `bio.p2`…, `agenda.mention`,
+`lettre.texte`, `pied.credit`. Les libellés d'interface restent dans `js/contenu.js`.
+
+**`PLAYLIST`.** Le premier titre est celui de l'ouverture (lecture automatique). À la fin d'un
+titre, le suivant s'enchaîne, puis la liste reprend au début.
+
+| Champ | Rôle |
+|---|---|
+| `id` | identifiant court |
+| `src` | fichier audio (AAC `.m4a`) |
+| `piste` | analyse de la bande-son que suit la nuée (`outils/analyse-bande-son.py`) |
+| `titre` | libellé de la liste |
+| `mention` | seconde ligne, plus discrète (interprètes, source, droits) |
+
+**`VISUELS`.** Une entrée par emplacement (l'attribut `data-visuel` de la section). Voir
+« Visuels » pour le comportement.
+
+| Champ | Rôle |
+|---|---|
+| `type` | `image`, `video`, `youtube` ou `couleur` |
+| `src`, `alt` | fichier et texte alternatif |
+| `position`, `positionMobile` | point focal CSS (« 60% 35% »), et sa variante sous 721 px |
+| `lumiere` | image : nom d'un préréglage de « lumière » (`bleuse-1`, `bleuse-3`, `generique`) ; absent : l'image telle quelle |
+| `affiche`, `son`, `piste` | vidéo : image d'attente ; `true` si elle joue avec son ; analyse de sa bande-son |
+| `id` ou `url`, `couleur` | YouTube : la vidéo ; couleur : une couleur CSS |
+| `opacite` | 0 à 100, par pas de 5 : 100 = le visuel plein, 0 = on ne voit que la nuée (classe `.fond-N`) ; un lecteur YouTube reste à 100 |
+| `nuee` | `arriere-plan` (par défaut) : le visuel passe devant la nuée ; `premier-plan` : la nuée vole par-dessus |
+
+**`DISQUES`.**
+
+| Champ | Rôle |
+|---|---|
+| `id`, `titre`, `annee`, `maison` | identifiant, titre, année, maison de disques |
+| `descriptif` | interprètes, distinctions : un texte, ou une liste de lignes |
+| `mot` | le mot de l'artiste sur le disque |
+| `commander`, `streaming` | liens d'achat et d'écoute : listes de `{ nom, url }` |
+| `lien` | page du disque : lien « En savoir plus » |
+
+**`PRESSE`.**
+
+| Champ | Rôle |
+|---|---|
+| `id`, `media`, `logo` | identifiant, nom du titre de presse, fichier du logo (SVG ou PNG, affiché en blanc ; vide : le nom seul) |
+| `titre`, `auteur`, `lien` | titre, auteur et adresse de l'article |
+| `date` | `AAAA-MM-JJ` ou `AAAA-MM` ; vide si inconnue |
+| `verbatim`, `langue` | un verbatim clé, cité dans sa langue, et le code de cette langue |
+| `resume` | court résumé de l'article |
+
+**`ORCHESTRES`.** Une entrée = un orchestre et la ville où le placer. Ajouter une entrée ajoute
+la ligne et le point ; les entrées d'une même ville partagent un point.
+
+| Champ | Rôle |
+|---|---|
+| `nom` | tel qu'il s'affiche, identique dans les deux langues ; vide : la ligne affiche la ville seule (Salt Lake City, nom de l'orchestre à fournir) |
+| `ville` | l'étiquette du point |
+| `lat`, `lon` | degrés décimaux (nord et est positifs) |
+| `zone` | `ameriques`, `europe-afrique` ou `asie-oceanie` ; absent : déduite de la longitude |
+
+**`PARCOURS`.** `fonctions` et `opera` : deux listes de lignes `{ fr, en }`, dans l'ordre
+d'affichage.
+
+**`CONTACTS`.** Une liste de groupes.
+
+| Champ | Rôle |
+|---|---|
+| `structure`, `lien` | nom de l'agence ou de la structure, et son adresse (facultatifs) |
+| `mention` | intitulé du groupe |
+| `langue` | si la mention et les fonctions sont écrites dans une langue et ne se traduisent pas, son code (`en`) ; sinon vide |
+| `personnes` | liste de `{ nom, role, telephone, email }` |
+
+**`RESEAUX`.** Liste de `{ id, nom, url, barre }`. `barre` : le réseau figure aussi dans la barre
+du haut. Sans `url`, le pictogramme reste affiché, inerte. Les pictogrammes sont dans le HTML,
+écrits par Pupitre.
+
+**`TELECHARGEMENTS`.** Liste de `{ id, libelle, fichier }`. Sans `fichier`, la ligne porte la
+mention « à venir ».
+
+## Repli sans JavaScript : les repères
+
+Le HTML garde le français en dur : la page se lit sans JavaScript. Chaque zone qui dépend des
+données est encadrée par deux repères :
+
+```
+<!-- CITATION-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
+<blockquote class="ouverture__citation" data-t="ouverture.citation">«&nbsp;Plus je progresse…&nbsp;»</blockquote>
+<!-- CITATION-STATIQUE:FIN -->
+```
+
+À la publication, Pupitre réécrit le contenu entre les repères et le numéro de version `?v=` des
+feuilles de style et des scripts, et rien d'autre dans les pages.
+
+| Repère | Pages | Zone |
+|---|---|---|
+| `DESCRIPTION` | toutes | la balise `<meta name="description">` |
+| `RESEAUX-BARRE` | toutes | les réseaux de la barre du haut |
+| `CITATION`, `BIOGRAPHIE`, `LETTRE`, `CREDIT` | accueil | citation, paragraphes de la bio, texte de la lettre, crédit du pied de page |
+| `SAISON` | accueil, `concerts.html` | la mention de saison |
+| `VISUEL-1` à `VISUEL-4` | accueil | la balise du média (image ou vidéo) |
+| `AGENDA` | accueil | la liste simple de tous les événements |
+| `DISQUES`, `PRESSE` | accueil | les fiches |
+| `PARCOURS-FONCTIONS`, `PARCOURS-OPERA`, `ORCHESTRES` | accueil | les deux listes, puis les orchestres par zone |
+| `TELECHARGEMENTS`, `RESEAUX`, `CONTACTS` | accueil | les lignes, les réseaux de « Restons en contact », les groupes de contacts |
+
+Sur un visuel, seul le média est entre repères : le type, l'opacité et la place de la nuée sont
+des classes de la section, posées par `js/sections.js`.
+
+En français, le site vérifie au chargement que le repli et les données disent la même chose :
+`SiteContenu.ecarts` (console) doit rester vide.
 
 ## La page, section par section
 
@@ -128,7 +271,7 @@ sortants s'ouvrent dans un nouvel onglet (`SiteContenu.liensSortants`).
 
 ## Musique
 
-`data/playlist.js` est la liste du lecteur. Trois titres : la *Pathétique* (domaine public),
+`data/playlist.js` est la liste du lecteur (champs : voir « Données »). Trois titres : la *Pathétique* (domaine public),
 Berlioz, *Symphonie fantastique* (SWR Symphonieorchester, ARD Klassik), *The Centenary of Pierre
 Boulez* (Ensemble intercontemporain & Friends, ARTE Concert).
 
@@ -145,8 +288,8 @@ Boulez* (Ensemble intercontemporain & Friends, ARTE Concert).
 - **Fin d'un titre** : le suivant s'enchaîne, puis la liste reprend au début.
 - **Pause** : le choix est mémorisé pour la session (`sessionStorage`, clé `pb-musique`).
 
-Ajouter un titre : déposer le fichier `.m4a` dans `assets/media/`, lancer l'analyse, ajouter une
-entrée dans `data/playlist.js`.
+Ajouter un titre : dans Pupitre, écran « Musiques ». À la main, hors de Pupitre : déposer le
+fichier `.m4a` dans `assets/media/` et lancer l'analyse.
 
 ```
 python3 outils/analyse-bande-son.py assets/media/titre.m4a data/titre.json --titre "…" --interpretes "…"
@@ -194,8 +337,8 @@ réglages sont mémorisés dans le navigateur (clé `pb-nuee-reglages-v1`).
 
 ## Visuels
 
-`data/visuels.js` décrit chaque emplacement (`data-visuel`) : c'est le fichier que l'administration
-du site aura à écrire. Pour chacun : un type, une opacité de 0 à 100 (`opacite`) et la place de la
+`data/visuels.js` décrit chaque emplacement (`data-visuel`) ; Pupitre l'écrit (écran « Visuels »).
+Pour chacun : un type, une opacité de 0 à 100 (`opacite`) et la place de la
 nuée (`nuee` : `arriere-plan` par défaut, ou `premier-plan`).
 
 | Type | Champs | Comportement |
@@ -229,7 +372,7 @@ la musique en 1,5 s. Les deux sons ne jouent jamais ensemble : la musique se met
 le fondu terminé. Quand on quitte la section, la vidéo s'arrête et la musique reprend où elle en
 était. Pendant la vidéo, la nuée suit sa bande-son (`piste`, analysée comme une musique).
 
-Réglage actuel : `nuee: 'arriere-plan'`, `opacite: 95`. La vidéo est presque opaque et la nuée
+Réglage actuel du visuel 3 : `nuee: 'arriere-plan'`, `opacite: 95`. La vidéo est presque opaque et la nuée
 reste visible à 5 % au travers. Une nuée à 5 % par-dessus une vidéo à 100 % n'est pas possible
 telle quelle : la nuée est un seul calque fixe, son opacité ne peut pas changer d'une section à
 l'autre. Pour la nuée franche par-dessus une vidéo assombrie : `nuee: 'premier-plan'`,
@@ -265,6 +408,7 @@ Modifier l'agenda : éditer `data/agenda.json`, puis `python3 outils/generer-age
 - `data/presse.js` : une fiche contient le logo (affiché en blanc) et le nom du média, le titre de
   l'article, un verbatim clé, un court résumé (`resume`), la date, l'auteur, le lien. Les quatre
   premiers sur l'accueil, tous sur `presse.html`.
+- `data/parcours.js` : les fonctions, puis « opéra et création », en deux listes.
 - `data/orchestres.js` : un orchestre, sa ville, sa latitude et sa longitude. Ajouter une entrée
   ajoute la ligne et le point sur la carte du monde (la carte de l'Europe est retirée). La liste est
   sous la carte, en trois colonnes égales : Amériques, Europe et Afrique, Asie, Russie et Océanie.
@@ -312,9 +456,10 @@ est ajouté.
 
 ## Français et anglais
 
-Français par défaut, anglais avec `?lang=en` (choix mémorisé). Une seule source : le dictionnaire
-de `js/contenu.js`, plus les champs `{ fr, en }` des fichiers de `data/`. En français,
-`SiteContenu.ecarts` (console) doit rester vide.
+Français par défaut, anglais avec `?lang=en` (choix mémorisé). Les libellés d'interface sont dans
+le dictionnaire de `js/contenu.js` ; les contenus, dans les champs `{ fr, en }` des fichiers de
+`data/` (`data/textes.js` complète le dictionnaire). En français, `SiteContenu.ecarts` (console)
+doit rester vide.
 
 ## Paramètres d'adresse
 
@@ -344,6 +489,7 @@ Node n'est pas installé sur le poste : tout est en Python 3 standard ou en shel
 | `python3 outils/generer-cartes.py` | régénère `data/cartes.js` (Natural Earth, domaine public) |
 | `sh outils/syntaxe.sh` | vérifie la syntaxe des scripts de `js/` et de `data/` |
 | `outils/cdp.py` | pilote Chrome headless pour tester et capturer (`molette()` envoie de vrais crans de molette) |
+| `python3 outils/temoin.py capturer dossier`, puis `comparer docs/pupitre/captures/reference dossier` | prouve que le rendu n'a pas changé : texte visible, DOM, écarts, erreurs de console, en français et en anglais |
 
 ## Choix faits
 
