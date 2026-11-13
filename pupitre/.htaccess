@@ -1,0 +1,9 @@
+# Pupitre : rien n'est indexé, rien n'est listé, les fichiers cachés ne sortent pas.
+Options -Indexes
+<IfModule mod_headers.c>
+  Header always set X-Robots-Tag "noindex, nofollow"
+  Header always set X-Content-Type-Options "nosniff"
+</IfModule>
+<FilesMatch "^\.|\.(md|sql|log|env|exemple|sh|py)$">
+  Require all denied
+</FilesMatch>

@@ -1,0 +1,2 @@
+# Interdit au web : ce dossier ne se lit que depuis PHP ou la ligne de commande.
+Require all denied
