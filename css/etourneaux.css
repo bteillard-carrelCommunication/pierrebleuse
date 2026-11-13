@@ -1,7 +1,7 @@
 /* etourneaux.css · socle du site et moteur de la nuée
    (base typographique, canvas, HUD de mesure, panneau de réglages)
 
-   Cormorant Garamond (serif) + Inter (linéale), petites étiquettes mono. Fond noir, blanc cassé,
+   Inria Serif (serif, depuis le 13/11/2026) + Inter (linéale), petites étiquettes mono. Fond noir, blanc cassé,
    lumière froide de la nuée. La mise en page du site est dans site.css.
 
    Calques, de l'arrière vers l'avant (un seul contexte d'empilement, la racine) :
@@ -21,7 +21,7 @@
   --froid: #c5cdd6;              /* blanc froid des cœurs de la nuée */
   --nuit: #0a1524;               /* halo bleu nuit des points épars */
   --alerte: #e3b25c;
-  --serif: 'Cormorant Garamond', Georgia, serif;
+  --serif: 'Inria Serif', Georgia, serif;
   --sans: 'Inter', system-ui, -apple-system, sans-serif;
   --mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
   --panneau-l: 360px;

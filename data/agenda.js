@@ -1,21 +1,1000 @@
-/* Généré par outils/generer-agenda.py à partir de data/agenda.json. Ne pas modifier à la main. */
-window.AGENDA_DONNEES = {"version":"2026-11-12","note":"Uniquement des dates déjà annoncées par les organisateurs (pierrebleuse.com et sites des salles, relevé du 12/11/2026). Tout champ texte est soit une chaîne, soit un objet {fr, en}. Une tournée porte ville, pays, salle et lien dans chaque représentation. Dates et heures locales de la salle.","maisons":{"eic":"Ensemble intercontemporain","odense":"Orchestre symphonique d'Odense","prades":"Festival Pablo Casals","invite":"Chef invité"},"evenements":[
-{"id":"2026-10-15-malmo","type":"concert","titre":{"fr":"Malmö SymfoniOrkester","en":"Malmö SymfoniOrkester"},"ensemble":"Malmö SymfoniOrkester","maison":"invite","ville":{"fr":"Malmö","en":"Malmö"},"pays":{"fr":"Suède","en":"Sweden"},"salle":"Malmö Live Konserthus","representations":[{"date":"2026-10-15","heure":"19:00"}],"avec":[{"nom":"Jean-Efflam Bavouzet","role":{"fr":"piano","en":"piano"}}],"programme":[{"compositeur":"Paul Dukas","oeuvre":"La Péri"},{"compositeur":"Philippe Manoury","oeuvre":"Anticipations"},{"compositeur":"Béla Bartók","oeuvre":{"fr":"Concerto pour piano n° 3","en":"Piano Concerto No. 3"}},{"compositeur":"Claude Debussy","oeuvre":"La Mer"}],"tempsFort":false,"lien":""},
-{"id":"2026-10-23-porto","type":"concert","titre":{"fr":"Orquestra Sinfónica do Porto Casa da Música","en":"Orquestra Sinfónica do Porto Casa da Música"},"ensemble":"Orquestra Sinfónica do Porto Casa da Música","maison":"invite","ville":{"fr":"Porto","en":"Porto"},"pays":{"fr":"Portugal","en":"Portugal"},"salle":"Casa da Música, Sala Suggia","representations":[{"date":"2026-10-23","heure":"21:00"},{"date":"2026-10-25","heure":"18:00"}],"programme":[{"compositeur":"Emmanuel Nunes","oeuvre":"Improvisation I"},{"compositeur":"Gustav Mahler","oeuvre":{"fr":"Symphonie n° 10, Adagio","en":"Symphony No. 10, Adagio"}},{"compositeur":"Hèctor Parra","oeuvre":"Inscape"},{"compositeur":"Francesca Verunelli","oeuvre":"La nuda voce"},{"compositeur":"Claude Debussy","oeuvre":{"fr":"Images pour orchestre","en":"Images for orchestra"}}],"mentions":{"fr":"Débuts avec l'orchestre","en":"Debut with the orchestra"},"tempsFort":false,"lien":""},
-{"id":"2026-10-29-bucarest","type":"concert","titre":{"fr":"Filarmonica George Enescu","en":"Filarmonica George Enescu"},"ensemble":"Filarmonica George Enescu","maison":"invite","ville":{"fr":"Bucarest","en":"Bucharest"},"pays":{"fr":"Roumanie","en":"Romania"},"salle":{"fr":"Athénée roumain","en":"Romanian Athenaeum"},"representations":[{"date":"2026-10-29","heure":"19:00"},{"date":"2026-10-30","heure":"19:00"}],"avec":[{"nom":"Veronika Eberle","role":{"fr":"violon","en":"violin"}}],"programme":[{"compositeur":"Anton Bruckner","oeuvre":{"fr":"Psaume 150","en":"Psalm 150"}},{"compositeur":"Jean Sibelius","oeuvre":{"fr":"Concerto pour violon","en":"Violin Concerto"}},{"compositeur":"Johannes Brahms","oeuvre":{"fr":"Symphonie n° 4","en":"Symphony No. 4"}}],"tempsFort":false,"lien":""},
-{"id":"2026-11-06-ravel-abroad","type":"disque","titre":{"fr":"Ravel Abroad","en":"Ravel Abroad"},"ensemble":{"fr":"Orchestre symphonique d'Odense","en":"Odense Symphony Orchestra"},"maison":"odense","representations":[{"date":"2026-11-06"}],"mentions":{"fr":"Parution du disque, OUR Recordings","en":"Album release, OUR Recordings"},"tempsFort":true,"lien":"https://www.ourrecordings.com/albums/ravel-abroad"},
-{"id":"2026-11-07-bale","type":"concert","titre":{"fr":"Kammerorchester Basel, Pierre-Laurent Aimard","en":"Kammerorchester Basel, Pierre-Laurent Aimard"},"ensemble":"Kammerorchester Basel","maison":"invite","ville":{"fr":"Bâle","en":"Basel"},"pays":{"fr":"Suisse","en":"Switzerland"},"salle":"Stadtcasino Basel","representations":[{"date":"2026-11-07","heure":"19:30"}],"avec":[{"nom":"Pierre-Laurent Aimard","role":{"fr":"piano","en":"piano"}}],"programme":[{"compositeur":"Beat Furrer","oeuvre":{"fr":"Nouvelle œuvre pour orchestre","en":"New work for orchestra"}},{"compositeur":"Béla Bartók","oeuvre":{"fr":"Musique pour cordes, percussion et célesta","en":"Music for Strings, Percussion and Celesta"}},{"compositeur":"Ludwig van Beethoven","oeuvre":{"fr":"Concerto pour piano n° 5 « L'Empereur »","en":"Piano Concerto No. 5 “Emperor”"}}],"tempsFort":false,"lien":""},
-{"id":"2026-11-14-eic-friends","type":"concert","titre":{"fr":"EIC & Friends, Bertrand Chamayou","en":"EIC & Friends, Bertrand Chamayou"},"ensemble":"Ensemble intercontemporain","maison":"eic","ville":{"fr":"Paris","en":"Paris"},"pays":{"fr":"France","en":"France"},"salle":{"fr":"Cité de la musique, Salle des concerts","en":"Cité de la musique, Salle des concerts"},"representations":[{"date":"2026-11-14","heure":"17:30"},{"date":"2026-11-14","heure":"20:00"}],"avec":[{"nom":"Bertrand Chamayou","role":{"fr":"piano","en":"piano"}},{"nom":"Hae-Sun Kang","role":{"fr":"violon","en":"violin"}}],"programme":[{"compositeur":"Morton Feldman","oeuvre":"Piece for Four Pianos"},{"compositeur":"Alban Berg","oeuvre":{"fr":"Concerto de chambre","en":"Chamber Concerto"}},{"compositeur":"Karlheinz Stockhausen","oeuvre":"Refrain"},{"compositeur":"Farnaz Modarresifar","oeuvre":{"fr":"Nouvelle œuvre","en":"New work"},"mention":{"fr":"création","en":"premiere"}},{"compositeur":"Liza Lim","oeuvre":"Beings"},{"compositeur":"Hristina Šušak","oeuvre":{"fr":"Nouvelle œuvre","en":"New work"},"mention":{"fr":"création","en":"premiere"}}],"tempsFort":false,"lien":""},
-{"id":"2026-11-19-odense","type":"concert","titre":{"fr":"Au revoir, Pierre","en":"Au revoir, Pierre"},"ensemble":{"fr":"Orchestre symphonique d'Odense","en":"Odense Symphony Orchestra"},"maison":"odense","ville":{"fr":"Odense","en":"Odense"},"pays":{"fr":"Danemark","en":"Denmark"},"salle":{"fr":"Odense Koncerthus, salle Carl Nielsen","en":"Odense Concert Hall, Carl Nielsen Hall"},"representations":[{"date":"2026-11-19","heure":"19:00"}],"avec":[{"nom":"Ausrine Stundyte","role":{"fr":"soprano","en":"soprano"}}],"programme":[{"compositeur":"Claude Debussy","oeuvre":{"fr":"Images pour orchestre","en":"Images for orchestra"}},{"compositeur":"Richard Strauss","oeuvre":{"fr":"Quatre derniers Lieder","en":"Four Last Songs"}},{"compositeur":"Gustav Mahler","oeuvre":{"fr":"Symphonie n° 10, Adagio","en":"Symphony No. 10, Adagio"}}],"tempsFort":true,"lien":""},
-{"id":"2026-11-27-madrid","type":"concert","titre":{"fr":"Orquesta y Coro Nacionales de España","en":"Orquesta y Coro Nacionales de España"},"ensemble":"Orquesta y Coro Nacionales de España","maison":"invite","ville":{"fr":"Madrid","en":"Madrid"},"pays":{"fr":"Espagne","en":"Spain"},"salle":{"fr":"Auditorio Nacional de Música, Sala sinfónica","en":"Auditorio Nacional de Música, Sala sinfónica"},"representations":[{"date":"2026-11-27","heure":"19:30"},{"date":"2026-11-28","heure":"19:30"},{"date":"2026-11-29","heure":"11:30"}],"avec":[{"nom":"Jone Martínez","role":{"fr":"soprano","en":"soprano"}},{"nom":"Elsa Benoit","role":{"fr":"soprano","en":"soprano"}}],"programme":[{"compositeur":"Charles Ives","oeuvre":"Central Park in the Dark"},{"compositeur":"Claude Debussy","oeuvre":{"fr":"Nocturnes","en":"Nocturnes"}},{"compositeur":"Claude Debussy","oeuvre":"Le Martyre de saint Sébastien"}],"tempsFort":false,"lien":""},
-{"id":"2026-12-03-in-between-trance","type":"concert","titre":{"fr":"In Between trance","en":"In Between trance"},"ensemble":"Ensemble intercontemporain","maison":"eic","ville":{"fr":"Paris","en":"Paris"},"pays":{"fr":"France","en":"France"},"salle":{"fr":"Cité de la musique, Salle des concerts","en":"Cité de la musique, Salle des concerts"},"representations":[{"date":"2026-12-03","heure":"20:00"}],"avec":[{"nom":"Compagnie Les Insectes","role":{"fr":"","en":""}}],"programme":[{"compositeur":"Bastien David","oeuvre":"Nous sommes Orage","mention":{"fr":"création mondiale","en":"world premiere"}}],"tempsFort":false,"lien":""},
-{"id":"2026-12-18-valladolid","type":"concert","titre":{"fr":"Concert de Noël","en":"Christmas Concert"},"ensemble":"Orquesta Sinfónica de Castilla y León","maison":"invite","ville":{"fr":"Valladolid","en":"Valladolid"},"pays":{"fr":"Espagne","en":"Spain"},"salle":"Centro Cultural Miguel Delibes, Sala Sinfónica Jesús López Cobos","representations":[{"date":"2026-12-18","heure":"19:30"}],"programme":[{"compositeur":"Maurice Ravel","oeuvre":"Alborada del gracioso"},{"compositeur":"Maurice Ravel","oeuvre":"Une barque sur l'océan"},{"compositeur":"Maurice Ravel","oeuvre":{"fr":"Shéhérazade, ouverture de féerie","en":"Shéhérazade, ouverture de féerie"}},{"compositeur":"Charles Ives","oeuvre":"The Unanswered Question"},{"compositeur":"Alexandre Scriabine","oeuvre":{"fr":"Le Poème de l'extase","en":"The Poem of Ecstasy"}}],"tempsFort":false,"lien":""},
-{"id":"2027-01-13-eic-50","type":"concert","titre":{"fr":"EIC 50 : 50 regards sur la beauté","en":"EIC 50 : 50 regards sur la beauté"},"ensemble":"Ensemble intercontemporain","maison":"eic","ville":{"fr":"Paris","en":"Paris"},"pays":{"fr":"France","en":"France"},"salle":{"fr":"Philharmonie de Paris, Grande salle Pierre Boulez","en":"Philharmonie de Paris, Grande salle Pierre Boulez"},"representations":[{"date":"2027-01-13","heure":"20:00"}],"avec":[{"nom":"Emmanuelle Ophèle","role":{"fr":"flûte MIDI","en":"MIDI flute"}},{"nom":"Sophie Cherrier, Marion Ralincourt","role":{"fr":"flûtes","en":"flutes"}}],"programme":[{"compositeur":"Pierre Boulez","oeuvre":"…explosante-fixe…"},{"compositeur":{"fr":"Œuvre collective de cinquante compositeurs","en":"Collective work by fifty composers"},"oeuvre":"Cinquante fragments pour un portrait","mention":{"fr":"création mondiale","en":"world premiere"}}],"mentions":{"fr":"Les 50 ans de l'Ensemble intercontemporain, en partenariat avec l'Ircam","en":"The Ensemble intercontemporain at 50, in partnership with Ircam"},"tempsFort":true,"lien":""},
-{"id":"2027-02-05-presences","type":"concert","titre":{"fr":"Festival Présences 2027","en":"Festival Présences 2027"},"ensemble":"Ensemble intercontemporain","maison":"eic","ville":{"fr":"Paris","en":"Paris"},"pays":{"fr":"France","en":"France"},"salle":{"fr":"Maison de la Radio et de la Musique, Studio 104","en":"Maison de la Radio et de la Musique, Studio 104"},"representations":[{"date":"2027-02-05","heure":"22:30"}],"programme":[{"compositeur":"Arvo Pärt","oeuvre":"Spiegel im Spiegel"},{"compositeur":"Arvo Pärt","oeuvre":"Fratres"},{"compositeur":"Erkki-Sven Tüür","oeuvre":"Oxymoron","mention":{"fr":"création française","en":"French premiere"}},{"compositeur":"Milica Djordjević","oeuvre":"Nalet","mention":{"fr":"création française","en":"French premiere"}}],"mentions":{"fr":"Concert enregistré par France Musique","en":"Recorded by France Musique"},"tempsFort":false,"lien":""},
-{"id":"2027-03-13-red-fox","type":"opera","titre":{"fr":"Red Fox","en":"Red Fox"},"ensemble":"Dutch National Opera","maison":"invite","ville":{"fr":"Amsterdam","en":"Amsterdam"},"pays":{"fr":"Pays-Bas","en":"Netherlands"},"salle":"Dutch National Opera & Ballet","representations":[{"date":"2027-03-13","heure":"20:00"},{"date":"2027-03-15","heure":"20:00"},{"date":"2027-03-18","heure":"20:00"},{"date":"2027-03-20","heure":"20:00"},{"date":"2027-03-28","heure":"14:00"}],"avec":[{"nom":"Barrie Kosky","role":{"fr":"mise en scène","en":"stage director"}},{"nom":"Bo Skovhus, Annette Dasch","role":{"fr":"","en":""}}],"programme":[{"compositeur":"Du Yun","oeuvre":"Red Fox","mention":{"fr":"création mondiale","en":"world premiere"}}],"mentions":{"fr":"Débuts au Dutch National Opera","en":"Debut at Dutch National Opera"},"tempsFort":true,"lien":""},
-{"id":"2027-03-26-lamentations","type":"concert","titre":{"fr":"Lamentations","en":"Lamentations"},"ensemble":"Ensemble intercontemporain","maison":"eic","ville":{"fr":"Paris","en":"Paris"},"pays":{"fr":"France","en":"France"},"salle":{"fr":"Cité de la musique, Salle des concerts","en":"Cité de la musique, Salle des concerts"},"representations":[{"date":"2027-03-26","heure":"20:00"}],"avec":[{"nom":"Chœur de chambre Les Éléments","role":{"fr":"direction Joël Suhubiette","en":"Joël Suhubiette, chorus master"}}],"programme":[{"compositeur":"Carlo Gesualdo","oeuvre":"Miserere"},{"compositeur":"Tomás Luis de Victoria","oeuvre":"O vos omnes"},{"compositeur":"Josquin Desprez","oeuvre":"Miserere mei, Deus"},{"compositeur":"Joan Magrané Figuera","oeuvre":{"fr":"Nouvelle œuvre","en":"New work"},"mention":{"fr":"création","en":"premiere"}}],"tempsFort":false,"lien":""},
-{"id":"2027-04-11-tournee-sumino","type":"tournee","titre":{"fr":"Kirschblüte : tournée avec Hayato Sumino","en":"Kirschblüte: on tour with Hayato Sumino"},"ensemble":"Kammerorchester Basel","maison":"invite","representations":[{"date":"2027-04-11","heure":"20:00","ville":{"fr":"Cologne","en":"Cologne"},"pays":{"fr":"Allemagne","en":"Germany"},"salle":"Kölner Philharmonie","lien":"https://www.koelner-philharmonie.de/en/events/kammerorchester-basel/9226"},{"date":"2027-04-14","heure":"19:30","ville":{"fr":"Bâle","en":"Basel"},"pays":{"fr":"Suisse","en":"Switzerland"},"salle":"Stadtcasino Basel"},{"date":"2027-04-15","heure":"19:30","ville":{"fr":"Munich","en":"Munich"},"pays":{"fr":"Allemagne","en":"Germany"},"salle":"Isarphilharmonie","lien":"https://www.gasteig.de/en/events/basel-chamber-orchestra-ravel-schumann/"}],"avec":[{"nom":"Hayato Sumino","role":{"fr":"piano","en":"piano"}}],"programme":[{"compositeur":"Maurice Ravel","oeuvre":"Pavane pour une infante défunte"},{"compositeur":"Hayato Sumino","oeuvre":{"fr":"Nouvelle œuvre pour piano et orchestre","en":"New work for piano and orchestra"}},{"compositeur":"Maurice Ravel","oeuvre":{"fr":"Concerto en sol","en":"Piano Concerto in G"}},{"compositeur":"Robert Schumann","oeuvre":{"fr":"Symphonie n° 1 « Le Printemps »","en":"Symphony No. 1 “Spring”"}}],"mentions":{"fr":"Programme variable selon les villes","en":"Programme varies by city"},"tempsFort":true,"lien":""},
-{"id":"2027-04-23-dialogues-des-ombres","type":"concert","titre":{"fr":"EIC 50 : Dialogues des ombres","en":"EIC 50 : Dialogues des ombres"},"ensemble":"Ensemble intercontemporain","maison":"eic","ville":{"fr":"Paris","en":"Paris"},"pays":{"fr":"France","en":"France"},"salle":{"fr":"Cité de la musique, Salle des concerts","en":"Cité de la musique, Salle des concerts"},"representations":[{"date":"2027-04-23","heure":"20:00"}],"avec":[{"nom":"Pierre Jodlowski","role":{"fr":"conception, composition, vidéo, lumières","en":"concept, composition, video, lighting"}}],"programme":[{"compositeur":"Anton Webern","oeuvre":{"fr":"Symphonie op. 21","en":"Symphony, Op. 21"}},{"compositeur":"Yana Shliabanska","oeuvre":{"fr":"Nouvelle œuvre","en":"New work"},"mention":{"fr":"création","en":"premiere"}},{"compositeur":"Pierre Jodlowski","oeuvre":"Archive Z.","mention":{"fr":"création","en":"premiere"}}],"tempsFort":false,"lien":""},
-{"id":"2027-04-28-goteborg","type":"concert","titre":{"fr":"Mahler, Symphonie n° 5","en":"Mahler, Symphony No. 5"},"ensemble":{"fr":"Orchestre symphonique de Göteborg","en":"Gothenburg Symphony Orchestra"},"maison":"invite","ville":{"fr":"Göteborg","en":"Gothenburg"},"pays":{"fr":"Suède","en":"Sweden"},"salle":"Göteborgs Konserthus","representations":[{"date":"2027-04-28","heure":"19:00"},{"date":"2027-04-29","heure":"19:00"}],"programme":[{"compositeur":"Claude Debussy","oeuvre":"Prélude à l'après-midi d'un faune"},{"compositeur":"Sauli Zinovjev","oeuvre":"Wiegenlied"},{"compositeur":"Gustav Mahler","oeuvre":{"fr":"Symphonie n° 5","en":"Symphony No. 5"}}],"mentions":{"fr":"Débuts avec l'orchestre","en":"Debut with the orchestra"},"tempsFort":false,"lien":"https://www.gso.se/en/programme/concerts/mahlers-5a/"},
-{"id":"2027-05-16-scala","type":"concert","titre":{"fr":"Teatro alla Scala, festival Milano Musica","en":"Teatro alla Scala, Milano Musica Festival"},"ensemble":"Orchestra Sinfonica Nazionale della Rai","maison":"invite","ville":{"fr":"Milan","en":"Milan"},"pays":{"fr":"Italie","en":"Italy"},"salle":"Teatro alla Scala","representations":[{"date":"2027-05-16","heure":"20:00"}],"avec":[{"nom":"Maria Husmann","role":{"fr":"soprano","en":"soprano"}},{"nom":"Francesco Dillon","role":{"fr":"violoncelle","en":"cello"}}],"programme":[{"compositeur":"György Kurtág","oeuvre":"Petite musique solennelle"},{"compositeur":"Vito Žuraj","oeuvre":"Unveiled","mention":{"fr":"création italienne","en":"Italian premiere"}},{"compositeur":"György Kurtág","oeuvre":"Die Stechardin","mention":{"fr":"création italienne","en":"Italian premiere"}}],"mentions":{"fr":"Débuts avec l'orchestre. Hommage à Luciana Pestalozza et Claudio Abbado","en":"Debut with the orchestra. Homage to Luciana Pestalozza and Claudio Abbado"},"tempsFort":true,"lien":"https://www.teatroallascala.org/en/season/2026-2027/concerts/visiting-italian-musical-institutions/homage-to-luciana-pestalozza-and-claudio-abbado-36-festival-milano-musica.html"}
-]};
+/* Généré par Pupitre, ne pas modifier à la main. */
+window.AGENDA_DONNEES = {
+  "version": "2026-11-13",
+  "note": "Uniquement des représentations annoncées par leur organisateur. Tout champ texte est soit une chaîne, soit un objet {fr, en}. Une tournée porte ville, pays, salle et lien dans chaque représentation. Dates et heures locales de la salle.",
+  "maisons": {
+    "eic": "Ensemble intercontemporain",
+    "odense": "Orchestre symphonique d'Odense",
+    "prades": "Festival Pablo Casals",
+    "invite": "Chef invité"
+  },
+  "evenements": [
+    {
+      "id": "2026-10-15-malmo",
+      "type": "concert",
+      "titre": "Malmö SymfoniOrkester",
+      "ensemble": "Malmö SymfoniOrkester",
+      "maison": "invite",
+      "ville": "Malmö",
+      "pays": {
+        "fr": "Suède",
+        "en": "Sweden"
+      },
+      "salle": "Malmö Live Konserthus",
+      "representations": [
+        {
+          "date": "2026-10-15",
+          "heure": "19:00"
+        }
+      ],
+      "avec": [
+        {
+          "nom": "Jean-Efflam Bavouzet",
+          "role": "piano"
+        }
+      ],
+      "programme": [
+        {
+          "compositeur": "Paul Dukas",
+          "oeuvre": "La Péri"
+        },
+        {
+          "compositeur": "Philippe Manoury",
+          "oeuvre": "Anticipations"
+        },
+        {
+          "compositeur": "Béla Bartók",
+          "oeuvre": {
+            "fr": "Concerto pour piano n° 3",
+            "en": "Piano Concerto No. 3"
+          }
+        },
+        {
+          "compositeur": "Claude Debussy",
+          "oeuvre": "La Mer"
+        }
+      ],
+      "tempsFort": false,
+      "lien": ""
+    },
+    {
+      "id": "2026-10-23-porto",
+      "type": "concert",
+      "titre": "Orquestra Sinfónica do Porto Casa da Música",
+      "ensemble": "Orquestra Sinfónica do Porto Casa da Música",
+      "maison": "invite",
+      "ville": "Porto",
+      "pays": "Portugal",
+      "salle": "Casa da Música, Sala Suggia",
+      "representations": [
+        {
+          "date": "2026-10-23",
+          "heure": "21:00"
+        },
+        {
+          "date": "2026-10-25",
+          "heure": "18:00"
+        }
+      ],
+      "programme": [
+        {
+          "compositeur": "Emmanuel Nunes",
+          "oeuvre": "Improvisation I"
+        },
+        {
+          "compositeur": "Gustav Mahler",
+          "oeuvre": {
+            "fr": "Symphonie n° 10, Adagio",
+            "en": "Symphony No. 10, Adagio"
+          }
+        },
+        {
+          "compositeur": "Hèctor Parra",
+          "oeuvre": "Inscape"
+        },
+        {
+          "compositeur": "Francesca Verunelli",
+          "oeuvre": "La nuda voce"
+        },
+        {
+          "compositeur": "Claude Debussy",
+          "oeuvre": {
+            "fr": "Images pour orchestre",
+            "en": "Images for orchestra"
+          }
+        }
+      ],
+      "mentions": {
+        "fr": "Débuts avec l'orchestre",
+        "en": "Debut with the orchestra"
+      },
+      "tempsFort": false,
+      "lien": ""
+    },
+    {
+      "id": "2026-10-29-bucarest",
+      "type": "concert",
+      "titre": "Filarmonica George Enescu",
+      "ensemble": "Filarmonica George Enescu",
+      "maison": "invite",
+      "ville": {
+        "fr": "Bucarest",
+        "en": "Bucharest"
+      },
+      "pays": {
+        "fr": "Roumanie",
+        "en": "Romania"
+      },
+      "salle": {
+        "fr": "Athénée roumain",
+        "en": "Romanian Athenaeum"
+      },
+      "representations": [
+        {
+          "date": "2026-10-29",
+          "heure": "19:00"
+        },
+        {
+          "date": "2026-10-30",
+          "heure": "19:00"
+        }
+      ],
+      "avec": [
+        {
+          "nom": "Veronika Eberle",
+          "role": {
+            "fr": "violon",
+            "en": "violin"
+          }
+        }
+      ],
+      "programme": [
+        {
+          "compositeur": "Anton Bruckner",
+          "oeuvre": {
+            "fr": "Psaume 150",
+            "en": "Psalm 150"
+          }
+        },
+        {
+          "compositeur": "Jean Sibelius",
+          "oeuvre": {
+            "fr": "Concerto pour violon",
+            "en": "Violin Concerto"
+          }
+        },
+        {
+          "compositeur": "Johannes Brahms",
+          "oeuvre": {
+            "fr": "Symphonie n° 4",
+            "en": "Symphony No. 4"
+          }
+        }
+      ],
+      "tempsFort": false,
+      "lien": ""
+    },
+    {
+      "id": "2026-11-06-ravel-abroad",
+      "type": "disque",
+      "titre": "Ravel Abroad",
+      "ensemble": {
+        "fr": "Orchestre symphonique d'Odense",
+        "en": "Odense Symphony Orchestra"
+      },
+      "maison": "odense",
+      "representations": [
+        {
+          "date": "2026-11-06"
+        }
+      ],
+      "mentions": {
+        "fr": "Parution du disque, OUR Recordings",
+        "en": "Album release, OUR Recordings"
+      },
+      "tempsFort": true,
+      "lien": "https://www.ourrecordings.com/albums/ravel-abroad"
+    },
+    {
+      "id": "2026-11-07-bale",
+      "type": "concert",
+      "titre": "Kammerorchester Basel, Pierre-Laurent Aimard",
+      "ensemble": "Kammerorchester Basel",
+      "maison": "invite",
+      "ville": {
+        "fr": "Bâle",
+        "en": "Basel"
+      },
+      "pays": {
+        "fr": "Suisse",
+        "en": "Switzerland"
+      },
+      "salle": "Stadtcasino Basel",
+      "representations": [
+        {
+          "date": "2026-11-07",
+          "heure": "19:30"
+        }
+      ],
+      "avec": [
+        {
+          "nom": "Pierre-Laurent Aimard",
+          "role": "piano"
+        }
+      ],
+      "programme": [
+        {
+          "compositeur": "Beat Furrer",
+          "oeuvre": {
+            "fr": "Nouvelle œuvre pour orchestre",
+            "en": "New work for orchestra"
+          }
+        },
+        {
+          "compositeur": "Béla Bartók",
+          "oeuvre": {
+            "fr": "Musique pour cordes, percussion et célesta",
+            "en": "Music for Strings, Percussion and Celesta"
+          }
+        },
+        {
+          "compositeur": "Ludwig van Beethoven",
+          "oeuvre": {
+            "fr": "Concerto pour piano n° 5 « L'Empereur »",
+            "en": "Piano Concerto No. 5 “Emperor”"
+          }
+        }
+      ],
+      "tempsFort": false,
+      "lien": ""
+    },
+    {
+      "id": "2026-11-14-eic-friends",
+      "type": "concert",
+      "titre": "EIC & Friends, Bertrand Chamayou",
+      "ensemble": "Ensemble intercontemporain",
+      "maison": "eic",
+      "ville": "Paris",
+      "pays": "France",
+      "salle": "Cité de la musique, Salle des concerts",
+      "representations": [
+        {
+          "date": "2026-11-14",
+          "heure": "17:30"
+        },
+        {
+          "date": "2026-11-14",
+          "heure": "20:00"
+        }
+      ],
+      "avec": [
+        {
+          "nom": "Bertrand Chamayou",
+          "role": "piano"
+        },
+        {
+          "nom": "Hae-Sun Kang",
+          "role": {
+            "fr": "violon",
+            "en": "violin"
+          }
+        }
+      ],
+      "programme": [
+        {
+          "compositeur": "Morton Feldman",
+          "oeuvre": "Piece for Four Pianos"
+        },
+        {
+          "compositeur": "Alban Berg",
+          "oeuvre": {
+            "fr": "Concerto de chambre",
+            "en": "Chamber Concerto"
+          }
+        },
+        {
+          "compositeur": "Karlheinz Stockhausen",
+          "oeuvre": "Refrain"
+        },
+        {
+          "compositeur": "Farnaz Modarresifar",
+          "oeuvre": {
+            "fr": "Nouvelle œuvre",
+            "en": "New work"
+          },
+          "mention": {
+            "fr": "création",
+            "en": "premiere"
+          }
+        },
+        {
+          "compositeur": "Liza Lim",
+          "oeuvre": "Beings"
+        },
+        {
+          "compositeur": "Hristina Šušak",
+          "oeuvre": {
+            "fr": "Nouvelle œuvre",
+            "en": "New work"
+          },
+          "mention": {
+            "fr": "création",
+            "en": "premiere"
+          }
+        }
+      ],
+      "tempsFort": false,
+      "lien": ""
+    },
+    {
+      "id": "2026-11-19-odense",
+      "type": "concert",
+      "titre": "Au revoir, Pierre",
+      "ensemble": {
+        "fr": "Orchestre symphonique d'Odense",
+        "en": "Odense Symphony Orchestra"
+      },
+      "maison": "odense",
+      "ville": "Odense",
+      "pays": {
+        "fr": "Danemark",
+        "en": "Denmark"
+      },
+      "salle": {
+        "fr": "Odense Koncerthus, salle Carl Nielsen",
+        "en": "Odense Concert Hall, Carl Nielsen Hall"
+      },
+      "representations": [
+        {
+          "date": "2026-11-19",
+          "heure": "19:00"
+        }
+      ],
+      "avec": [
+        {
+          "nom": "Ausrine Stundyte",
+          "role": "soprano"
+        }
+      ],
+      "programme": [
+        {
+          "compositeur": "Claude Debussy",
+          "oeuvre": {
+            "fr": "Images pour orchestre",
+            "en": "Images for orchestra"
+          }
+        },
+        {
+          "compositeur": "Richard Strauss",
+          "oeuvre": {
+            "fr": "Quatre derniers Lieder",
+            "en": "Four Last Songs"
+          }
+        },
+        {
+          "compositeur": "Gustav Mahler",
+          "oeuvre": {
+            "fr": "Symphonie n° 10, Adagio",
+            "en": "Symphony No. 10, Adagio"
+          }
+        }
+      ],
+      "tempsFort": true,
+      "lien": ""
+    },
+    {
+      "id": "2026-11-27-madrid",
+      "type": "concert",
+      "titre": "Orquesta y Coro Nacionales de España",
+      "ensemble": "Orquesta y Coro Nacionales de España",
+      "maison": "invite",
+      "ville": "Madrid",
+      "pays": {
+        "fr": "Espagne",
+        "en": "Spain"
+      },
+      "salle": "Auditorio Nacional de Música, Sala sinfónica",
+      "representations": [
+        {
+          "date": "2026-11-27",
+          "heure": "19:30"
+        },
+        {
+          "date": "2026-11-28",
+          "heure": "19:30"
+        },
+        {
+          "date": "2026-11-29",
+          "heure": "11:30"
+        }
+      ],
+      "avec": [
+        {
+          "nom": "Jone Martínez",
+          "role": "soprano"
+        },
+        {
+          "nom": "Elsa Benoit",
+          "role": "soprano"
+        }
+      ],
+      "programme": [
+        {
+          "compositeur": "Charles Ives",
+          "oeuvre": "Central Park in the Dark"
+        },
+        {
+          "compositeur": "Claude Debussy",
+          "oeuvre": "Nocturnes"
+        },
+        {
+          "compositeur": "Claude Debussy",
+          "oeuvre": "Le Martyre de saint Sébastien"
+        }
+      ],
+      "tempsFort": false,
+      "lien": ""
+    },
+    {
+      "id": "2026-12-03-in-between-trance",
+      "type": "concert",
+      "titre": "In Between trance",
+      "ensemble": "Ensemble intercontemporain",
+      "maison": "eic",
+      "ville": "Paris",
+      "pays": "France",
+      "salle": "Cité de la musique, Salle des concerts",
+      "representations": [
+        {
+          "date": "2026-12-03",
+          "heure": "20:00"
+        }
+      ],
+      "avec": [
+        {
+          "nom": "Compagnie Les Insectes",
+          "role": ""
+        }
+      ],
+      "programme": [
+        {
+          "compositeur": "Bastien David",
+          "oeuvre": "Nous sommes Orage",
+          "mention": {
+            "fr": "création mondiale",
+            "en": "world premiere"
+          }
+        }
+      ],
+      "tempsFort": false,
+      "lien": ""
+    },
+    {
+      "id": "2026-12-18-valladolid",
+      "type": "concert",
+      "titre": {
+        "fr": "Concert de Noël",
+        "en": "Christmas Concert"
+      },
+      "ensemble": "Orquesta Sinfónica de Castilla y León",
+      "maison": "invite",
+      "ville": "Valladolid",
+      "pays": {
+        "fr": "Espagne",
+        "en": "Spain"
+      },
+      "salle": "Centro Cultural Miguel Delibes, Sala Sinfónica Jesús López Cobos",
+      "representations": [
+        {
+          "date": "2026-12-18",
+          "heure": "19:30"
+        }
+      ],
+      "programme": [
+        {
+          "compositeur": "Maurice Ravel",
+          "oeuvre": "Alborada del gracioso"
+        },
+        {
+          "compositeur": "Maurice Ravel",
+          "oeuvre": "Une barque sur l'océan"
+        },
+        {
+          "compositeur": "Maurice Ravel",
+          "oeuvre": "Shéhérazade, ouverture de féerie"
+        },
+        {
+          "compositeur": "Charles Ives",
+          "oeuvre": "The Unanswered Question"
+        },
+        {
+          "compositeur": "Alexandre Scriabine",
+          "oeuvre": {
+            "fr": "Le Poème de l'extase",
+            "en": "The Poem of Ecstasy"
+          }
+        }
+      ],
+      "tempsFort": false,
+      "lien": ""
+    },
+    {
+      "id": "2027-01-13-eic-50",
+      "type": "concert",
+      "titre": "EIC 50 : 50 regards sur la beauté",
+      "ensemble": "Ensemble intercontemporain",
+      "maison": "eic",
+      "ville": "Paris",
+      "pays": "France",
+      "salle": "Philharmonie de Paris, Grande salle Pierre Boulez",
+      "representations": [
+        {
+          "date": "2027-01-13",
+          "heure": "20:00"
+        }
+      ],
+      "avec": [
+        {
+          "nom": "Emmanuelle Ophèle",
+          "role": {
+            "fr": "flûte MIDI",
+            "en": "MIDI flute"
+          }
+        },
+        {
+          "nom": "Sophie Cherrier, Marion Ralincourt",
+          "role": {
+            "fr": "flûtes",
+            "en": "flutes"
+          }
+        }
+      ],
+      "programme": [
+        {
+          "compositeur": "Pierre Boulez",
+          "oeuvre": "…explosante-fixe…"
+        },
+        {
+          "compositeur": {
+            "fr": "Œuvre collective de cinquante compositeurs",
+            "en": "Collective work by fifty composers"
+          },
+          "oeuvre": "Cinquante fragments pour un portrait",
+          "mention": {
+            "fr": "création mondiale",
+            "en": "world premiere"
+          }
+        }
+      ],
+      "mentions": {
+        "fr": "Les 50 ans de l'Ensemble intercontemporain, en partenariat avec l'Ircam",
+        "en": "The Ensemble intercontemporain at 50, in partnership with Ircam"
+      },
+      "tempsFort": true,
+      "lien": ""
+    },
+    {
+      "id": "2027-02-05-presences",
+      "type": "concert",
+      "titre": "Festival Présences 2027",
+      "ensemble": "Ensemble intercontemporain",
+      "maison": "eic",
+      "ville": "Paris",
+      "pays": "France",
+      "salle": "Maison de la Radio et de la Musique, Studio 104",
+      "representations": [
+        {
+          "date": "2027-02-05",
+          "heure": "22:30"
+        }
+      ],
+      "programme": [
+        {
+          "compositeur": "Arvo Pärt",
+          "oeuvre": "Spiegel im Spiegel"
+        },
+        {
+          "compositeur": "Arvo Pärt",
+          "oeuvre": "Fratres"
+        },
+        {
+          "compositeur": "Erkki-Sven Tüür",
+          "oeuvre": "Oxymoron",
+          "mention": {
+            "fr": "création française",
+            "en": "French premiere"
+          }
+        },
+        {
+          "compositeur": "Milica Djordjević",
+          "oeuvre": "Nalet",
+          "mention": {
+            "fr": "création française",
+            "en": "French premiere"
+          }
+        }
+      ],
+      "mentions": {
+        "fr": "Concert enregistré par France Musique",
+        "en": "Recorded by France Musique"
+      },
+      "tempsFort": false,
+      "lien": ""
+    },
+    {
+      "id": "2027-03-13-red-fox",
+      "type": "opera",
+      "titre": "Red Fox",
+      "ensemble": "Dutch National Opera",
+      "maison": "invite",
+      "ville": "Amsterdam",
+      "pays": {
+        "fr": "Pays-Bas",
+        "en": "Netherlands"
+      },
+      "salle": "Dutch National Opera & Ballet",
+      "representations": [
+        {
+          "date": "2027-03-13",
+          "heure": "20:00"
+        },
+        {
+          "date": "2027-03-15",
+          "heure": "20:00"
+        },
+        {
+          "date": "2027-03-18",
+          "heure": "20:00"
+        },
+        {
+          "date": "2027-03-20",
+          "heure": "20:00"
+        },
+        {
+          "date": "2027-03-28",
+          "heure": "14:00"
+        }
+      ],
+      "avec": [
+        {
+          "nom": "Barrie Kosky",
+          "role": {
+            "fr": "mise en scène",
+            "en": "stage director"
+          }
+        },
+        {
+          "nom": "Bo Skovhus, Annette Dasch",
+          "role": ""
+        }
+      ],
+      "programme": [
+        {
+          "compositeur": "Du Yun",
+          "oeuvre": "Red Fox",
+          "mention": {
+            "fr": "création mondiale",
+            "en": "world premiere"
+          }
+        }
+      ],
+      "mentions": {
+        "fr": "Débuts au Dutch National Opera",
+        "en": "Debut at Dutch National Opera"
+      },
+      "tempsFort": true,
+      "lien": ""
+    },
+    {
+      "id": "2027-03-26-lamentations",
+      "type": "concert",
+      "titre": "Lamentations",
+      "ensemble": "Ensemble intercontemporain",
+      "maison": "eic",
+      "ville": "Paris",
+      "pays": "France",
+      "salle": "Cité de la musique, Salle des concerts",
+      "representations": [
+        {
+          "date": "2027-03-26",
+          "heure": "20:00"
+        }
+      ],
+      "avec": [
+        {
+          "nom": "Chœur de chambre Les Éléments",
+          "role": {
+            "fr": "direction Joël Suhubiette",
+            "en": "Joël Suhubiette, chorus master"
+          }
+        }
+      ],
+      "programme": [
+        {
+          "compositeur": "Carlo Gesualdo",
+          "oeuvre": "Miserere"
+        },
+        {
+          "compositeur": "Tomás Luis de Victoria",
+          "oeuvre": "O vos omnes"
+        },
+        {
+          "compositeur": "Josquin Desprez",
+          "oeuvre": "Miserere mei, Deus"
+        },
+        {
+          "compositeur": "Joan Magrané Figuera",
+          "oeuvre": {
+            "fr": "Nouvelle œuvre",
+            "en": "New work"
+          },
+          "mention": {
+            "fr": "création",
+            "en": "premiere"
+          }
+        }
+      ],
+      "tempsFort": false,
+      "lien": ""
+    },
+    {
+      "id": "2027-04-11-tournee-sumino",
+      "type": "tournee",
+      "titre": {
+        "fr": "Kirschblüte : tournée avec Hayato Sumino",
+        "en": "Kirschblüte: on tour with Hayato Sumino"
+      },
+      "ensemble": "Kammerorchester Basel",
+      "maison": "invite",
+      "representations": [
+        {
+          "date": "2027-04-11",
+          "heure": "20:00",
+          "ville": "Cologne",
+          "pays": {
+            "fr": "Allemagne",
+            "en": "Germany"
+          },
+          "salle": "Kölner Philharmonie",
+          "lien": "https://www.koelner-philharmonie.de/en/events/kammerorchester-basel/9226"
+        },
+        {
+          "date": "2027-04-14",
+          "heure": "19:30",
+          "ville": {
+            "fr": "Bâle",
+            "en": "Basel"
+          },
+          "pays": {
+            "fr": "Suisse",
+            "en": "Switzerland"
+          },
+          "salle": "Stadtcasino Basel"
+        },
+        {
+          "date": "2027-04-15",
+          "heure": "19:30",
+          "ville": "Munich",
+          "pays": {
+            "fr": "Allemagne",
+            "en": "Germany"
+          },
+          "salle": "Isarphilharmonie",
+          "lien": "https://www.gasteig.de/en/events/basel-chamber-orchestra-ravel-schumann/"
+        }
+      ],
+      "avec": [
+        {
+          "nom": "Hayato Sumino",
+          "role": "piano"
+        }
+      ],
+      "programme": [
+        {
+          "compositeur": "Maurice Ravel",
+          "oeuvre": "Pavane pour une infante défunte"
+        },
+        {
+          "compositeur": "Hayato Sumino",
+          "oeuvre": {
+            "fr": "Nouvelle œuvre pour piano et orchestre",
+            "en": "New work for piano and orchestra"
+          }
+        },
+        {
+          "compositeur": "Maurice Ravel",
+          "oeuvre": {
+            "fr": "Concerto en sol",
+            "en": "Piano Concerto in G"
+          }
+        },
+        {
+          "compositeur": "Robert Schumann",
+          "oeuvre": {
+            "fr": "Symphonie n° 1 « Le Printemps »",
+            "en": "Symphony No. 1 “Spring”"
+          }
+        }
+      ],
+      "mentions": {
+        "fr": "Programme variable selon les villes",
+        "en": "Programme varies by city"
+      },
+      "tempsFort": true,
+      "lien": ""
+    },
+    {
+      "id": "2027-04-23-dialogues-des-ombres",
+      "type": "concert",
+      "titre": "EIC 50 : Dialogues des ombres",
+      "ensemble": "Ensemble intercontemporain",
+      "maison": "eic",
+      "ville": "Paris",
+      "pays": "France",
+      "salle": "Cité de la musique, Salle des concerts",
+      "representations": [
+        {
+          "date": "2027-04-23",
+          "heure": "20:00"
+        }
+      ],
+      "avec": [
+        {
+          "nom": "Pierre Jodlowski",
+          "role": {
+            "fr": "conception, composition, vidéo, lumières",
+            "en": "concept, composition, video, lighting"
+          }
+        }
+      ],
+      "programme": [
+        {
+          "compositeur": "Anton Webern",
+          "oeuvre": {
+            "fr": "Symphonie op. 21",
+            "en": "Symphony, Op. 21"
+          }
+        },
+        {
+          "compositeur": "Yana Shliabanska",
+          "oeuvre": {
+            "fr": "Nouvelle œuvre",
+            "en": "New work"
+          },
+          "mention": {
+            "fr": "création",
+            "en": "premiere"
+          }
+        },
+        {
+          "compositeur": "Pierre Jodlowski",
+          "oeuvre": "Archive Z.",
+          "mention": {
+            "fr": "création",
+            "en": "premiere"
+          }
+        }
+      ],
+      "tempsFort": false,
+      "lien": ""
+    },
+    {
+      "id": "2027-04-28-goteborg",
+      "type": "concert",
+      "titre": {
+        "fr": "Mahler, Symphonie n° 5",
+        "en": "Mahler, Symphony No. 5"
+      },
+      "ensemble": {
+        "fr": "Orchestre symphonique de Göteborg",
+        "en": "Gothenburg Symphony Orchestra"
+      },
+      "maison": "invite",
+      "ville": {
+        "fr": "Göteborg",
+        "en": "Gothenburg"
+      },
+      "pays": {
+        "fr": "Suède",
+        "en": "Sweden"
+      },
+      "salle": "Göteborgs Konserthus",
+      "representations": [
+        {
+          "date": "2027-04-28",
+          "heure": "19:00"
+        },
+        {
+          "date": "2027-04-29",
+          "heure": "19:00"
+        }
+      ],
+      "programme": [
+        {
+          "compositeur": "Claude Debussy",
+          "oeuvre": "Prélude à l'après-midi d'un faune"
+        },
+        {
+          "compositeur": "Sauli Zinovjev",
+          "oeuvre": "Wiegenlied"
+        },
+        {
+          "compositeur": "Gustav Mahler",
+          "oeuvre": {
+            "fr": "Symphonie n° 5",
+            "en": "Symphony No. 5"
+          }
+        }
+      ],
+      "mentions": {
+        "fr": "Débuts avec l'orchestre",
+        "en": "Debut with the orchestra"
+      },
+      "tempsFort": false,
+      "lien": "https://www.gso.se/en/programme/concerts/mahlers-5a/"
+    },
+    {
+      "id": "2027-05-16-scala",
+      "type": "concert",
+      "titre": {
+        "fr": "Teatro alla Scala, festival Milano Musica",
+        "en": "Teatro alla Scala, Milano Musica Festival"
+      },
+      "ensemble": "Orchestra Sinfonica Nazionale della Rai",
+      "maison": "invite",
+      "ville": "Milan",
+      "pays": {
+        "fr": "Italie",
+        "en": "Italy"
+      },
+      "salle": "Teatro alla Scala",
+      "representations": [
+        {
+          "date": "2027-05-16",
+          "heure": "20:00"
+        }
+      ],
+      "avec": [
+        {
+          "nom": "Maria Husmann",
+          "role": "soprano"
+        },
+        {
+          "nom": "Francesco Dillon",
+          "role": {
+            "fr": "violoncelle",
+            "en": "cello"
+          }
+        }
+      ],
+      "programme": [
+        {
+          "compositeur": "György Kurtág",
+          "oeuvre": "Petite musique solennelle"
+        },
+        {
+          "compositeur": "Vito Žuraj",
+          "oeuvre": "Unveiled",
+          "mention": {
+            "fr": "création italienne",
+            "en": "Italian premiere"
+          }
+        },
+        {
+          "compositeur": "György Kurtág",
+          "oeuvre": "Die Stechardin",
+          "mention": {
+            "fr": "création italienne",
+            "en": "Italian premiere"
+          }
+        }
+      ],
+      "mentions": {
+        "fr": "Débuts avec l'orchestre. Hommage à Luciana Pestalozza et Claudio Abbado",
+        "en": "Debut with the orchestra. Homage to Luciana Pestalozza and Claudio Abbado"
+      },
+      "tempsFort": true,
+      "lien": "https://www.teatroallascala.org/en/season/2026-2027/concerts/visiting-italian-musical-institutions/homage-to-luciana-pestalozza-and-claudio-abbado-36-festival-milano-musica.html"
+    }
+  ]
+};

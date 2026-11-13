@@ -403,8 +403,9 @@
     ul.innerHTML = s;
   }
 
-  /* Contacts : des groupes (structure, mention, personnes). `langue` : la mention et les fonctions
-     du groupe sont écrites dans cette langue et ne se traduisent pas (attribut lang). */
+  /* Contacts : des groupes. Dans l'ordre (13/11/2026) : la mention, la structure, les personnes.
+     `langue` : la mention et les fonctions du groupe sont écrites dans cette langue et ne se
+     traduisent pas (attribut lang). */
   function courriel(adresse) {
     var i = adresse.indexOf('@');
     if (i < 0) return h(adresse);
@@ -417,9 +418,9 @@
     var s = G.map(function (g) {
       var lang = g.langue ? ' lang="' + C.echapper(g.langue) + '"' : '';
       var b = '<div class="contacts__groupe" data-revele>';
-      if (g.structure) b += '<p class="contacts__agence">' + (g.lien ? sortant(g.lien, h(g.structure)) : h(g.structure)) + '</p>';
       var mention = C.choisir(g.mention);
       if (mention) b += '<p class="mention"' + lang + '>' + h(mention) + '</p>';
+      if (g.structure) b += '<p class="contacts__agence">' + (g.lien ? sortant(g.lien, h(g.structure)) : h(g.structure)) + '</p>';
       (g.personnes || []).forEach(function (p) {
         b += '<div class="contact">';
         if (p.nom) b += '<p class="contact__nom">' + h(p.nom) + '</p>';

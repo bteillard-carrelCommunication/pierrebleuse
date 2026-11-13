@@ -310,12 +310,13 @@ function repli_contacts(array $groupes, string $langue): array
     foreach ($groupes as $g) {
         $lang = !empty($g['langue']) ? ' lang="' . site_attribut($g['langue']) . '"' : '';
         $l[] = '<div class="contacts__groupe" data-revele>';
+        // dans l'ordre du site : la mention, la structure, puis les personnes
+        $mention = site_choisir($g['mention'] ?? '', $langue);
+        if ($mention !== '') $l[] = '  <p class="mention"' . $lang . '>' . site_html($mention) . '</p>';
         if (!empty($g['structure'])) {
             $nom = site_html($g['structure']);
             $l[] = '  <p class="contacts__agence">' . (!empty($g['lien']) ? site_lien($g['lien'], $nom) : $nom) . '</p>';
         }
-        $mention = site_choisir($g['mention'] ?? '', $langue);
-        if ($mention !== '') $l[] = '  <p class="mention"' . $lang . '>' . site_html($mention) . '</p>';
         foreach ($g['personnes'] ?? [] as $p) {
             $l[] = '  <div class="contact">';
             if (!empty($p['nom'])) $l[] = '    <p class="contact__nom">' . site_html($p['nom']) . '</p>';

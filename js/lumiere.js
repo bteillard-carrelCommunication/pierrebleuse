@@ -17,10 +17,14 @@
  * préréglages identiques), sans Pixi : un canvas WebGL par visuel, un seul quadrilatère. Ce qui
  * change : pas de ralenti de la photo, et la progression n'est plus collée au défilement.
  *
- * Progression (0 → 1) : elle vise la position de la section dans la fenêtre (0 quand le haut de
- * la section est à FENETRE[0] écrans du haut de la fenêtre, 1 quand la section remplit l'écran)
- * mais ne la rejoint jamais plus vite que VITESSE par seconde : après un défilement automatique
- * vers la section (aimantation, js/main.js), la lumière finit de se lever sur l'image arrêtée.
+ * Progression (0 → 1) : elle vise la position de la section dans la fenêtre. 1 quand la section
+ * remplit l'écran ; 0 quand elle en est à FENETRE[0] écrans, au-dessus comme au-dessous. Les
+ * découpes apparaissent donc à l'arrivée sur la section, s'effacent quand on la quitte, vers le
+ * haut ou vers le bas, et reviennent quand on y retourne, d'où qu'on vienne (13/11/2026 :
+ * auparavant, la lumière restait levée une fois la section dépassée vers le bas).
+ * La progression ne rejoint jamais sa cible plus vite que VITESSE par seconde : après un
+ * défilement automatique vers la section (aimantation, js/main.js), la lumière finit de se lever
+ * sur l'image arrêtée.
  * Chaque phase a un retard et une durée et passe par anac() (anacrouse, puis résolution longue).
  * Seule la respiration vit en temps réel (8 images/s, section à l'écran, onglet visible).
  * Mouvement réduit : un seul fondu, ni glissement ni respiration.
@@ -38,7 +42,7 @@
 'use strict';
 
 const VITESSE = 0.42;            // progression maximale par seconde (course complète : 2,4 s au moins)
-const FENETRE = [0.75, 0];       // début et fin de la course, en hauteurs d'écran avant / après l'alignement
+const FENETRE = [0.75, 0];       // course de la lumière, en hauteurs d'écran : à l'approche de la section, et après son alignement
 
 const f = (n) => Number(n).toFixed(4);
 const clamp01  = (t) => Math.min(1, Math.max(0, t));
@@ -819,7 +823,11 @@ class Scene {
     const vh = window.innerHeight || 1;
     const p0 = this.haut - FENETRE[0] * vh;
     const p1 = Math.max(this.haut + FENETRE[1] * vh, p0 + 0.2 * vh);
-    this.cible = clamp01((scrollY - p0) / (p1 - p0));
+    // la section alignée (ou, si elle est plus haute que l'écran, tant qu'elle le remplit), la
+    // lumière est levée ; elle retombe sur la même course quand la section s'en va par le haut
+    const q0 = Math.max(this.haut + this.h - vh, p1);
+    const q1 = q0 + (p1 - p0);
+    this.cible = clamp01(Math.min((scrollY - p0) / (p1 - p0), (q1 - scrollY) / (q1 - q0)));
     let p = this.p;
     if (this.fige !== undefined) p = this.fige;
     else if (p < 0 || !(dt > 0)) p = this.cible;                       // première image : pas d'animation

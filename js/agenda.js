@@ -245,10 +245,12 @@
     return '<a class="lien" href="concerts.html#c-' + C.echapper(ev.id) + '">' + h(C.t('agenda.plus')) + '</a>';
   }
 
-  /* Fiche détaillée (À l'affiche) : trois colonnes de la matrice */
+  /* Fiche détaillée (À l'affiche) : trois colonnes de la matrice. Dans l'ordre (13/11/2026) :
+     titre, date, heure, lieu, salle, orchestre, programme, avec, mentions, lien. */
   function fiche(ev) {
     var tournee = (ev.type === 'tournee');
     var s = '<article class="fiche bloc-quart' + (ev.tempsFort ? ' fiche--fort' : '') + '" data-revele>';
+    s += '<h4 class="fiche__titre">' + h(ev.titre) + '</h4>';
     var e = etiquettes(ev);
     if (e) s += '<p class="fiche__etiquettes">' + e + '</p>';
 
@@ -263,15 +265,6 @@
       s += '</li>';
     });
     s += '</ul>';
-
-    s += '<h4 class="fiche__titre">' + h(ev.titre) + '</h4>';
-
-    if (ev.type === 'opera' && ev.reps.length > 1) {
-      s += '<p class="fiche__serie">' + h(C.t('agenda.serie', { n: ev.reps.length, date: ecrire(ev.prochaine.date, OPT.courte) })) + '</p>';
-    }
-    if (tournee) {
-      s += '<p class="fiche__serie">' + h(C.t('agenda.tournee', { n: ev.villes.length })) + '</p>';
-    }
 
     if (!tournee && ev.type !== 'disque') {
       var premier = ev.jours[0];
@@ -299,6 +292,12 @@
         s += '<li>' + h(a.nom) + (r ? ', ' + h(r) : '') + '</li>';
       });
       s += '</ul>';
+    }
+    if (ev.type === 'opera' && ev.reps.length > 1) {
+      s += '<p class="fiche__serie">' + h(C.t('agenda.serie', { n: ev.reps.length, date: ecrire(ev.prochaine.date, OPT.courte) })) + '</p>';
+    }
+    if (tournee) {
+      s += '<p class="fiche__serie">' + h(C.t('agenda.tournee', { n: ev.villes.length })) + '</p>';
     }
     if (ev.mentions) s += '<p class="fiche__note">' + h(ev.mentions) + '</p>';
     s += lienPlus(ev);
@@ -390,7 +389,94 @@
   }
 
   /* ---------- 3. Rendu de concerts.html : tous les concerts ---------------- */
-  /* Date | Pays, ville | Salle | Orchestre, programme | En savoir plus */
+  /* Une barre de recherche, de filtres et de tri (13/11/2026), puis deux tableaux, à venir et
+     passés : Date | Pays, ville | Salle | Orchestre, programme | En savoir plus.
+     La recherche porte sur tous les champs : titre, dates, pays, ville, salle, orchestre,
+     programme, solistes, mentions. Sans accents ni majuscules. */
+  function sansAccent(s) {
+    s = String(s || '').toLowerCase();
+    return s.normalize ? s.normalize('NFD').replace(/[\u0300-\u036f]/g, '') : s;
+  }
+  function valeurs(liste) { return liste.filter(function (v, i) { return v && liste.indexOf(v) === i; }); }
+  /* Ce qu'on cherche et ce qu'on trie dans un événement, calculé une fois */
+  function indexer(ev) {
+    if (ev.index) return ev.index;
+    var src = ev.source;
+    var morceaux = [ev.titre, ev.ensemble, ev.mentions, ecrirePlage(ev.premiere, ev.derniere, OPT.annee), ev.type === 'disque' ? C.t('agenda.disque') : ''];
+    ev.jours.forEach(function (d) { morceaux.push(d.pays, d.ville, d.salle, ecrire(d.date, OPT.longue)); });
+    (src.programme || []).forEach(function (p) { morceaux.push(C.choisir(p.compositeur), C.choisir(p.oeuvre), C.choisir(p.mention)); });
+    (src.avec || []).forEach(function (a) { morceaux.push(a.nom, C.choisir(a.role)); });
+    ev.index = {
+      texte: sansAccent(morceaux.filter(Boolean).join(' · ')),
+      pays: valeurs(ev.jours.map(function (d) { return d.pays; })),
+      villes: valeurs(ev.jours.map(function (d) { return d.ville; })),
+      salles: valeurs(ev.jours.map(function (d) { return d.salle; }))
+    };
+    return ev.index;
+  }
+  var filtres = { q: '', pays: '', ville: '', salle: '', ensemble: '', tri: 'date' };
+  function retenu(ev) {
+    var x = indexer(ev);
+    if (filtres.pays && x.pays.indexOf(filtres.pays) < 0) return false;
+    if (filtres.ville && x.villes.indexOf(filtres.ville) < 0) return false;
+    if (filtres.salle && x.salles.indexOf(filtres.salle) < 0) return false;
+    if (filtres.ensemble && ev.ensemble !== filtres.ensemble) return false;
+    return sansAccent(filtres.q).split(/\s+/).filter(Boolean).every(function (mot) { return x.texte.indexOf(mot) >= 0; });
+  }
+  /* « date » garde l'ordre de l'agenda : à venir du plus proche au plus lointain, passés du plus
+     récent au plus ancien. Les autres tris valent pour les deux tableaux. */
+  function trier(evenements) {
+    var cle = {
+      lieu: function (ev) { var d = ev.jours[0] || {}; return [d.pays, d.ville].join(' '); },
+      salle: function (ev) { return (ev.jours[0] || {}).salle || ''; },
+      ensemble: function (ev) { return ev.ensemble; },
+      titre: function (ev) { return ev.titre; }
+    }[filtres.tri];
+    var liste = evenements.slice();
+    if (filtres.tri === 'inverse') return liste.reverse();
+    if (!cle) return liste;
+    var rang = {};
+    liste.forEach(function (ev, i) { rang[ev.id] = i; });
+    return liste.sort(function (a, b) {
+      var x = sansAccent(cle(a)), y = sansAccent(cle(b));
+      if (!x !== !y) return x ? -1 : 1;                       /* les champs vides à la fin */
+      return x.localeCompare(y, C.locale) || rang[a.id] - rang[b.id];
+    });
+  }
+  function choix(nom, cle, liste, tous) {
+    var options = '<option value="">' + h(C.t(tous)) + '</option>' + liste.map(function (v) {
+      return '<option value="' + C.echapper(v) + '">' + h(v) + '</option>';
+    }).join('');
+    return '<label class="filtres__champ"><span>' + h(C.t(cle)) + '</span><select data-filtre="' + nom + '">' + options + '</select></label>';
+  }
+  function barreFiltres(etat) {
+    var tous = etat.aVenir.concat(etat.passes);
+    var ordre = function (a, b) { return sansAccent(a).localeCompare(sansAccent(b), C.locale); };
+    var dans = function (champ) { return valeurs([].concat.apply([], tous.map(function (ev) { return indexer(ev)[champ]; }))).sort(ordre); };
+    var tris = ['date', 'inverse', 'lieu', 'salle', 'ensemble', 'titre'];
+    return '<form class="filtres" data-filtres role="search" aria-label="' + C.echapper(C.brut(C.t('concerts.chercher'))) + '">' +
+      '<label class="filtres__champ filtres__champ--large"><span>' + h(C.t('concerts.chercher')) + '</span>' +
+      '<input type="search" data-filtre="q" autocomplete="off" placeholder="' + C.echapper(C.brut(C.t('concerts.chercher.indice'))) + '"></label>' +
+      choix('pays', 'concerts.pays', dans('pays'), 'concerts.tous') +
+      choix('ville', 'concerts.ville', dans('villes'), 'concerts.toutes') +
+      choix('salle', 'agenda.col.salle', dans('salles'), 'concerts.toutes') +
+      choix('ensemble', 'concerts.orchestre', valeurs(tous.map(function (ev) { return ev.ensemble; })).sort(ordre), 'concerts.tous') +
+      '<label class="filtres__champ"><span>' + h(C.t('concerts.trier')) + '</span><select data-filtre="tri">' +
+      tris.map(function (t) { return '<option value="' + t + '">' + h(C.t('concerts.tri.' + t)) + '</option>'; }).join('') + '</select></label>' +
+      '<button type="reset" class="bouton filtres__effacer">' + h(C.t('concerts.effacer')) + '</button>' +
+      '</form><p class="filtres__compte" data-compte role="status" aria-live="polite"></p>';
+  }
+  function tableaux(etat) {
+    var aVenir = trier(etat.aVenir.filter(retenu));
+    var passes = trier(etat.passes.filter(retenu));
+    var s = '';
+    if (aVenir.length) s += '<h2 class="rang__titre">' + h(C.t('concerts.avenir')) + '</h2>' + tableauComplet(aVenir, 'concerts.avenir', 'tableau--avenir');
+    else if (!etat.aVenir.length) s += '<p class="agenda__vide">' + h(C.t('agenda.vide')) + '</p>';
+    if (passes.length) s += '<h2 class="rang__titre">' + h(C.t('concerts.passes')) + '</h2>' + tableauComplet(passes, 'concerts.passes', 'tableau--passes');
+    var n = aVenir.length + passes.length;
+    if (!n && (etat.aVenir.length || etat.passes.length)) s += '<p class="agenda__vide">' + h(C.t('concerts.aucun')) + '</p>';
+    return { html: s, compte: n };
+  }
   function tableauComplet(evenements, cle, classe) {
     var s = '<table class="tableau ' + classe + '"><caption class="sr-only">' + h(C.t(cle)) + '</caption>' +
       colonnes(['17%', '15%', '19%', '', '11%']) +
@@ -406,11 +492,24 @@
     var zone = document.querySelector('[data-concerts]');
     if (!donnees || !zone) return null;
     var etat = calculer(donnees, options);
-    var s = '';
-    if (etat.aVenir.length) s += '<h2 class="rang__titre">' + h(C.t('concerts.avenir')) + '</h2>' + tableauComplet(etat.aVenir, 'concerts.avenir', 'tableau--avenir');
-    else s += '<p class="agenda__vide">' + h(C.t('agenda.vide')) + '</p>';
-    if (etat.passes.length) s += '<h2 class="rang__titre">' + h(C.t('concerts.passes')) + '</h2>' + tableauComplet(etat.passes, 'concerts.passes', 'tableau--passes');
-    zone.innerHTML = s;
+    zone.innerHTML = barreFiltres(etat) + '<div data-resultats></div>';
+    var resultats = zone.querySelector('[data-resultats]');
+    var compte = zone.querySelector('[data-compte]');
+    var formulaire = zone.querySelector('[data-filtres]');
+    function afficher() {
+      var t = tableaux(etat);
+      resultats.innerHTML = t.html;
+      compte.textContent = C.brut(C.t(t.compte > 1 ? 'concerts.compte.n' : 'concerts.compte.un', { n: t.compte }));
+    }
+    function lire() {
+      Array.prototype.forEach.call(formulaire.querySelectorAll('[data-filtre]'), function (c) { filtres[c.getAttribute('data-filtre')] = c.value; });
+      afficher();
+    }
+    formulaire.addEventListener('input', lire);
+    formulaire.addEventListener('change', lire);
+    formulaire.addEventListener('submit', function (e) { e.preventDefault(); });
+    formulaire.addEventListener('reset', function () { window.setTimeout(lire, 0); });
+    afficher();
     return etat;
   }
 

@@ -1,5 +1,3 @@
-Pierre
-Bleuse
 FR|EN
 
 BACK TO HOME
@@ -7,6 +5,75 @@ BACK TO HOME
 All concerts
 
 2026/27 SEASON
+
+SEARCH
+COUNTRY
+All
+Denmark
+France
+Germany
+Italy
+Netherlands
+Portugal
+Romania
+Spain
+Sweden
+Switzerland
+CITY
+All
+Amsterdam
+Basel
+Bucharest
+Cologne
+Gothenburg
+Madrid
+Malmö
+Milan
+Munich
+Odense
+Paris
+Porto
+Valladolid
+VENUE
+All
+Auditorio Nacional de Música, Sala sinfónica
+Casa da Música, Sala Suggia
+Centro Cultural Miguel Delibes, Sala Sinfónica Jesús López Cobos
+Cité de la musique, Salle des concerts
+Dutch National Opera & Ballet
+Göteborgs Konserthus
+Isarphilharmonie
+Kölner Philharmonie
+Maison de la Radio et de la Musique, Studio 104
+Malmö Live Konserthus
+Odense Concert Hall, Carl Nielsen Hall
+Philharmonie de Paris, Grande salle Pierre Boulez
+Romanian Athenaeum
+Stadtcasino Basel
+Teatro alla Scala
+ORCHESTRA
+All
+Dutch National Opera
+Ensemble intercontemporain
+Filarmonica George Enescu
+Gothenburg Symphony Orchestra
+Kammerorchester Basel
+Malmö SymfoniOrkester
+Odense Symphony Orchestra
+Orchestra Sinfonica Nazionale della Rai
+Orquesta Sinfónica de Castilla y León
+Orquesta y Coro Nacionales de España
+Orquestra Sinfónica do Porto Casa da Música
+SORT BY
+Date
+Date, reversed
+Country, city
+Venue
+Orchestra
+Title
+SHOW ALL
+
+18 CONCERTS
 
 UPCOMING
 Upcoming

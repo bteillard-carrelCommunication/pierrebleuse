@@ -213,7 +213,7 @@ l'alerte une semaine, « Ignorer » la cache tant que son sujet ne change pas.
 | `php pupitre/tests/annonce.php` | le site ne reçoit que les représentations annoncées ; règles des statuts | oui, rien n'est écrit |
 | `php pupitre/tests/import.php` | contrôle du JSON, comparaison, contrôle, validation, confidentialité des journaux, sur un extrait fictif et sans appel à l'IA | oui, rien n'est écrit |
 | `python3 pupitre/tests/parcours.py` | dans Chrome : chaque écran, parcours complet (modification, concert annoncé, publication, vérification sur le site, retour en arrière), droits des trois rôles, vue de l'artiste à 390 px et au clavier ; refait les captures de `docs/pupitre/captures/` | oui, remise en état à la fin |
-| `python3 outils/temoin.py capturer dossier`, puis `comparer` | le rendu du site est identique au témoin du 12/11/2026 | non |
+| `python3 outils/temoin.py capturer dossier`, puis `comparer` | le rendu du site est identique au témoin (repris le 13/11/2026, après les retours de ce jour) | non |
 
 `tests/annonce.php` et `tests/import.php` travaillent dans une transaction annulée à la fin.
 `tests/parcours.py` suppose une base qui sort de la reprise ; il crée trois comptes d'essai en

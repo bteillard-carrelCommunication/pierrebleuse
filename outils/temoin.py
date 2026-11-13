@@ -15,8 +15,11 @@ qui ne se voit pas (commentaires, scripts, numéros de version, attributs de ser
 erreurs de console vides. Les images ne sont pas comparées au pixel : la nuée et la vidéo bougent.
 
 L'adresse est figée pour que le témoin soit rejouable : date de référence de l'agenda, nuée gelée,
-pas de lecture automatique, pas d'aimantation. Référence prise le 12/11/2026, avant que les
-contenus ne passent dans data/ : docs/pupitre/captures/reference/ (captures converties en JPEG).
+pas de lecture automatique, pas d'aimantation. La référence est dans
+docs/pupitre/captures/reference/ (captures converties en JPEG). Elle a été prise le 12/11/2026,
+avant que les contenus ne passent dans data/, puis reprise le 13/11/2026 après les retours de ce
+jour (logo, police, fiches, contacts) : pour la refaire après une évolution voulue du rendu,
+« capturer » dans ce dossier.
 """
 import json, os, re, sys
 from html.parser import HTMLParser

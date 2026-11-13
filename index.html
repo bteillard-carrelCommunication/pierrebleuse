@@ -12,10 +12,10 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inria+Serif:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/etourneaux.css?v=20261112i">
-  <link rel="stylesheet" href="css/site.css?v=20261112i">
+  <link rel="stylesheet" href="css/etourneaux.css?v=20261113b">
+  <link rel="stylesheet" href="css/site.css?v=20261113b">
 
   <script>
     document.documentElement.classList.add('js');
@@ -26,17 +26,17 @@
     }, 4000);
   </script>
   <!-- Textes éditables (data/textes.js), puis langue et dictionnaire : avant tout le reste (pose <html lang>, prépare le menu) -->
-  <script src="data/textes.js?v=20261112i"></script>
-  <script src="js/contenu.js?v=20261112i"></script>
+  <script src="data/textes.js?v=20261113b"></script>
+  <script src="js/contenu.js?v=20261113b"></script>
 </head>
 <body>
 
-  <!-- Barre du haut. Toujours visibles : le logo, les réseaux (Instagram, Facebook, YouTube) et les
-       langues. Apparaissent au début du défilement (.barre__apparait) : le menu, le petit lecteur. -->
+  <!-- Barre du haut. Toujours visibles : le logo (image), les réseaux (Instagram, Facebook, YouTube) et
+       les langues. Apparaissent au début du défilement (.barre__apparait) : le menu, le petit lecteur.
+       Sur téléphone, ils sont là d'emblée : le bloc de l'ouverture n'y est pas affiché. -->
   <header class="barre" data-nav>
     <a class="logo" href="./" data-haut aria-label="Pierre Bleuse">
-      <span class="logo__first">Pierre</span>
-      <span class="logo__last" aria-hidden="true">Bl<span class="rev">e</span>us<span class="rev">e</span></span>
+      <img src="assets/img/logo-pierre-bleuse-blanc.png" alt="" width="1000" height="361" decoding="async">
     </a>
     <div class="barre__droite">
       <nav class="barre__menu barre__apparait" aria-label="Menu" data-t-attr="aria-label:nav.menu">
@@ -80,7 +80,8 @@
 
   <main>
 
-    <!-- HERO · nuée au premier plan. La citation et le lecteur, en bas à droite, sur leur halo sombre. -->
+    <!-- HERO · nuée au premier plan. La citation et le lecteur, en bas à droite, sur leur halo sombre
+         (pas sur téléphone : seule la barre du haut y porte le lecteur). -->
     <section class="ouverture nuee-premier-plan" id="ouverture" data-ouverture aria-labelledby="titre-page">
       <h1 class="sr-only" id="titre-page" data-t="meta.titre">Pierre Bleuse, chef d'orchestre</h1>
       <div class="ouverture__texte dessus" data-revele>
@@ -366,8 +367,8 @@
           <h2 class="section__titre" id="contact-titre" data-revele data-t="contact.titre">Contacts</h2>
           <!-- CONTACTS-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
           <div class="contacts__groupe" data-revele>
-            <p class="contacts__agence"><a href="https://www.harrisonparrott.com/artists/pierre-bleuse" target="_blank" rel="noopener">HarrisonParrott</a></p>
             <p class="mention" lang="en">Worldwide general management</p>
+            <p class="contacts__agence"><a href="https://www.harrisonparrott.com/artists/pierre-bleuse" target="_blank" rel="noopener">HarrisonParrott</a></p>
             <div class="contact">
               <p class="contact__nom">François Guyard</p>
               <p class="contact__role" lang="en">Senior Director, General Manager HarrisonParrott Paris</p>
@@ -383,8 +384,8 @@
           </div>
           <div class="contacts__groupe" data-revele>
             <p class="mention">Communication</p>
+            <p class="contacts__agence">Carrel Communication</p>
             <div class="contact">
-              <p class="contact__nom">Carrel Communication</p>
               <p><a href="tel:+33689905731">+33 6 89 90 57 31</a></p>
               <p><a href="mailto:communication@pierrebleuse.com">communication@<wbr>pierrebleuse.com</a></p>
             </div>
@@ -418,21 +419,21 @@
   <audio data-audio preload="none"></audio>
 
   <!-- Données, puis rendu synchrone, avant le moteur qui recense les [data-revele] à son chargement -->
-  <script src="data/agenda.js?v=20261112i"></script>
-  <script src="data/playlist.js?v=20261112i"></script>
-  <script src="data/visuels.js?v=20261112i"></script>
-  <script src="data/disques.js?v=20261112i"></script>
-  <script src="data/presse.js?v=20261112i"></script>
+  <script src="data/agenda.js?v=20261113b"></script>
+  <script src="data/playlist.js?v=20261113b"></script>
+  <script src="data/visuels.js?v=20261113b"></script>
+  <script src="data/disques.js?v=20261113b"></script>
+  <script src="data/presse.js?v=20261113b"></script>
   <!-- FAUX ARTICLES pour la maquette : à retirer avant la mise en ligne (voir le fichier) -->
-  <script src="data/presse-exemples.js?v=20261112i"></script>
-  <script src="data/orchestres.js?v=20261112i"></script>
-  <script src="data/cartes.js?v=20261112i"></script>
-  <script src="data/parcours.js?v=20261112i"></script>
-  <script src="data/telechargements.js?v=20261112i"></script>
-  <script src="data/contacts.js?v=20261112i"></script>
-  <script src="data/reseaux.js?v=20261112i"></script>
-  <script src="js/agenda.js?v=20261112i"></script>
-  <script src="js/sections.js?v=20261112i"></script>
+  <script src="data/presse-exemples.js?v=20261113b"></script>
+  <script src="data/orchestres.js?v=20261113b"></script>
+  <script src="data/cartes.js?v=20261113b"></script>
+  <script src="data/parcours.js?v=20261113b"></script>
+  <script src="data/telechargements.js?v=20261113b"></script>
+  <script src="data/contacts.js?v=20261113b"></script>
+  <script src="data/reseaux.js?v=20261113b"></script>
+  <script src="js/agenda.js?v=20261113b"></script>
+  <script src="js/sections.js?v=20261113b"></script>
   <script>
     try { window.SiteContenu.appliquer(document); }
     catch (e) { document.documentElement.classList.remove('i18n-attente'); console.error(e); }
@@ -446,12 +447,12 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 
   <!-- Moteur de la nuée, visuels « lumière » et lecteur de musique -->
-  <script src="js/lumiere.js?v=20261112i"></script>
-  <script src="js/parametres.js?v=20261112i"></script>
-  <script src="js/musique.js?v=20261112i"></script>
-  <script src="js/sync.js?v=20261112i"></script>
-  <script src="js/nuee.js?v=20261112i"></script>
-  <script src="js/reglages.js?v=20261112i"></script>
-  <script src="js/main.js?v=20261112i"></script>
+  <script src="js/lumiere.js?v=20261113b"></script>
+  <script src="js/parametres.js?v=20261113b"></script>
+  <script src="js/musique.js?v=20261113b"></script>
+  <script src="js/sync.js?v=20261113b"></script>
+  <script src="js/nuee.js?v=20261113b"></script>
+  <script src="js/reglages.js?v=20261113b"></script>
+  <script src="js/main.js?v=20261113b"></script>
 </body>
 </html>

@@ -90,14 +90,14 @@ function contenus(): array
             'apercu' => ['CONTACTS' => 'Contacts', 'RESEAUX' => 'Réseaux'],
             'listes' => [
                 'groupes' => ['titre' => 'Groupes de contacts', 'table' => 'contacts_groupes', 'ajout' => 'Ajouter un groupe', 'enfants' => ['contacts_personnes', 'groupe_id'], 'champs' => [
+                    ['mention', 'bi', 'Mention', 'aide' => 'Intitulé du groupe, affiché en premier.'],
                     ['structure', 'ligne', 'Structure', 'aide' => 'Agence ou structure, facultative.', 'rang' => 'structure'],
                     ['lien', 'adresse', 'Adresse de la structure', 'rang' => 'structure'],
-                    ['mention', 'bi', 'Mention', 'aide' => 'Intitulé du groupe.'],
                     ['langue', 'ligne', 'Langue fixe', 'aide' => 'Si la mention et les fonctions ne se traduisent pas : le code de leur langue (en). Sinon vide.', 'max' => 2],
                 ]],
                 'personnes' => ['titre' => 'Personnes', 'table' => 'contacts_personnes', 'ajout' => 'Ajouter une personne', 'champs' => [
                     ['groupe_id', 'choix', 'Groupe', 'requis' => true, 'options' => 'contacts_groupes_choix', 'rang' => 'qui'],
-                    ['nom', 'ligne', 'Nom', 'requis' => true, 'rang' => 'qui'],
+                    ['nom', 'ligne', 'Nom', 'rang' => 'qui', 'aide' => 'Vide si le contact est celui de la structure elle-même.'],
                     ['role', 'bi', 'Fonction'],
                     ['telephone', 'ligne', 'Téléphone', 'max' => 60, 'rang' => 'joindre'],
                     ['email', 'email', 'Adresse e-mail', 'rang' => 'joindre'],

@@ -7,10 +7,12 @@ fonctionnent toujours, on n'y modifie plus rien.
 Ouvrir : `http://localhost:8888/pierrebleuse/` (MAMP). Le site n'est pas en ligne :
 `<meta name="robots" content="noindex">` reste en place jusqu'au lancement.
 
-Dernier état : le site est administré par Pupitre (`pupitre/`, voir « Pupitre » ci-dessous et
+Dernier état : retours du 13/11/2026 appliqués (ordre des fiches de l'agenda, logo en image,
+ouverture sur téléphone, recherche dans `concerts.html`, police Inria Serif, découpes des visuels,
+ordre des contacts ; voir « Choix faits »). Le site est administré par Pupitre (`pupitre/`, voir « Pupitre » ci-dessous et
 `pupitre/LISEZ-MOI.md`). Tout ce qui s'édite est dans `data/`, au format que Pupitre écrit (voir
-« Données » et « Repli sans JavaScript »). Le rendu n'a pas changé : il est identique au témoin
-du 12/11/2026 (`python3 outils/temoin.py`).
+« Données » et « Repli sans JavaScript »). Le témoin du rendu (`python3 outils/temoin.py`) a été
+repris le 13/11/2026, après ces retours.
 
 ## Pupitre
 
@@ -68,6 +70,8 @@ style, les scripts de `js/`, le HTML hors des repères, les pages légales.
 | `_sources/musique/` | fichiers .mov fournis (non suivis par git, hors du site) |
 
 Socle inchangé : HTML, CSS et JS sans npm ni bundler ; Lenis et GSAP par CDN, versions figées.
+Polices : Inria Serif (titres, citation ; elle remplace Cormorant Garamond depuis le 13/11/2026)
+et Inter, par Google Fonts.
 
 ## Données : les fichiers de `data/`
 
@@ -160,14 +164,16 @@ la ligne et le point ; les entrées d'une même ville partagent un point.
 **`PARCOURS`.** `fonctions` et `opera` : deux listes de lignes `{ fr, en }`, dans l'ordre
 d'affichage.
 
-**`CONTACTS`.** Une liste de groupes.
+**`CONTACTS`.** Une liste de groupes. Chaque groupe s'affiche dans cet ordre : la mention
+(« Worldwide general management », « Communication »), la structure (« HarrisonParrott », « Carrel
+Communication »), puis les personnes.
 
 | Champ | Rôle |
 |---|---|
+| `mention` | intitulé du groupe, en petites capitales |
 | `structure`, `lien` | nom de l'agence ou de la structure, et son adresse (facultatifs) |
-| `mention` | intitulé du groupe |
 | `langue` | si la mention et les fonctions sont écrites dans une langue et ne se traduisent pas, son code (`en`) ; sinon vide |
-| `personnes` | liste de `{ nom, role, telephone, email }` |
+| `personnes` | liste de `{ nom, role, telephone, email }` ; `nom` vide quand le contact est celui de la structure elle-même |
 
 **`RESEAUX`.** Liste de `{ id, nom, url, barre }`. `barre` : le réseau figure aussi dans la barre
 du haut. Sans `url`, le pictogramme reste affiché, inerte. Les pictogrammes sont dans le HTML,
@@ -212,7 +218,7 @@ En français, le site vérifie au chargement que le repli et les données disent
 
 | Section | `id` | Place de la nuée | Fond | Blocs sur la matrice |
 |---|---|---|---|---|
-| Hero | `ouverture` | premier plan | | citation et lecteur en bas à droite (colonnes 10 à 12), sur leur halo sombre ; pictogramme de défilement au centre, en bas |
+| Hero | `ouverture` | premier plan | | citation et lecteur en bas à droite (colonnes 10 à 12), sur leur halo sombre ; pictogramme de défilement au centre, en bas. Sur téléphone, ce bloc n'est pas affiché : la barre du haut porte le lecteur |
 | Bio | `bio` | arrière-plan | 0 % | texte : colonnes 10 à 12, sur son propre fond noir à 50 %, à bords vaporeux |
 | Visuel 1 | `visuel-1` | arrière-plan | 100 % | pleine largeur, pleine hauteur, sans texte ; image en « lumière » |
 | Agenda | `agenda` | arrière-plan | 80 % | 4 dates (3 colonnes chacune) ; tableau « Les concerts » ; « Tous les concerts » (10 à 12) |
@@ -263,12 +269,16 @@ La nuée ne défile pas avec la page : elle reste dans la fenêtre, les sections
 
 ### Barre du haut
 
-Toujours visibles : le logo, les pictogrammes Instagram, Facebook, YouTube (dans cet ordre) et la
-bascule FR / EN. Le menu et le petit lecteur sont invisibles en haut de page et apparaissent sur
+Toujours visibles : le logo (une image, `assets/img/logo-pierre-bleuse-blanc.png`, blanche sur fond
+transparent), les pictogrammes Instagram, Facebook, YouTube (dans cet ordre) et la bascule FR / EN. Le menu et le petit lecteur sont invisibles en haut de page et apparaissent sur
 le premier cinquième d'écran de défilement, en même temps que le voile de la barre ; le bloc de
 l'ouverture s'efface d'autant (variable CSS `--barre`, posée par `main.js`). Une fois apparue, la
 barre a une marge basse plus grande (1 rem de plus, voile prolongé de 44 px). Sous 1180 px, le
 menu se replie derrière un bouton. Sans JavaScript, la barre est visible en entier.
+
+Sur téléphone (sous 721 px), la barre est entière dès le haut de la page, comme après le début du
+défilement sur ordinateur : `main.js` y tient `--barre` à 1, et le bloc de l'ouverture (citation,
+lecteur) n'est pas affiché.
 
 Un clic sur une entrée du menu fait défiler la page en douceur jusqu'à la section. Tous les liens
 sortants s'ouvrent dans un nouvel onglet (`SiteContenu.liensSortants`).
@@ -302,9 +312,10 @@ Boulez* (Ensemble intercontemporain & Friends, ARTE Concert).
 - **Ouverture** : lecture automatique du premier titre. Les navigateurs la refusent souvent sans
   geste du visiteur : elle part alors au premier clic ou à la première touche (le défilement ne
   compte pas). En attendant, la nuée vole en mode autonome.
-- **Lecteur de l'ouverture** : bouton Play / Pause, puis la liste des titres, alignée sur l'icône
-  de lecture ; un clic change de musique, le titre en cours est en surbrillance. Le pictogramme
-  de la liste n'y figure plus.
+- **Lecteur de l'ouverture** (ordinateur et tablette) : bouton Play / Pause, puis la liste des
+  titres, alignée sur l'icône de lecture ; un clic change de musique, le titre en cours est en
+  surbrillance. Le pictogramme de la liste n'y figure plus. Sur téléphone, seul le lecteur de la
+  barre existe.
 - **Lecteur de la barre** (dès qu'on défile) : petit bouton lecture / pause, et le pictogramme
   de la liste, qui ouvre la même liste : le rond du bouton lecture / pause (mêmes classe, taille,
   trait et survol) avec une croche en SVG à l'intérieur. Le rond devient bleuté quand la liste est
@@ -384,9 +395,11 @@ canvas WebGL par visuel.
 - `lumiere: 'generique'` : pour une autre photo, sans masque du sujet (spot et colonnes centrés
   sur le point focal `position`). Un rendu soigné demande un préréglage par photo, dans
   `PRESETS` de `js/lumiere.js`, et un masque du sujet.
-- La lumière se lève quand la section arrive (de 0 à 1 sur les trois quarts d'écran qui précèdent
-  l'alignement) sans jamais aller plus vite que 0,42 par seconde : après une aimantation, elle
-  finit de se lever sur l'image arrêtée, en 2,4 s environ.
+- Les découpes apparaissent quand la section arrive, s'effacent quand on la quitte, vers le haut
+  comme vers le bas, et reviennent quand on y retourne, d'où qu'on vienne (13/11/2026). La
+  progression va de 0 à 1 sur les trois quarts d'écran qui précèdent l'alignement, et de 1 à 0 sur
+  les trois quarts d'écran qui le suivent, sans jamais aller plus vite que 0,42 par seconde :
+  après une aimantation, la lumière finit de se lever sur l'image arrêtée, en 2,4 s environ.
 - Sans JavaScript ou sans WebGL : l'image seule.
 
 ### Vidéo avec son (visuel 3)
@@ -412,13 +425,22 @@ l'autre. Pour la nuée franche par-dessus une vidéo assombrie : `nuee: 'premier
 
 Date de référence : le jour du visiteur, ou `?date=AAAA-MM-JJ`.
 
-1. **À l'affiche** : les quatre prochaines dates, en fiches. Chaque fiche se termine par « En
-   savoir plus » : vers la billetterie ou la salle quand `agenda.json` donne une adresse, sinon
-   vers la ligne de l'événement dans `concerts.html` (ancre `c-<id>`).
+1. **À l'affiche** : les quatre prochaines dates, en fiches. Une fiche donne, dans cet ordre : le
+   titre, la date, l'heure, le lieu, la salle, l'orchestre, le programme, « avec », les mentions,
+   le lien. Elle se termine par « En savoir plus » : vers la billetterie ou la salle quand
+   `agenda.json` donne une adresse, sinon vers la ligne de l'événement dans `concerts.html`
+   (ancre `c-<id>`).
 2. **Les concerts** : les dates suivantes, en tableau, avec « En savoir plus » quand l'adresse est
    connue.
 3. **Tous les concerts** : bouton vers `concerts.html` (à venir, puis passés, avec la salle). Les
    concerts passés ne sont plus sur l'accueil.
+
+`concerts.html` a une barre pour retrouver un concert (13/11/2026) : un champ de recherche qui
+porte sur tous les champs (titre, dates, pays, ville, salle, orchestre, programme, solistes,
+mentions ; sans accents ni majuscules), quatre listes (pays, ville, salle, orchestre) et un tri
+(date, date inversée, pays et ville, salle, orchestre, titre). « Date » garde l'ordre de l'agenda :
+à venir du plus proche au plus lointain, passés du plus récent au plus ancien. Le nombre de
+concerts trouvés est annoncé. Les libellés sont dans `js/contenu.js` (`concerts.…`).
 
 « Temps fort » n'a plus d'affichage. Le drapeau `tempsFort` reste dans `agenda.json` et dans le
 rendu (classe `fiche--fort`, attribut `data-temps-fort`), pour un usage futur.
@@ -520,6 +542,29 @@ Node n'est pas installé sur le poste : tout est en Python 3 standard ou en shel
 
 ## Choix faits
 
+### En appliquant les retours du 13/11/2026
+
+1. **Fiche de l'agenda** : titre, date, heure, lieu, salle, orchestre, programme, « avec », puis
+   les mentions (dont « n représentations » pour un opéra et « n villes » pour une tournée) et le
+   lien. L'heure passe sous la date. L'étiquette « Disque » suit le titre. Les fiches des disques
+   et de la presse ne changent pas.
+2. **Logo** : l'image fournie, à 56 px de haut (45 px sur téléphone). Le nom de l'artiste reste le
+   libellé du lien.
+3. **Téléphone** : la consigne est lue comme une demande. Le bloc de l'ouverture (citation et
+   lecteur) n'est plus affiché sous 721 px ; la barre du haut y est entière d'emblée. La citation
+   n'apparaît donc plus sur téléphone.
+4. **`concerts.html`** : recherche sur tous les champs, filtres et tri (voir « Agenda »). Le tri se
+   choisit dans une liste, pas en cliquant les en-têtes de colonnes.
+5. **Inria Serif** remplace Cormorant Garamond partout (graisses 300, 400, 700, et les italiques
+   300 et 400). Elle est plus large : le titre des fiches et le nom des structures des contacts
+   ont un corps réduit pour tenir dans leurs colonnes. La page des crédits la cite.
+6. **Découpes des visuels 1 et 2** : elles s'effacent aussi quand on quitte la section vers le bas,
+   et reviennent au retour (voir « Visuels »).
+7. **Contacts** : la mention, la structure, les personnes. « Carrel Communication » devient la
+   structure du second groupe ; son contact garde son téléphone et son adresse, sans répéter le
+   nom. L'orthographe « HarrisonParrott » est gardée. La modification est faite dans Pupitre et
+   publiée par lui.
+
 ### En appliquant les consignes du 12/11/2026 (fin de soirée)
 
 1. **Pages légales** : éditeur, directeur de la publication, hébergeur, conception, responsable du
@@ -606,6 +651,19 @@ Node n'est pas installé sur le poste : tout est en Python 3 standard ou en shel
 - `_archives/`, `_sources/`, `docs/` et `pupitre/` ne se déploient pas avec le site statique.
 
 À garder : « Pause de l'animation » dans le pied de page.
+
+## Vérifications du 13/11/2026 (Chrome headless, rendu Metal)
+
+- 0 erreur en console et `SiteContenu.ecarts` vide sur l'accueil et `concerts.html`, en français
+  et en anglais, à 1440 × 900 et à 390 × 844 ; aucun débordement horizontal.
+- Fiche de l'agenda : titre, dates, lieu, orchestre, programme, « avec », lien, dans cet ordre.
+- `concerts.html` : « debussy » trouve 5 concerts, « chamayou » 1, « mars 2027 » 2 ; pays Espagne,
+  2 ; ville Paris triée par titre, 6 ; une recherche sans réponse l'annonce ; « Tout afficher »
+  rend les 18 ; l'ancre d'un concert reste atteinte.
+- Découpes du visuel 1 : 0 loin de la section, 1 sur elle, 0 une fois dépassée vers le bas, 1 au
+  retour par le bas, 0 quittée par le haut.
+- Téléphone : bloc de l'ouverture absent, barre entière, petit lecteur visible.
+- Police Inria Serif chargée ; logo affiché à 155 × 56 px.
 
 ## Vérifications (12/11/2026, Chrome headless, rendu Metal)
 

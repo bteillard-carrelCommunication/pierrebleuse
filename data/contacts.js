@@ -21,7 +21,7 @@ window.CONTACTS = [
     ]
   },
   {
-    "structure": "",
+    "structure": "Carrel Communication",
     "lien": "",
     "mention": {
       "fr": "Communication",
@@ -30,7 +30,7 @@ window.CONTACTS = [
     "langue": "",
     "personnes": [
       {
-        "nom": "Carrel Communication",
+        "nom": "",
         "role": "",
         "telephone": "+33 6 89 90 57 31",
         "email": "communication@pierrebleuse.com"

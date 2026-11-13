@@ -56,6 +56,7 @@
   const url = new URLSearchParams(location.search);
   const REDUIT = url.get('reduit') === '1' || matchMedia('(prefers-reduced-motion: reduce)').matches;
   const TACTILE = matchMedia('(hover: none), (pointer: coarse)').matches;
+  const ETROIT = matchMedia('(max-width: 720px)');           // téléphone : la barre du haut est là d'emblée (css/site.css)
   const SANS_LENIS = url.get('nolenis') === '1';
   racineDoc.classList.add(TACTILE ? 'is-touch' : 'is-pointer');
   if (REDUIT) racineDoc.classList.add('reduit');
@@ -732,8 +733,9 @@
     vLisse += (vBrut - vLisse) * (1 - Math.exp(-dt / 0.2));
     if (Math.abs(vLisse) < 0.5) vLisse = 0;
     // barre du haut : invisible en haut de page, elle apparaît sur le premier cinquième d'écran ;
-    // le bloc de l'ouverture s'efface d'autant (css/site.css lit --barre)
-    const barre = anac(y / Math.max(1, 0.2 * L.vh));
+    // le bloc de l'ouverture s'efface d'autant (css/site.css lit --barre). Sur téléphone, le bloc
+    // de l'ouverture n'est pas affiché : la barre (menu, petit lecteur) est entière dès le haut.
+    const barre = ETROIT.matches ? 1 : anac(y / Math.max(1, 0.2 * L.vh));
     if (Math.abs(barre - barreVue) > 0.002 || (barre === 0 || barre === 1) !== (barreVue === 0 || barreVue === 1)) {
       barreVue = barre;
       racineDoc.style.setProperty('--barre', barre.toFixed(3));
