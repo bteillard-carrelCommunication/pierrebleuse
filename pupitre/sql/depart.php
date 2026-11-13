@@ -53,6 +53,17 @@ foreach (preg_split('/;\s*\n/', $sql) as $requete) {
     $n++;
 }
 $dire("Schéma : $n instructions appliquées.");
+
+// Mise à niveau d'une base créée avant le 13/11/2026 : le parcours des orchestres vivait dans trois
+// colonnes de l'annuaire (une fiche, un seul lieu). Il a désormais sa table.
+if (bd_valeur("SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'annuaire' AND column_name = 'dans_parcours'")) {
+    if (!bd_valeur('SELECT COUNT(*) FROM parcours_orchestres')) {
+        bd()->exec('INSERT INTO parcours_orchestres (fiche_id, ville_fr, ville_en, latitude, longitude, zone, ordre)
+                    SELECT id, ville_fr, ville_en, latitude, longitude, parcours_zone, parcours_ordre FROM annuaire WHERE dans_parcours = 1 ORDER BY parcours_ordre, id');
+    }
+    bd()->exec('ALTER TABLE annuaire DROP COLUMN dans_parcours, DROP COLUMN parcours_zone, DROP COLUMN parcours_ordre');
+    $dire('Mise à niveau : le parcours des orchestres a sa table.');
+}
 if ($schema_seul) exit(0);
 
 // ---------- 3. La reprise ----------
@@ -62,7 +73,7 @@ if ($racine === '' || !is_dir($racine . '/data')) { fwrite(STDERR, "Racine du si
 
 $tables_de_contenu = ['concerts', 'representations', 'programme', 'participants', 'participants_fiches', 'notes_artiste', 'maisons',
     'annuaire', 'annuaire_comptes', 'annuaire_contacts', 'medias', 'textes', 'parcours_lignes', 'disques', 'articles', 'visuels',
-    'musiques', 'telechargements', 'contacts_groupes', 'contacts_personnes', 'reseaux', 'publications', 'imports', 'import_lignes',
+    'musiques', 'telechargements', 'contacts_groupes', 'contacts_personnes', 'reseaux', 'parcours_orchestres', 'publications', 'imports', 'import_lignes',
     'alertes', 'taches'];
 if (bd_valeur('SELECT COUNT(*) FROM concerts') || bd_valeur('SELECT COUNT(*) FROM textes')) {
     if (!$forcer) {
@@ -218,21 +229,21 @@ bd_transaction(function () use ($lire, $racine, $media_du_site, $fiche, $est_ens
     }
     $compte['articles'] = (int) bd_valeur('SELECT COUNT(*) FROM articles');
 
-    // --- Orchestres invités : fiches d'annuaire cochées « dans le parcours »
+    // --- Orchestres invités : une fiche de l'annuaire et le lieu où la placer. Le lieu est celui du
+    //     concert : une même fiche peut revenir dans plusieurs villes.
     foreach ($lire('orchestres.js') as $i => $o) {
         [$v_fr, $v_en] = bi_lire($o['ville'] ?? '');
-        $champs = ['ville_fr' => $v_fr, 'ville_en' => $v_en, 'latitude' => $o['lat'], 'longitude' => $o['lon'],
-            'dans_parcours' => 1, 'parcours_zone' => (string) ($o['zone'] ?? ''), 'parcours_ordre' => $i];
         if (($o['nom'] ?? '') === '') {
             // le nom de l'orchestre reste à fournir : la fiche porte la ville, le site n'affiche qu'elle
-            bd_inserer('annuaire', ['categorie' => 'orchestre', 'nom' => $v_fr, 'nom_provisoire' => 1] + $champs);
+            $id = bd_inserer('annuaire', ['categorie' => 'orchestre', 'nom' => $v_fr, 'nom_provisoire' => 1]);
             $GLOBALS['annuaire_perime'] = true;
-            continue;
+        } else {
+            $id = $fiche(preg_match('/ensemble/i', $o['nom']) ? 'ensemble' : 'orchestre', $o['nom'], [], ['orchestre', 'ensemble']);
         }
-        $id = $fiche('orchestre', $o['nom'], [], ['ensemble']);
-        bd_modifier('annuaire', $champs, ['id' => $id]);
+        bd_inserer('parcours_orchestres', ['fiche_id' => $id, 'ville_fr' => $v_fr, 'ville_en' => $v_en, 'latitude' => $o['lat'], 'longitude' => $o['lon'],
+            'zone' => (string) ($o['zone'] ?? ''), 'ordre' => $i]);
     }
-    $compte['orchestres invités'] = (int) bd_valeur('SELECT COUNT(*) FROM annuaire WHERE dans_parcours = 1');
+    $compte['orchestres invités'] = (int) bd_valeur('SELECT COUNT(*) FROM parcours_orchestres');
 
     // --- Visuels et musiques : les fichiers sont déjà dans le site, la médiathèque les référence
     $pourcent = fn(?string $p) => preg_match('/^\s*(\d+)%\s+(\d+)%\s*$/', (string) $p, $m) ? [(int) $m[1], (int) $m[2]] : [null, null];

@@ -154,9 +154,6 @@ CREATE TABLE IF NOT EXISTS annuaire (
   credit          VARCHAR(255) NOT NULL DEFAULT '',
   logo_id         INT UNSIGNED NULL COMMENT 'médiathèque',
   notes           TEXT         NULL,
-  dans_parcours   TINYINT(1)   NOT NULL DEFAULT 0 COMMENT 'orchestre invité affiché dans le parcours du site',
-  parcours_zone   VARCHAR(20)  NOT NULL DEFAULT '' COMMENT 'ameriques, europe-afrique, asie-oceanie ; vide : déduite de la longitude',
-  parcours_ordre  INT          NOT NULL DEFAULT 0,
   cree_le         DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   modifie_le      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   KEY categorie (categorie),
@@ -321,6 +318,21 @@ CREATE TABLE IF NOT EXISTS parcours_lignes (
   texte_en  VARCHAR(500) NOT NULL DEFAULT '',
   ordre     INT          NOT NULL DEFAULT 0,
   KEY liste (liste, ordre)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Orchestres invités du parcours du site. Une ligne = une fiche de l'annuaire et le lieu où la
+-- placer sur la carte. Le lieu est celui du concert, pas le siège de l'orchestre, et une même fiche
+-- peut figurer plusieurs fois (deux villes d'une tournée).
+CREATE TABLE IF NOT EXISTS parcours_orchestres (
+  id         INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  fiche_id   INT UNSIGNED NOT NULL COMMENT 'annuaire',
+  ville_fr   VARCHAR(120) NOT NULL DEFAULT '',
+  ville_en   VARCHAR(120) NOT NULL DEFAULT '',
+  latitude   DECIMAL(8,5) NULL,
+  longitude  DECIMAL(8,5) NULL,
+  zone       VARCHAR(20)  NOT NULL DEFAULT '' COMMENT 'ameriques, europe-afrique, asie-oceanie ; vide : déduite de la longitude',
+  ordre      INT          NOT NULL DEFAULT 0,
+  KEY fiche_id (fiche_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS disques (

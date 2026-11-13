@@ -67,10 +67,10 @@ php pupitre/sql/depart.php --pilote    crée le compte pilote s'il manque, donne
 
 La reprise charge tout ce que le site affiche, à partir de ses fichiers de `data/` : les
 18 événements de l'agenda (30 représentations, au statut « publiée »), 4 disques, 4 articles de
-presse réels, 18 orchestres invités, 4 visuels, 3 titres du lecteur, textes, parcours, contacts,
+presse réels, 24 orchestres invités, 4 visuels, 3 titres du lecteur, textes, parcours, contacts,
 réseaux, téléchargements. Les faux articles de maquette (`data/presse-exemples.js`) ne sont pas
 repris. L'annuaire est amorcé avec les ensembles, salles, solistes, maisons de disques et médias
-rencontrés (71 fiches), sans compte social.
+rencontrés (75 fiches), sans compte social.
 
 Contrôle, à lancer juste après : `php pupitre/tests/equivalence.php`. Une publication faite sans
 rien modifier doit redonner des fichiers équivalents à ceux du site.
@@ -230,8 +230,11 @@ comptes.
    n'ont pas de lien source : ils restent « publiés », et leur fiche le signale.
 3. **Solistes de l'annuaire.** Toute personne citée dans « avec » entre comme soliste, y compris
    un metteur en scène : la liste des catégories n'a pas d'autre place pour elle. À reclasser.
-4. **Orchestre sans nom.** Salt Lake City est une fiche dont le nom est « à fournir » : le site
-   n'affiche que la ville.
+4. **Orchestres invités.** Une ligne du parcours associe une fiche de l'annuaire au lieu où la
+   placer (table `parcours_orchestres`) : la ville du concert, pas le siège de l'orchestre. Une
+   même fiche peut y figurer plusieurs fois. Une fiche dont le nom est « à fournir » ne montre que
+   sa ville sur le site. Une base créée avant le 13/11/2026 est mise à niveau par
+   `sql/depart.php --schema`.
 5. **Visuels.** Seul le média est entre repères. Le type, l'opacité et la place de la nuée sont
    des classes de la section, posées par le script du site.
 6. **Fuseau de la salle.** Déduit du pays quand il n'en a qu'un, ou de la ville quand un fuseau

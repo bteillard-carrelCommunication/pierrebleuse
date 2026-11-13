@@ -195,10 +195,16 @@ function liste_formulaire(array $liste, array $lignes, string $nom = 'lignes'): 
                 case 'texte': $s .= champ_texte($c, $libelle, $l[$c] ?? '', $o); break;
                 case 'case': $s .= champ_case($c, $libelle, !empty($l[$c]), $o); break;
                 case 'fiche': case 'media': case 'choix':
-                    $choix = isset($champ['defaut']) ? $o : $o + ['vide' => $type === 'media' ? '— aucun fichier —' : '— choisir —'];
+                    $choix = isset($champ['vide']) ? $o + ['vide' => $champ['vide']]
+                        : (isset($champ['defaut']) ? $o : $o + ['vide' => $type === 'media' ? '— aucun fichier —' : '— choisir —']);
                     $s .= champ_choix($c, $libelle, champ_options($champ), $l[$c] ?? ($champ['defaut'] ?? ''), $choix);
                     break;
                 case 'nombre': $s .= champ($c, $libelle, $l[$c] ?? '', $o + ['classe' => 'champ--court']); break;
+                case 'decimal':
+                    $valeur = (string) ($l[$c] ?? '');
+                    if (str_contains($valeur, '.')) $valeur = rtrim(rtrim($valeur, '0'), '.');      // 52.37000 → 52.37
+                    $s .= champ($c, $libelle, $valeur, $o + ['classe' => 'champ--court']);
+                    break;
                 case 'adresse': $s .= champ($c, $libelle, $l[$c] ?? '', $o + ['type' => 'url', 'indication' => 'https://…']); break;
                 case 'email': $s .= champ($c, $libelle, $l[$c] ?? '', $o + ['type' => 'email']); break;
                 default:

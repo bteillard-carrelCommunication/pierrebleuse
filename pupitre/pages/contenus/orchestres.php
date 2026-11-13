@@ -1,85 +1,72 @@
 <?php
 /**
- * Orchestres invités : les fiches d'annuaire cochées « dans le parcours », avec leur ville, leurs
- * coordonnées et leur zone. Pupitre propose les orchestres des concerts passés.
+ * Orchestres invités : la liste du parcours et les points de la carte du site.
+ *
+ * Une ligne = une fiche de l'annuaire et le lieu où la placer. Le lieu est celui du concert, pas
+ * le siège de l'orchestre : un même ensemble peut figurer dans plusieurs villes. Pupitre propose
+ * les orchestres des concerts passés ; rien n'entre dans le parcours sans une personne.
  */
 
 defined('PUPITRE') or exit;
 
 $titre = 'Orchestres invités';
+$liste = ['table' => 'parcours_orchestres', 'ajout' => 'Ajouter une ligne', 'champs' => [
+    ['fiche_id', 'fiche', 'Orchestre ou ensemble', 'categories' => ['orchestre', 'ensemble'], 'requis' => true, 'rang' => 'qui'],
+    ['zone', 'choix', 'Zone de la liste', 'options' => array_diff_key(ZONES_PARCOURS, ['' => 1]), 'vide' => ZONES_PARCOURS[''], 'defaut' => '', 'rang' => 'qui'],
+    ['ville', 'bi', 'Ville du concert', 'requis' => true, 'rang' => 'ou'],
+    ['latitude', 'decimal', 'Latitude', 'requis' => true, 'borne' => 90, 'rang' => 'ou'],
+    ['longitude', 'decimal', 'Longitude', 'requis' => true, 'borne' => 180, 'rang' => 'ou'],
+]];
+$erreurs = [];
 
 if (est_post()) {
-    $action = recu('action');
-    if ($action === 'ordre') {
-        $avant = bd_lignes('SELECT id, nom, parcours_zone FROM annuaire WHERE dans_parcours = 1 ORDER BY parcours_ordre, id');
-        $gardes = [];
-        foreach (array_values(array_filter($_POST['lignes'] ?? [], 'is_array')) as $ordre => $l) {
-            $fid = ctype_digit((string) ($l['id'] ?? '')) ? (int) $l['id'] : 0;
-            if (!$fid) continue;
-            $zone = array_key_exists($l['parcours_zone'] ?? '', ZONES_PARCOURS) ? $l['parcours_zone'] : '';
-            bd_modifier('annuaire', ['parcours_ordre' => $ordre, 'parcours_zone' => $zone], ['id' => $fid, 'dans_parcours' => 1]);
-            $gardes[] = $fid;
-        }
-        foreach ($avant as $f) {
-            if (!in_array((int) $f['id'], $gardes, true)) bd_modifier('annuaire', ['dans_parcours' => 0], ['id' => $f['id']]);
-        }
-        $apres = bd_lignes('SELECT id, nom, parcours_zone FROM annuaire WHERE dans_parcours = 1 ORDER BY parcours_ordre, id');
-        journaliser('modification', 'contenu', null, 'Orchestres invités', ['lignes' => $avant], ['lignes' => $apres]);
-        message('ok', 'Parcours enregistré.');
-    } elseif ($action === 'ajouter' && ($f = fiche_lire(recu_entier('id') ?? 0))) {
-        if ($f['latitude'] === null || $f['longitude'] === null) {
-            message('alerte', 'Indiquez d\'abord la latitude et la longitude de « ' . $f['nom'] . ' » : sans elles, pas de point sur la carte.');
-            rediriger(url('fiche', ['id' => $f['id']]));
-        }
-        objet_enregistrer('annuaire', (int) $f['id'], ['dans_parcours' => 1, 'parcours_ordre' => 1 + (int) bd_valeur('SELECT MAX(parcours_ordre) FROM annuaire WHERE dans_parcours = 1')], 'fiche', $f['nom']);
-        message('ok', '« ' . $f['nom'] . ' » figure maintenant dans le parcours.');
+    if (recu('action') === 'ajouter' && ($f = fiche_lire(recu_entier('id') ?? 0))) {
+        // la proposition entre avec le lieu de la fiche : à vérifier, c'est le lieu du concert qui compte
+        bd_inserer('parcours_orchestres', ['fiche_id' => $f['id'], 'ville_fr' => $f['ville_fr'], 'ville_en' => $f['ville_en'], 'latitude' => $f['latitude'],
+            'longitude' => $f['longitude'], 'ordre' => 1 + (int) bd_valeur('SELECT MAX(ordre) FROM parcours_orchestres')]);
+        journaliser('creation', 'contenu', null, 'Orchestres invités : ' . $f['nom'], null, ['ville' => $f['ville_fr']]);
+        message($f['latitude'] === null || $f['ville_fr'] === '' ? 'alerte' : 'ok', '« ' . $f['nom'] . ' » est ajouté en fin de liste.'
+            . ($f['latitude'] === null || $f['ville_fr'] === '' ? ' Indiquez sa ville, sa latitude et sa longitude : sans elles, la ligne ne sort pas sur le site.' : ''));
+        rediriger(url('orchestres'));
     }
-    rediriger(url('orchestres'));
+    $erreurs = liste_enregistrer('Orchestres invités', $liste, is_array($_POST['lignes'] ?? null) ? $_POST['lignes'] : []);
+    if (!$erreurs) {
+        message('ok', 'Parcours enregistré. Le site suivra à la prochaine publication.');
+        rediriger(url('orchestres'));
+    }
 }
 
-$fiches = bd_lignes('SELECT * FROM annuaire WHERE dans_parcours = 1 ORDER BY parcours_ordre, id');
+$lignes = $erreurs ? array_values(array_filter($_POST['lignes'] ?? [], 'is_array')) : liste_lire($liste);
 // propositions : les ensembles des concerts passés qui n'y sont pas encore
 $propositions = bd_lignes("SELECT a.*, MAX(r.date) AS derniere, COUNT(DISTINCT c.id) AS concerts
     FROM annuaire a JOIN concerts c ON c.ensemble_id = a.id JOIN representations r ON r.concert_id = c.id
-    WHERE a.dans_parcours = 0 AND a.categorie IN ('orchestre', 'ensemble') AND r.date < ? AND r.statut <> 'annulee' AND c.type <> 'disque'
+    WHERE a.categorie IN ('orchestre', 'ensemble') AND r.date < ? AND r.statut <> 'annulee' AND c.type <> 'disque'
+      AND NOT EXISTS (SELECT 1 FROM parcours_orchestres p WHERE p.fiche_id = a.id)
     GROUP BY a.id ORDER BY derniere DESC", [aujourdhui()]);
-$exports = site_exports();
+$provisoires = bd_colonne('SELECT p.ville_fr FROM parcours_orchestres p JOIN annuaire a ON a.id = p.fiche_id WHERE a.nom_provisoire = 1');
 ?>
 <div class="titre"><h1>Orchestres invités</h1><span class="titre__suite">data/orchestres.js</span></div>
-<p class="intro">La liste du parcours et les points de la carte du site. Ce sont des fiches de l'annuaire : le nom, la ville et les coordonnées se modifient sur la fiche. Ici se règlent l'ordre et la zone.</p>
+<p class="intro">La liste du parcours et les points de la carte du site. Chaque ligne associe une fiche de l'annuaire au lieu où la placer : la ville du concert, qui n'est pas toujours celle de l'orchestre. Un même ensemble peut revenir dans plusieurs villes. L'ordre de la liste est celui du site, zone par zone.</p>
+<p class="intro">L'orchestre se choisit parmi les fiches de l'annuaire : pour un nouvel orchestre, créez d'abord sa fiche. La ville est l'étiquette du point sur la carte. Latitude et longitude en degrés décimaux, nord et est positifs. La zone se déduit de la longitude ; elle s'impose quand cela ne suffit pas (le Proche-Orient ou la Russie, à l'ouest de 60° E).</p>
+<?php if ($erreurs): ?><ul class="erreurs" role="alert"><?php foreach ($erreurs as $m): ?><li><?= e($m) ?></li><?php endforeach; ?></ul><?php endif; ?>
+<?php if ($provisoires): ?><p class="message message--alerte">Nom de l'orchestre à fournir pour <?= e(implode(', ', $provisoires)) ?> : en attendant, le site n'affiche que la ville.</p><?php endif; ?>
 
 <form method="post" class="carte">
-  <?= champ_csrf() ?><input type="hidden" name="action" value="ordre">
-  <div data-liste><div class="lignes" data-lignes>
-  <?php foreach ($fiches as $i => $f): $p = 'lignes[' . $i . ']'; ?>
-    <div class="ligne ligne--compacte" data-ligne>
-      <input type="hidden" name="<?= e($p) ?>[id]" value="<?= (int) $f['id'] ?>">
-      <div class="rangee rangee--avec">
-        <div class="champ">
-          <a href="<?= e(url('fiche', ['id' => $f['id']])) ?>"><strong><?= e($f['nom']) ?></strong></a>
-          <?php if ($f['nom_provisoire']): ?> <span class="puce puce--alerte">nom à fournir : le site n'affiche que la ville</span><?php endif; ?>
-          <br><span class="discret"><?= e($f['ville_fr']) ?><?= $f['ville_en'] !== '' ? ' / ' . e($f['ville_en']) : '' ?> · <?= e(rtrim(rtrim((string) $f['latitude'], '0'), '.')) ?>, <?= e(rtrim(rtrim((string) $f['longitude'], '0'), '.')) ?></span>
-        </div>
-        <?= champ_choix('parcours_zone', 'Zone', ZONES_PARCOURS, $f['parcours_zone'], ['prefixe' => $p]) ?>
-        <?= boutons_ligne('cet orchestre du parcours') ?>
-      </div>
-    </div>
-  <?php endforeach; ?>
-  </div></div>
-  <p class="aide">Retirer une ligne ôte l'orchestre du parcours ; sa fiche reste dans l'annuaire.</p>
-  <div class="actions"><button type="submit" class="bouton bouton--plein">Enregistrer l'ordre et les zones</button>
-    <a class="bouton" href="<?= e(url('fiche', ['id' => 'nouvelle', 'categorie' => 'orchestre'])) ?>">Nouvel orchestre</a></div>
+  <?= champ_csrf() ?>
+  <?= liste_formulaire($liste, $lignes) ?>
+  <div class="actions actions--bas"><button type="submit" class="bouton bouton--plein">Enregistrer le parcours</button>
+    <a class="bouton" href="<?= e(url('fiche', ['id' => 'nouvelle', 'categorie' => 'orchestre'])) ?>">Nouvelle fiche d'orchestre</a></div>
 </form>
 
 <div class="carte">
   <h2>Propositions</h2>
-  <p class="intro">Les orchestres et ensembles des concerts passés qui ne sont pas dans le parcours. Rien n'y entre sans vous.</p>
+  <p class="intro">Les orchestres et ensembles des concerts passés qui ne sont pas dans le parcours.</p>
   <?php if (!$propositions): ?><p class="rien">Aucune proposition pour l'instant.</p><?php else: ?>
   <ul class="items">
   <?php foreach ($propositions as $f): ?>
     <li>
       <span class="item__titre"><?= e($f['nom']) ?></span>
-      <span class="discret"><?= e(pluriel((int) $f['concerts'], 'concert', 'concerts')) ?>, le dernier le <?= e(date_fr($f['derniere'])) ?><?= $f['latitude'] === null ? ' · coordonnées à renseigner' : '' ?></span>
+      <span class="discret"><?= e(pluriel((int) $f['concerts'], 'concert', 'concerts')) ?>, le dernier le <?= e(date_fr($f['derniere'])) ?></span>
       <form method="post" class="item__actions"><?= champ_csrf() ?><input type="hidden" name="action" value="ajouter"><input type="hidden" name="id" value="<?= (int) $f['id'] ?>">
         <button type="submit" class="bouton bouton--petit">Ajouter au parcours</button></form>
     </li>
@@ -88,4 +75,4 @@ $exports = site_exports();
   <?php endif; ?>
 </div>
 
-<?= apercu_zones(['ORCHESTRES' => ''], $exports) ?>
+<?= apercu_zones(['ORCHESTRES' => '']) ?>

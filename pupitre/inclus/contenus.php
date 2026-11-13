@@ -5,8 +5,8 @@
  * Un écran de contenu (pages/contenus/liste.php) affiche une ou plusieurs listes. Chaque liste
  * dit sa table et ses champs ; l'enregistrement, l'ordre, le contrôle et le journal sont communs.
  *
- * Types de champ : ligne, texte, bi (français et anglais côte à côte), bi-texte, nombre, adresse,
- * email, case, date-souple (AAAA-MM-JJ ou AAAA-MM), fiche (annuaire), media (médiathèque), choix.
+ * Types de champ : ligne, texte, bi (français et anglais côte à côte), bi-texte, nombre, decimal,
+ * adresse, email, case, date-souple (AAAA-MM-JJ ou AAAA-MM), fiche (annuaire), media (médiathèque), choix.
  * Un champ « bi » nommé x occupe les colonnes x_fr et x_en.
  */
 
@@ -172,6 +172,11 @@ function ligne_lire(array $liste, array $recu): array
                 case 'nombre':
                     if ($v !== '' && !ctype_digit($v)) $erreurs[] = $libelle . ' : un nombre est attendu.';
                     $v = ($v === '' || !ctype_digit($v)) ? null : (int) $v;
+                    break;
+                case 'decimal':
+                    $v = str_replace(',', '.', $v);
+                    if ($v !== '' && (!is_numeric($v) || abs((float) $v) > ($champ['borne'] ?? PHP_FLOAT_MAX))) $erreurs[] = $libelle . ' : un nombre est attendu' . (isset($champ['borne']) ? ', entre -' . $champ['borne'] . ' et ' . $champ['borne'] : '') . '.';
+                    $v = ($v === '' || !is_numeric($v)) ? null : $v;
                     break;
                 case 'fiche': case 'media': case 'choix':
                     $v = ($v !== '' && array_key_exists($v, champ_options($champ))) ? (ctype_digit($v) ? (int) $v : $v) : ($champ['defaut'] ?? null);

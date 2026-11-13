@@ -14,8 +14,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inria+Serif:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/etourneaux.css?v=20261113b">
-  <link rel="stylesheet" href="css/site.css?v=20261113b">
+  <link rel="stylesheet" href="css/etourneaux.css?v=20261113d">
+  <link rel="stylesheet" href="css/site.css?v=20261113d">
 
   <script>
     document.documentElement.classList.add('js');
@@ -26,8 +26,8 @@
     }, 4000);
   </script>
   <!-- Textes éditables (data/textes.js), puis langue et dictionnaire : avant tout le reste (pose <html lang>, prépare le menu) -->
-  <script src="data/textes.js?v=20261113b"></script>
-  <script src="js/contenu.js?v=20261113b"></script>
+  <script src="data/textes.js?v=20261113d"></script>
+  <script src="js/contenu.js?v=20261113d"></script>
 </head>
 <body>
 
@@ -236,34 +236,40 @@
             <div class="orchestres-zone">
               <h4 class="orchestres-zone__titre" data-t="parcours.zone.ameriques">Amériques</h4>
               <ul class="orchestres">
-                <li>Orquestra Sinfônica do Estado de São Paulo</li>
-                <li>Salt Lake City</li>
+                <li>Orquestra Sinfônica do Estado de São Paulo<span class="orchestres__ville">São Paulo</span></li>
+                <li>Utah Symphony Orchestra<span class="orchestres__ville">Park City</span></li>
+                <li>Orchestre symphonique de Québec<span class="orchestres__ville">Québec</span></li>
               </ul>
             </div>
             <div class="orchestres-zone">
               <h4 class="orchestres-zone__titre" data-t="parcours.zone.europe-afrique">Europe et Afrique</h4>
               <ul class="orchestres">
-                <li>Royal Concertgebouw Orchestra</li>
-                <li>London Philharmonic Orchestra</li>
-                <li>BBC Symphony Orchestra</li>
-                <li>City of Birmingham Symphony Orchestra</li>
-                <li>Orchestre de Paris</li>
-                <li>Orchestre national de France</li>
-                <li>NDR Elbphilharmonie Orchester</li>
-                <li>hr-Sinfonieorchester Frankfurt</li>
-                <li>SWR Symphonieorchester</li>
-                <li>Royal Stockholm Philharmonic Orchestra</li>
-                <li>Swedish Radio Symphony Orchestra</li>
-                <li>Finnish Radio Symphony Orchestra</li>
-                <li>Orchestre de la Suisse Romande</li>
+                <li>Royal Concertgebouw Orchestra<span class="orchestres__ville">Amsterdam</span></li>
+                <li>London Philharmonic Orchestra<span class="orchestres__ville">Londres</span></li>
+                <li>BBC Symphony Orchestra<span class="orchestres__ville">Londres</span></li>
+                <li>City of Birmingham Symphony Orchestra<span class="orchestres__ville">Birmingham</span></li>
+                <li>Orchestre de Paris<span class="orchestres__ville">Paris</span></li>
+                <li>Orchestre national de France<span class="orchestres__ville">Paris</span></li>
+                <li>NDR Elbphilharmonie Orchester<span class="orchestres__ville">Hambourg</span></li>
+                <li>hr-Sinfonieorchester Frankfurt<span class="orchestres__ville">Francfort</span></li>
+                <li>SWR Symphonieorchester<span class="orchestres__ville">Stuttgart</span></li>
+                <li>Royal Stockholm Philharmonic Orchestra<span class="orchestres__ville">Stockholm</span></li>
+                <li>Swedish Radio Symphony Orchestra<span class="orchestres__ville">Stockholm</span></li>
+                <li>Finnish Radio Symphony Orchestra<span class="orchestres__ville">Helsinki</span></li>
+                <li>Orchestre de la Suisse Romande<span class="orchestres__ville">Genève</span></li>
               </ul>
             </div>
             <div class="orchestres-zone">
               <h4 class="orchestres-zone__titre" data-t="parcours.zone.asie-oceanie">Asie, Russie et Océanie</h4>
               <ul class="orchestres">
-                <li>Tokyo Symphony Orchestra</li>
-                <li>Singapore Symphony Orchestra</li>
-                <li>Auckland Philharmonia</li>
+                <li>Lebanese Philharmonic Orchestra<span class="orchestres__ville">Beyrouth</span></li>
+                <li>Bilkent Symphony Orchestra<span class="orchestres__ville">Ankara</span></li>
+                <li>China National Symphony Orchestra<span class="orchestres__ville">Pékin</span></li>
+                <li>Ensemble intercontemporain<span class="orchestres__ville">Tokyo</span></li>
+                <li>Tokyo Symphony Orchestra<span class="orchestres__ville">Kawasaki</span></li>
+                <li>Ensemble intercontemporain<span class="orchestres__ville">Tongyeong</span></li>
+                <li>Singapore Symphony Orchestra<span class="orchestres__ville">Singapour</span></li>
+                <li>Auckland Philharmonia<span class="orchestres__ville">Auckland</span></li>
               </ul>
             </div>
             <!-- ORCHESTRES-STATIQUE:FIN -->
@@ -419,21 +425,21 @@
   <audio data-audio preload="none"></audio>
 
   <!-- Données, puis rendu synchrone, avant le moteur qui recense les [data-revele] à son chargement -->
-  <script src="data/agenda.js?v=20261113b"></script>
-  <script src="data/playlist.js?v=20261113b"></script>
-  <script src="data/visuels.js?v=20261113b"></script>
-  <script src="data/disques.js?v=20261113b"></script>
-  <script src="data/presse.js?v=20261113b"></script>
+  <script src="data/agenda.js?v=20261113d"></script>
+  <script src="data/playlist.js?v=20261113d"></script>
+  <script src="data/visuels.js?v=20261113d"></script>
+  <script src="data/disques.js?v=20261113d"></script>
+  <script src="data/presse.js?v=20261113d"></script>
   <!-- FAUX ARTICLES pour la maquette : à retirer avant la mise en ligne (voir le fichier) -->
-  <script src="data/presse-exemples.js?v=20261113b"></script>
-  <script src="data/orchestres.js?v=20261113b"></script>
-  <script src="data/cartes.js?v=20261113b"></script>
-  <script src="data/parcours.js?v=20261113b"></script>
-  <script src="data/telechargements.js?v=20261113b"></script>
-  <script src="data/contacts.js?v=20261113b"></script>
-  <script src="data/reseaux.js?v=20261113b"></script>
-  <script src="js/agenda.js?v=20261113b"></script>
-  <script src="js/sections.js?v=20261113b"></script>
+  <script src="data/presse-exemples.js?v=20261113d"></script>
+  <script src="data/orchestres.js?v=20261113d"></script>
+  <script src="data/cartes.js?v=20261113d"></script>
+  <script src="data/parcours.js?v=20261113d"></script>
+  <script src="data/telechargements.js?v=20261113d"></script>
+  <script src="data/contacts.js?v=20261113d"></script>
+  <script src="data/reseaux.js?v=20261113d"></script>
+  <script src="js/agenda.js?v=20261113d"></script>
+  <script src="js/sections.js?v=20261113d"></script>
   <script>
     try { window.SiteContenu.appliquer(document); }
     catch (e) { document.documentElement.classList.remove('i18n-attente'); console.error(e); }
@@ -447,12 +453,12 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 
   <!-- Moteur de la nuée, visuels « lumière » et lecteur de musique -->
-  <script src="js/lumiere.js?v=20261113b"></script>
-  <script src="js/parametres.js?v=20261113b"></script>
-  <script src="js/musique.js?v=20261113b"></script>
-  <script src="js/sync.js?v=20261113b"></script>
-  <script src="js/nuee.js?v=20261113b"></script>
-  <script src="js/reglages.js?v=20261113b"></script>
-  <script src="js/main.js?v=20261113b"></script>
+  <script src="js/lumiere.js?v=20261113d"></script>
+  <script src="js/parametres.js?v=20261113d"></script>
+  <script src="js/musique.js?v=20261113d"></script>
+  <script src="js/sync.js?v=20261113d"></script>
+  <script src="js/nuee.js?v=20261113d"></script>
+  <script src="js/reglages.js?v=20261113d"></script>
+  <script src="js/main.js?v=20261113d"></script>
 </body>
 </html>

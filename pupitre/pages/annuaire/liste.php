@@ -12,7 +12,8 @@ if ($categorie !== '') { $ou[] = 'a.categorie = ?'; $p[] = $categorie; }
 if ($q !== '') { $ou[] = '(a.nom LIKE ? OR a.autres_noms LIKE ? OR a.ville_fr LIKE ?)'; array_push($p, "%$q%", "%$q%", "%$q%"); }
 $fiches = bd_lignes("SELECT a.*,
         (SELECT COUNT(*) FROM annuaire_comptes x WHERE x.fiche_id = a.id) AS comptes,
-        (SELECT COUNT(*) FROM annuaire_comptes x WHERE x.fiche_id = a.id AND x.etat = 'propose') AS proposes
+        (SELECT COUNT(*) FROM annuaire_comptes x WHERE x.fiche_id = a.id AND x.etat = 'propose') AS proposes,
+        (SELECT COUNT(*) FROM parcours_orchestres p WHERE p.fiche_id = a.id) AS dans_parcours
     FROM annuaire a WHERE " . implode(' AND ', $ou) . ' ORDER BY a.nom', $p);
 $decompte = [];
 foreach (bd_lignes('SELECT categorie, COUNT(*) AS n FROM annuaire GROUP BY categorie') as $l) $decompte[$l['categorie']] = (int) $l['n'];

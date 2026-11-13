@@ -9,7 +9,7 @@ Ouvrir : `http://localhost:8888/pierrebleuse/` (MAMP). Le site n'est pas en lign
 
 Dernier état : retours du 13/11/2026 appliqués (ordre des fiches de l'agenda, logo en image,
 ouverture sur téléphone, recherche dans `concerts.html`, police Inria Serif, découpes des visuels,
-ordre des contacts ; voir « Choix faits »). Le site est administré par Pupitre (`pupitre/`, voir « Pupitre » ci-dessous et
+ordre des contacts, orchestres invités complétés ; voir « Choix faits »). Le site est administré par Pupitre (`pupitre/`, voir « Pupitre » ci-dessous et
 `pupitre/LISEZ-MOI.md`). Tout ce qui s'édite est dans `data/`, au format que Pupitre écrit (voir
 « Données » et « Repli sans JavaScript »). Le témoin du rendu (`python3 outils/temoin.py`) a été
 repris le 13/11/2026, après ces retours.
@@ -156,7 +156,7 @@ la ligne et le point ; les entrées d'une même ville partagent un point.
 
 | Champ | Rôle |
 |---|---|
-| `nom` | tel qu'il s'affiche, identique dans les deux langues ; vide : la ligne affiche la ville seule (Salt Lake City, nom de l'orchestre à fournir) |
+| `nom` | tel qu'il s'affiche, identique dans les deux langues ; vide : la ligne affiche la ville seule (aucune entrée dans ce cas depuis le 13/11/2026). Un même nom peut revenir dans plusieurs villes (l'Ensemble intercontemporain à Tokyo et à Tongyeong) |
 | `ville` | l'étiquette du point |
 | `lat`, `lon` | degrés décimaux (nord et est positifs) |
 | `zone` | `ameriques`, `europe-afrique` ou `asie-oceanie` ; absent : déduite de la longitude |
@@ -466,7 +466,10 @@ le site lit aussi).
   `asie-oceanie`) l'impose, nécessaire pour un orchestre russe (Moscou est à 37° E). Survoler
   une ligne allume son point ; survoler un point allume ses lignes. Chaque point de la carte a
   sa ligne dans la liste, et réciproquement : une entrée sans nom d'orchestre a une ligne qui
-  affiche la ville seule (c'est le cas de Salt Lake City, nom de l'orchestre à fournir).
+  affiche la ville seule (plus aucune depuis le 13/11/2026 : Salt Lake City est devenue « Utah
+  Symphony Orchestra », placé à Park City). La ville est celle du concert, pas le siège de
+  l'orchestre : le Tokyo Symphony Orchestra est à Kawasaki, et l'Ensemble intercontemporain figure
+  deux fois, à Tokyo et à Tongyeong. Beyrouth et Ankara portent `zone: "asie-oceanie"`.
 - Le bandeau de la carte (`.parcours__bandeau`) a un fond noir sur toute la largeur. Sa variable
   `--bandeau` (0,9) est l'opacité voulue, fond de la section compris.
 
@@ -564,6 +567,16 @@ Node n'est pas installé sur le poste : tout est en Python 3 standard ou en shel
    structure du second groupe ; son contact garde son téléphone et son adresse, sans répéter le
    nom. L'orthographe « HarrisonParrott » est gardée. La modification est faite dans Pupitre et
    publiée par lui.
+8. **Orchestres invités complétés** (liste fournie le 13/11) : Utah Symphony Orchestra à Park
+   City, qui remplace la ligne « Salt Lake City » ; Orchestre symphonique de Québec ; Lebanese
+   Philharmonic Orchestra (Beyrouth) ; Bilkent Symphony Orchestra (Ankara) ; China National
+   Symphony Orchestra (Pékin) ; Ensemble intercontemporain à Tokyo et à Tongyeong ; le Tokyo
+   Symphony Orchestra passe de Tokyo à Kawasaki. 24 lignes, 21 points. Beyrouth et Ankara sont
+   rangés dans la troisième colonne, comme dans la liste fournie (« Asie et Moyen-Orient ») ;
+   l'intitulé de cette colonne reste « Asie, Russie et Océanie », Auckland y figurant. Dans la
+   troisième colonne, l'ordre est celui de la liste fournie, puis Singapour et Auckland. Les
+   coordonnées sont celles des villes, à deux décimales. Villes en anglais : Quebec City, Beirut,
+   Beijing. Le repli sans JavaScript donne désormais la ville après le nom, comme le rendu.
 
 ### En appliquant les consignes du 12/11/2026 (fin de soirée)
 
@@ -635,7 +648,7 @@ Node n'est pas installé sur le poste : tout est en Python 3 standard ou en shel
    *Fanfare*.
 6. **Agenda** : adresses de billetterie ou de salle (4 événements sur 18 en ont une).
 7. **Téléchargement** : biographies, photographies, identité visuelle.
-8. **Réseaux** : adresses YouTube et LinkedIn. **Parcours** : nom de l'orchestre de Salt Lake City.
+8. **Réseaux** : adresses YouTube et LinkedIn.
 9. **Photographies** : fichiers en haute définition (992 px aujourd'hui, visibles en plein écran).
 10. Les points déjà ouverts : mandat d'Odense, citation de *Fanfare*.
 

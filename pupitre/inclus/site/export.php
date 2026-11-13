@@ -266,7 +266,8 @@ function export_presse(): array
 function export_orchestres(): array
 {
     $liste = [];
-    foreach (bd_lignes('SELECT * FROM annuaire WHERE dans_parcours = 1 ORDER BY parcours_ordre, id') as $a) {
+    $sql = 'SELECT p.*, a.nom, a.nom_provisoire FROM parcours_orchestres p JOIN annuaire a ON a.id = p.fiche_id ORDER BY p.ordre, p.id';
+    foreach (bd_lignes($sql) as $a) {
         if ($a['latitude'] === null || $a['longitude'] === null) continue;    // sans coordonnées, pas de point : la ligne ne sort pas
         $e = [
             'nom' => $a['nom_provisoire'] ? '' : $a['nom'],
@@ -274,7 +275,7 @@ function export_orchestres(): array
             'lat' => (float) $a['latitude'],
             'lon' => (float) $a['longitude'],
         ];
-        if ($a['parcours_zone'] !== '') $e['zone'] = $a['parcours_zone'];
+        if ($a['zone'] !== '') $e['zone'] = $a['zone'];
         $liste[] = $e;
     }
     return $liste;

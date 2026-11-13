@@ -206,15 +206,22 @@ Stuttgart
 Stockholm
 Helsinki
 Geneva
-Tokyo
-Singapore
 São Paulo
+Park City
+Quebec City
+Beirut
+Ankara
+Beijing
+Tokyo
+Kawasaki
+Tongyeong
+Singapore
 Auckland
-Salt Lake City
 GUEST CONDUCTING (SELECTION)
 AMERICAS
 Orquestra Sinfônica do Estado de São PauloSão Paulo
-Salt Lake City
+Utah Symphony OrchestraPark City
+Orchestre symphonique de QuébecQuebec City
 EUROPE AND AFRICA
 Royal Concertgebouw OrchestraAmsterdam
 London Philharmonic OrchestraLondon
@@ -230,7 +237,12 @@ Swedish Radio Symphony OrchestraStockholm
 Finnish Radio Symphony OrchestraHelsinki
 Orchestre de la Suisse RomandeGeneva
 ASIA, RUSSIA AND OCEANIA
-Tokyo Symphony OrchestraTokyo
+Lebanese Philharmonic OrchestraBeirut
+Bilkent Symphony OrchestraAnkara
+China National Symphony OrchestraBeijing
+Ensemble intercontemporainTokyo
+Tokyo Symphony OrchestraKawasaki
+Ensemble intercontemporainTongyeong
 Singapore Symphony OrchestraSingapore
 Auckland PhilharmoniaAuckland
 Press

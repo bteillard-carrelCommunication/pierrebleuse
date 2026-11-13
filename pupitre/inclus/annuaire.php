@@ -126,6 +126,7 @@ function fiche_usages(int $id): array
 {
     $u = [];
     foreach (fiche_concerts($id) as $c) $u[] = 'concert « ' . $c['titre_fr'] . ' » (' . $c['lien'] . ')';
+    foreach (bd_colonne('SELECT ville_fr FROM parcours_orchestres WHERE fiche_id = ?', [$id]) as $v) $u[] = 'parcours du site (' . $v . ')';
     foreach (bd_colonne('SELECT titre FROM disques WHERE maison_id = ?', [$id]) as $t) $u[] = 'disque « ' . $t . ' »';
     foreach (bd_colonne('SELECT titre_fr FROM articles WHERE media_id = ?', [$id]) as $t) $u[] = 'article « ' . $t . ' »';
     return $u;

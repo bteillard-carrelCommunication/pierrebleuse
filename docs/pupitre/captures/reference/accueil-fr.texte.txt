@@ -206,15 +206,22 @@ Stuttgart
 Stockholm
 Helsinki
 Genève
-Tokyo
-Singapour
 São Paulo
+Park City
+Québec
+Beyrouth
+Ankara
+Pékin
+Tokyo
+Kawasaki
+Tongyeong
+Singapour
 Auckland
-Salt Lake City
 ORCHESTRES INVITÉS (SÉLECTION)
 AMÉRIQUES
 Orquestra Sinfônica do Estado de São PauloSão Paulo
-Salt Lake City
+Utah Symphony OrchestraPark City
+Orchestre symphonique de QuébecQuébec
 EUROPE ET AFRIQUE
 Royal Concertgebouw OrchestraAmsterdam
 London Philharmonic OrchestraLondres
@@ -230,7 +237,12 @@ Swedish Radio Symphony OrchestraStockholm
 Finnish Radio Symphony OrchestraHelsinki
 Orchestre de la Suisse RomandeGenève
 ASIE, RUSSIE ET OCÉANIE
-Tokyo Symphony OrchestraTokyo
+Lebanese Philharmonic OrchestraBeyrouth
+Bilkent Symphony OrchestraAnkara
+China National Symphony OrchestraPékin
+Ensemble intercontemporainTokyo
+Tokyo Symphony OrchestraKawasaki
+Ensemble intercontemporainTongyeong
 Singapore Symphony OrchestraSingapour
 Auckland PhilharmoniaAuckland
 Presse

@@ -94,10 +94,69 @@ window.ORCHESTRES = [
     "lon": 6.14
   },
   {
-    "nom": "Tokyo Symphony Orchestra",
+    "nom": "Orquestra Sinfônica do Estado de São Paulo",
+    "ville": "São Paulo",
+    "lat": -23.55,
+    "lon": -46.63
+  },
+  {
+    "nom": "Utah Symphony Orchestra",
+    "ville": "Park City",
+    "lat": 40.65,
+    "lon": -111.5
+  },
+  {
+    "nom": "Orchestre symphonique de Québec",
+    "ville": {
+      "fr": "Québec",
+      "en": "Quebec City"
+    },
+    "lat": 46.81,
+    "lon": -71.21
+  },
+  {
+    "nom": "Lebanese Philharmonic Orchestra",
+    "ville": {
+      "fr": "Beyrouth",
+      "en": "Beirut"
+    },
+    "lat": 33.89,
+    "lon": 35.5,
+    "zone": "asie-oceanie"
+  },
+  {
+    "nom": "Bilkent Symphony Orchestra",
+    "ville": "Ankara",
+    "lat": 39.93,
+    "lon": 32.86,
+    "zone": "asie-oceanie"
+  },
+  {
+    "nom": "China National Symphony Orchestra",
+    "ville": {
+      "fr": "Pékin",
+      "en": "Beijing"
+    },
+    "lat": 39.9,
+    "lon": 116.41
+  },
+  {
+    "nom": "Ensemble intercontemporain",
     "ville": "Tokyo",
     "lat": 35.68,
     "lon": 139.69
+  },
+  {
+    "nom": "Tokyo Symphony Orchestra",
+    "ville": "Kawasaki",
+    "lat": 35.53,
+    "lon": 139.7
+  },
+  {
+    "nom": "Ensemble intercontemporain",
+    "ville": "Tongyeong",
+    "lat": 34.85,
+    "lon": 128.43
   },
   {
     "nom": "Singapore Symphony Orchestra",
@@ -109,21 +168,9 @@ window.ORCHESTRES = [
     "lon": 103.82
   },
   {
-    "nom": "Orquestra Sinfônica do Estado de São Paulo",
-    "ville": "São Paulo",
-    "lat": -23.55,
-    "lon": -46.63
-  },
-  {
     "nom": "Auckland Philharmonia",
     "ville": "Auckland",
     "lat": -36.85,
     "lon": 174.76
-  },
-  {
-    "nom": "",
-    "ville": "Salt Lake City",
-    "lat": 40.76,
-    "lon": -111.89
   }
 ];

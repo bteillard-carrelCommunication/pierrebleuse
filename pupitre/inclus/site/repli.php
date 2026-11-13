@@ -267,8 +267,12 @@ function repli_orchestres(array $orchestres, string $langue): array
         $l[] = '  <ul class="orchestres">';
         foreach ($orchestres as $o) {
             if (zone_orchestre($o) !== $z) continue;
-            $nom = ($o['nom'] ?? '') !== '' ? $o['nom'] : site_choisir($o['ville'] ?? '', $langue);
-            $l[] = '    <li>' . site_html($nom) . '</li>';
+            // comme le rend le site : le nom, puis la ville (deux lignes peuvent porter le même nom) ;
+            // sans nom, la ville seule
+            $ville = site_choisir($o['ville'] ?? '', $langue);
+            $l[] = ($o['nom'] ?? '') !== ''
+                ? '    <li>' . site_html($o['nom']) . ($ville !== '' ? '<span class="orchestres__ville">' . site_html($ville) . '</span>' : '') . '</li>'
+                : '    <li>' . site_html($ville) . '</li>';
         }
         $l[] = '  </ul>';
         $l[] = '</div>';

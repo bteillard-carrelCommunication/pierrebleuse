@@ -105,7 +105,7 @@ function alertes_calculer(): array
     if ($vides) $ajouter('vide', 'articles', (count($vides) > 1 ? 'Articles sans verbatim : ' : 'Article sans verbatim : ') . $noms($vides) . '.', 'page=contenu&type=presse');
     $vides = bd_colonne('SELECT libelle_fr FROM telechargements WHERE media_id IS NULL ORDER BY ordre, id');
     if ($vides) $ajouter('vide', 'telechargements', (count($vides) > 1 ? 'Téléchargements « à venir » : ' : 'Téléchargement « à venir » : ') . $noms($vides) . '.', 'page=contenu&type=telechargements');
-    $vides = bd_colonne('SELECT ville_fr FROM annuaire WHERE dans_parcours = 1 AND nom_provisoire = 1 ORDER BY parcours_ordre');
+    $vides = bd_colonne('SELECT p.ville_fr FROM parcours_orchestres p JOIN annuaire a ON a.id = p.fiche_id WHERE a.nom_provisoire = 1 ORDER BY p.ordre');
     if ($vides) $ajouter('vide', 'orchestres', 'Parcours : nom de l\'orchestre à fournir pour ' . $noms($vides) . '.', 'page=orchestres');
     foreach (TEXTES as $cle => [$libelle]) {
         if (trim((string) bd_valeur('SELECT fr FROM textes WHERE cle = ?', [$cle])) === '') $ajouter('vide', 'texte-' . $cle, 'Texte vide : ' . mb_strtolower($libelle) . '.', 'page=textes');

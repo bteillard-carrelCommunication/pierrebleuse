@@ -43,17 +43,13 @@ if (est_post()) {
             'fuseau' => in_array(recu('fuseau'), timezone_identifiers_list(), true) ? recu('fuseau') : '',
             'site' => recu('site'), 'mots_diese' => recu('mots_diese'), 'credit' => recu('credit'),
             'logo_id' => recu_entier('logo_id'), 'notes' => recu('notes'),
-            'dans_parcours' => empty($_POST['dans_parcours']) ? 0 : 1,
-            'parcours_zone' => array_key_exists(recu('parcours_zone'), ZONES_PARCOURS) ? recu('parcours_zone') : '',
         ];
         if ($d['nom'] === '') $erreurs[] = 'Le nom est obligatoire.';
         if (!adresse_valide($d['site'])) $erreurs[] = 'Le site doit être une adresse complète (https://…).';
         foreach (['latitude' => 90, 'longitude' => 180] as $k => $max) {
             if ($d[$k] !== null && (!is_numeric($d[$k]) || abs((float) $d[$k]) > $max)) $erreurs[] = ucfirst($k) . ' : un nombre entre -' . $max . ' et ' . $max . ' (degrés décimaux).';
         }
-        if ($d['dans_parcours'] && ($d['latitude'] === null || $d['longitude'] === null)) $erreurs[] = 'Pour figurer dans le parcours, la fiche doit porter sa latitude et sa longitude.';
         if (!$erreurs) {
-            if ($nouvelle && $d['dans_parcours']) $d['parcours_ordre'] = 1 + (int) bd_valeur('SELECT MAX(parcours_ordre) FROM annuaire WHERE dans_parcours = 1');
             $id = objet_enregistrer('annuaire', $id, $d, 'fiche', $d['nom']);
             $GLOBALS['annuaire_perime'] = true;
             $pareilles = array_filter(fiches_doublons($id));
@@ -122,9 +118,6 @@ $liens = ['ensemble' => 'ensemble', 'salle' => 'salle', 'participant' => 'partic
       <?= champ('credit', 'Crédit', $v('credit'), ['aide' => 'Mention à porter quand on cite ou qu\'on montre ce nom.']) ?>
       <?= champ_choix('logo_id', 'Logo', medias_choix(['image']), $v('logo_id'), ['vide' => '— aucun —', 'aide' => 'Choisi dans la médiathèque. Pour un média : le logo de la presse, affiché en blanc.']) ?>
     </div>
-    <h2>Parcours du site</h2>
-    <?= champ_case('dans_parcours', 'Orchestre invité : figure dans le parcours et sur la carte du site', $coche('dans_parcours')) ?>
-    <?= champ_choix('parcours_zone', 'Zone de la liste', ZONES_PARCOURS, $v('parcours_zone'), ['aide' => 'À imposer pour un orchestre russe, par exemple : Moscou est à l\'ouest de 60° E.']) ?>
     <?= champ_texte('notes', 'Notes', $v('notes')) ?>
     <div class="actions"><button type="submit" class="bouton bouton--plein"><?= $nouvelle ? 'Créer la fiche' : 'Enregistrer la fiche' ?></button></div>
   </form>
@@ -159,6 +152,16 @@ $liens = ['ensemble' => 'ensemble', 'salle' => 'salle', 'participant' => 'partic
     <ul class="items"><?php foreach ($doublons as [$a, $b, $raison]): $autre = (int) $a['id'] === $id ? $b : $a; ?>
       <li><a class="item__titre" href="<?= e(url('fiche', ['id' => $autre['id']])) ?>"><?= e($autre['nom']) ?></a><span class="discret"><?= e(CATEGORIES[$autre['categorie']]) ?> · <?= e($raison) ?></span></li>
     <?php endforeach; ?></ul>
+  </div>
+  <?php endif; ?>
+  <?php $parcours = bd_lignes('SELECT * FROM parcours_orchestres WHERE fiche_id = ? ORDER BY ordre, id', [$id]); ?>
+  <?php if ($parcours || in_array($f['categorie'], ['orchestre', 'ensemble'], true)): ?>
+  <div class="carte">
+    <h2>Parcours du site</h2>
+    <?php if (!$parcours): ?><p class="rien">N'y figure pas.</p><?php else: ?>
+    <ul class="items"><?php foreach ($parcours as $x): ?><li><span>Orchestre invité, placé à <?= e($x['ville_fr']) ?></span></li><?php endforeach; ?></ul>
+    <?php endif; ?>
+    <p class="actions"><a class="bouton bouton--petit" href="<?= e(url('orchestres')) ?>">Orchestres invités</a></p>
   </div>
   <?php endif; ?>
   <div class="carte">
