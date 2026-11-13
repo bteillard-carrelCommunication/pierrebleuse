@@ -7,9 +7,29 @@ fonctionnent toujours, on n'y modifie plus rien.
 Ouvrir : `http://localhost:8888/pierrebleuse/` (MAMP). Le site n'est pas en ligne :
 `<meta name="robots" content="noindex">` reste en place jusqu'au lancement.
 
-Dernier état : les contenus du site sont administrables. Tout ce qui s'édite est dans `data/`,
-au format que Pupitre écrit (voir « Données » et « Repli sans JavaScript »). Le rendu n'a pas
-changé : il est identique au témoin du 12/11/2026 (`python3 outils/temoin.py`).
+Dernier état : le site est administré par Pupitre (`pupitre/`, voir « Pupitre » ci-dessous et
+`pupitre/LISEZ-MOI.md`). Tout ce qui s'édite est dans `data/`, au format que Pupitre écrit (voir
+« Données » et « Repli sans JavaScript »). Le rendu n'a pas changé : il est identique au témoin
+du 12/11/2026 (`python3 outils/temoin.py`).
+
+## Pupitre
+
+Pupitre est l'application qui pilote la communication de l'artiste et administre ce site : agenda,
+annuaire, contenus, médiathèque, import de l'extrait de l'agence. Il vit dans `pupitre/` (PHP et
+MySQL) et reste séparé du site :
+
+- le site est statique et le reste : aucun fichier PHP hors de `pupitre/`, aucun appel du site
+  vers Pupitre, aucun accès à la base depuis le site ;
+- Pupitre est la source des contenus. À chaque publication, il écrit les fichiers de `data/`,
+  les zones de repli des pages entre leurs repères et le numéro de version `?v=` des scripts, et
+  copie dans `assets/pupitre/` les médias employés ;
+- le site ne reçoit que les représentations annoncées par leur organisateur ;
+- la mise en ligne (envoi vers le serveur, git) reste manuelle. `pupitre/` ne se déploie pas avec
+  le site statique : c'est une application à part, à protéger.
+
+On ne modifie donc plus à la main ni les fichiers de `data/` ni le contenu entre deux repères :
+la publication suivante l'écraserait. Ce qui se modifie à la main dans le site : les feuilles de
+style, les scripts de `js/`, le HTML hors des repères, les pages légales.
 
 ## Arborescence
 
@@ -39,8 +59,11 @@ changé : il est identique au témoin du 12/11/2026 (`python3 outils/temoin.py`)
 | `assets/img/` | photographies (992 px) et masques du sujet (`*-masque.png`) des visuels « lumière » |
 | `assets/media/` | musiques (.m4a), vidéo du visuel 3 (`captation.mp4`) et son image d'attente |
 | `assets/Pictos/` | anciens pictogrammes de la liste des titres (PNG, plus utilisés : le pictogramme est en SVG dans `index.html`) |
+| `assets/pupitre/` | médias copiés par Pupitre à la publication (créé à la première copie) |
 | `outils/` | scripts Python et shell (voir « Outils ») |
+| `pupitre/` | Pupitre : l'application qui administre le site (PHP, MySQL) |
 | `docs/site/CONTENU-SITE.md` | textes de référence |
+| `docs/pupitre/` | prompts de Pupitre, captures de ses écrans, témoin du rendu du site (`captures/reference/`) |
 | `_archives/phase-hypotheses/` | les hypothèses H1 à H4, la maquette, la documentation d'origine des moteurs |
 | `_sources/musique/` | fichiers .mov fournis (non suivis par git, hors du site) |
 
@@ -71,8 +94,9 @@ Un champ texte est soit une chaîne (identique dans les deux langues), soit un o
 | `data/reseaux.js` | `RESEAUX` | réseaux de l'artiste |
 | `data/telechargements.js` | `TELECHARGEMENTS` | fichiers à télécharger |
 
-`data/presse-exemples.js` (faux articles de maquette), `data/cartes.js` (terres de la carte) et
-les analyses de bandes-son (`*.json`) ne sont pas écrits par Pupitre.
+`data/presse-exemples.js` (faux articles de maquette) et `data/cartes.js` (terres de la carte) ne
+sont pas écrits par Pupitre. Les analyses de bandes-son (`*.json`) en place ne changent pas ;
+Pupitre y ajoute celle d'une musique ou d'une vidéo nouvelle.
 
 **`TEXTES`.** Chaque champ est un `{ fr, en }`. `js/contenu.js` les range dans son dictionnaire
 sous les clés `meta.description`, `ouverture.citation`, `bio.p1`, `bio.p2`…, `agenda.mention`,
@@ -399,7 +423,10 @@ Date de référence : le jour du visiteur, ou `?date=AAAA-MM-JJ`.
 « Temps fort » n'a plus d'affichage. Le drapeau `tempsFort` reste dans `agenda.json` et dans le
 rendu (classe `fiche--fort`, attribut `data-temps-fort`), pour un usage futur.
 
-Modifier l'agenda : éditer `data/agenda.json`, puis `python3 outils/generer-agenda.py`.
+Modifier l'agenda : dans Pupitre (« Agenda »), puis publier. Pupitre écrit `data/agenda.json`,
+`data/agenda.js` et la liste de repli de l'accueil : il remplace `outils/generer-agenda.py`, qui
+est gardé mais n'a plus à être lancé (il réécrirait `data/agenda.js` dans son ancienne forme, que
+le site lit aussi).
 
 ## Discographie, presse, parcours
 
@@ -484,8 +511,8 @@ Node n'est pas installé sur le poste : tout est en Python 3 standard ou en shel
 
 | Commande | Rôle |
 |---|---|
-| `python3 outils/generer-agenda.py` | après toute modification de `data/agenda.json` |
-| `python3 outils/analyse-bande-son.py média sortie.json` | analyse d'une bande-son, musique ou vidéo (demande ffmpeg) |
+| `python3 outils/generer-agenda.py` | remplacé par Pupitre, qui écrit l'agenda à la publication ; gardé, plus nécessaire |
+| `python3 outils/analyse-bande-son.py média sortie.json` | analyse d'une bande-son, musique ou vidéo (demande ffmpeg) ; Pupitre le lance quand on ajoute une musique |
 | `python3 outils/generer-cartes.py` | régénère `data/cartes.js` (Natural Earth, domaine public) |
 | `sh outils/syntaxe.sh` | vérifie la syntaxe des scripts de `js/` et de `data/` |
 | `outils/cdp.py` | pilote Chrome headless pour tester et capturer (`molette()` envoie de vrais crans de molette) |
@@ -576,7 +603,7 @@ Node n'est pas installé sur le poste : tout est en Python 3 standard ou en shel
   les mentions correspondantes de la page de confidentialité.
 - Prévoir une version légère de la vidéo pour le téléphone (17 Mo aujourd'hui).
 - Retirer les faux articles de presse (`data/presse-exemples.js`, `assets/presse/exemples/`).
-- `_archives/` et `_sources/` ne se déploient pas.
+- `_archives/`, `_sources/`, `docs/` et `pupitre/` ne se déploient pas avec le site statique.
 
 À garder : « Pause de l'animation » dans le pied de page.
 
