@@ -1,0 +1,440 @@
+<?php
+/**
+ * Agenda : concerts, représentations, statuts.
+ *
+ * Le statut se règle par représentation. « Publiée » est posé par la publication, jamais à la
+ * main. Seules les représentations annoncées ou publiées sortent dans les fichiers du site.
+ * Les dates et les heures sont celles de la salle : elles ne sont jamais converties.
+ */
+
+defined('PUPITRE') or exit;
+
+const TYPES_CONCERT = ['concert' => 'Concert', 'opera' => 'Opéra', 'tournee' => 'Tournée', 'disque' => 'Disque'];
+
+const STATUTS = [
+    'connue' => 'Connue',
+    'embargo' => 'Sous embargo',
+    'annoncee' => 'Annoncée',
+    'publiee' => 'Publiée',
+    'annulee' => 'Annulée ou reportée',
+];
+
+const STATUTS_SENS = [
+    'connue' => 'Dans l\'extrait de l\'agence, pas encore annoncée par l\'organisateur. Ne sort pas sur le site.',
+    'embargo' => 'Annonce prévue à une date fixe. Ne sort pas sur le site ; alerte à l\'échéance.',
+    'annoncee' => 'Annoncée par l\'organisateur. Sortira sur le site à la prochaine publication.',
+    'publiee' => 'Présente dans la dernière publication du site.',
+    'annulee' => 'Retirée du site à la prochaine publication.',
+];
+
+/** Statuts qu'une personne peut poser à la main depuis le statut actuel. « publiee » n'y figure jamais. */
+function statuts_possibles(string $actuel): array
+{
+    return match ($actuel) {
+        'connue' => ['embargo', 'annoncee', 'annulee'],
+        'embargo' => ['connue', 'annoncee', 'annulee'],
+        'annoncee' => ['connue', 'embargo', 'annulee'],
+        'publiee' => ['connue', 'annulee'],
+        'annulee' => ['connue', 'embargo', 'annoncee'],
+        default => [],
+    };
+}
+
+function concert_lire(int $id): ?array
+{
+    $c = bd_ligne('SELECT * FROM concerts WHERE id = ?', [$id]);
+    if (!$c) return null;
+    $c['representations'] = bd_lignes('SELECT * FROM representations WHERE concert_id = ? ORDER BY date, heure, id', [$id]);
+    $c['programme'] = bd_lignes('SELECT * FROM programme WHERE concert_id = ? ORDER BY ordre, id', [$id]);
+    $c['participants'] = bd_lignes('SELECT * FROM participants WHERE concert_id = ? ORDER BY ordre, id', [$id]);
+    foreach ($c['participants'] as &$p) {
+        $p['fiches'] = bd_lignes('SELECT a.id, a.nom FROM participants_fiches pf JOIN annuaire a ON a.id = pf.fiche_id WHERE pf.participant_id = ? ORDER BY a.nom', [$p['id']]);
+    }
+    unset($p);
+    return $c;
+}
+
+/** Lieu d'une représentation : le sien (tournée), sinon celui du concert. */
+function lieu(array $r, array $c, string $champ, string $langue = 'fr'): string
+{
+    $k = $champ . '_' . $langue;
+    $v = ($r[$k] ?? '') !== '' ? $r[$k] : ($c[$k] ?? '');
+    if ($v === '' && $langue !== 'fr') return lieu($r, $c, $champ, 'fr');
+    return $v;
+}
+
+/**
+ * Change le statut d'une représentation. $champs : lien_source, embargo_le, raison.
+ * Rend un message d'erreur, ou null si le changement est fait.
+ */
+function statut_changer(int $rep_id, string $nouveau, array $champs = []): ?string
+{
+    $r = bd_ligne('SELECT r.*, c.titre_fr FROM representations r JOIN concerts c ON c.id = r.concert_id WHERE r.id = ?', [$rep_id]);
+    if (!$r) return 'Représentation introuvable.';
+    if ($nouveau === 'publiee') return '« Publiée » est posé par la publication, jamais à la main.';
+    if ($nouveau === $r['statut']) return null;
+    if (!in_array($nouveau, statuts_possibles($r['statut']), true)) {
+        return 'Une représentation « ' . STATUTS[$r['statut']] . ' » ne peut pas passer à « ' . (STATUTS[$nouveau] ?? $nouveau) . ' ».';
+    }
+    $maj = ['statut' => $nouveau];
+    if ($nouveau === 'annoncee') {
+        $lien = trim((string) ($champs['lien_source'] ?? '')) ?: $r['lien_source'];
+        if ($lien === '' || !adresse_valide($lien)) return 'Pour annoncer une date, le lien source est obligatoire : la page où l\'organisateur l\'annonce.';
+        $maj['lien_source'] = $lien;
+        $maj['embargo_le'] = null;
+        $maj['raison'] = '';
+    } elseif ($nouveau === 'embargo') {
+        $date = trim((string) ($champs['embargo_le'] ?? '')) ?: (string) $r['embargo_le'];
+        if (!date_valide($date)) return 'Un embargo demande la date à laquelle l\'annonce est prévue.';
+        $maj['embargo_le'] = $date;
+        $maj['raison'] = '';
+    } elseif ($nouveau === 'annulee') {
+        $raison = trim((string) ($champs['raison'] ?? ''));
+        if ($raison === '') return 'Pour annuler ou reporter une date, la raison est obligatoire.';
+        $maj['raison'] = mb_substr($raison, 0, 500);
+    } else {
+        $maj['embargo_le'] = null;
+        $maj['raison'] = '';
+    }
+    $avant = array_intersect_key($r, $maj);
+    bd_modifier('representations', $maj, ['id' => $rep_id]);
+    journaliser('statut', 'concert', (int) $r['concert_id'], $r['titre_fr'] . ', ' . date_fr($r['date']), $avant, $maj);
+    return null;
+}
+
+/**
+ * Ce qui manque à une fiche pour annoncer le concert. Rend une liste de libellés, vide si tout y est.
+ * $c : un concert lu par concert_lire().
+ */
+function concert_manques(array $c): array
+{
+    $m = [];
+    $disque = ($c['type'] === 'disque');
+    $reps = array_values(array_filter($c['representations'] ?? [], fn($r) => $r['statut'] !== 'annulee'));
+    if (trim($c['titre_fr']) === '') $m[] = 'titre';
+    if (!$reps) $m[] = 'une représentation';
+    if (!$disque) {
+        if (trim($c['ensemble_fr']) === '') $m[] = 'ensemble';
+        foreach (['salle' => 'salle', 'ville' => 'ville', 'pays' => 'pays'] as $champ => $libelle) {
+            foreach ($reps as $r) {
+                if (lieu($r, $c, $champ) === '') { $m[] = $libelle; break; }
+            }
+        }
+        foreach ($reps as $r) {
+            if (!$r['heure']) { $m[] = 'heure'; break; }
+        }
+        if (empty($c['programme'])) $m[] = 'programme';
+    }
+    foreach ($reps as $r) {
+        if ($r['lien_source'] === '') { $m[] = 'lien source (page de l\'organisateur)'; break; }
+    }
+    return $m;
+}
+
+/** Ce qui manque pour que la fiche soit complète : ce qu'il faut pour annoncer, plus un lien pour le public. */
+function concert_incomplet(array $c): array
+{
+    $m = concert_manques($c);
+    $lien = $c['lien_billetterie'] !== '' || $c['page_organisateur'] !== ''
+        || array_filter($c['representations'] ?? [], fn($r) => $r['lien_billetterie'] !== '');
+    if (!$lien) $m[] = 'lien de billetterie ou page de l\'organisateur';
+    return $m;
+}
+
+/**
+ * Identifiant de l'événement dans les fichiers du site, unique : « au-revoir-pierre ».
+ * Il ne porte jamais de date : celle de la première représentation peut ne pas être annoncée,
+ * et l'identifiant, lui, sort sur le site dès qu'une autre date l'est. (Les concerts repris du
+ * site gardent l'identifiant qu'ils y avaient.)
+ */
+function concert_cle(string $titre, ?int $sauf = null): string
+{
+    $base = slug($titre, 50) ?: 'concert';
+    $cle = $base;
+    $n = 2;
+    while (bd_valeur('SELECT id FROM concerts WHERE cle = ? AND id <> ?', [$cle, $sauf ?? 0])) $cle = $base . '-' . $n++;
+    return $cle;
+}
+
+/**
+ * Heure de l'artiste pour une représentation : l'heure de la salle lue dans le fuseau de
+ * l'artiste (réglage). Calcul d'affichage seulement ; '' si le fuseau de la salle est inconnu.
+ */
+function heure_artiste(string $date, ?string $heure, string $fuseau_salle): string
+{
+    if (!$heure || $fuseau_salle === '') return '';
+    try {
+        $la = new DateTimeImmutable($date . ' ' . $heure . ':00', new DateTimeZone($fuseau_salle));
+        $ici = $la->setTimezone(new DateTimeZone(reglage('fuseau') ?: 'Europe/Paris'));
+        $s = heure_fr($ici->format('H:i'));
+        if ($ici->format('Y-m-d') !== $date) $s .= ' (le ' . date_fr($ici->format('Y-m-d'), false, false) . ')';
+        return $s;
+    } catch (Throwable $e) {
+        return '';
+    }
+}
+
+/**
+ * Représentations de l'agenda, avec leur concert. Filtres : statut, maison, type, du, au, q.
+ * Chaque ligne porte lieu_salle, lieu_ville, lieu_pays (ceux de la date, sinon ceux du concert).
+ */
+function agenda_representations(array $filtres = []): array
+{
+    $ou = ['1 = 1'];
+    $p = [];
+    if (!empty($filtres['statut'])) { $ou[] = 'r.statut = ?'; $p[] = $filtres['statut']; }
+    if (!empty($filtres['sauf_annulees'])) $ou[] = "r.statut <> 'annulee'";
+    if (!empty($filtres['maison'])) { $ou[] = 'c.maison_id = ?'; $p[] = (int) $filtres['maison']; }
+    if (!empty($filtres['type'])) { $ou[] = 'c.type = ?'; $p[] = $filtres['type']; }
+    if (!empty($filtres['du'])) { $ou[] = 'r.date >= ?'; $p[] = $filtres['du']; }
+    if (!empty($filtres['au'])) { $ou[] = 'r.date <= ?'; $p[] = $filtres['au']; }
+    if (!empty($filtres['q'])) {
+        $ou[] = '(c.titre_fr LIKE ? OR c.ensemble_fr LIKE ? OR c.ville_fr LIKE ? OR r.ville_fr LIKE ? OR c.salle_fr LIKE ?)';
+        $q = '%' . $filtres['q'] . '%';
+        array_push($p, $q, $q, $q, $q, $q);
+    }
+    $sql = "SELECT r.*, c.cle, c.type, c.titre_fr, c.titre_en, c.ensemble_fr, c.maison_id, c.fuseau, c.temps_fort,
+                   COALESCE(NULLIF(r.salle_fr, ''), c.salle_fr) AS lieu_salle,
+                   COALESCE(NULLIF(r.ville_fr, ''), c.ville_fr) AS lieu_ville,
+                   COALESCE(NULLIF(r.pays_fr, ''), c.pays_fr) AS lieu_pays
+            FROM representations r JOIN concerts c ON c.id = r.concert_id
+            WHERE " . implode(' AND ', $ou) . ' ORDER BY r.date, r.heure, r.id';
+    return bd_lignes($sql, $p);
+}
+
+/** Doublons probables : le même jour, deux concerts différents avec le même ensemble ou le même titre. */
+function agenda_doublons(): array
+{
+    $paires = [];
+    $par_date = [];
+    foreach (agenda_representations(['sauf_annulees' => true]) as $r) $par_date[$r['date']][] = $r;
+    foreach ($par_date as $reps) {
+        $n = count($reps);
+        for ($i = 0; $i < $n; $i++) {
+            for ($j = $i + 1; $j < $n; $j++) {
+                $a = $reps[$i];
+                $b = $reps[$j];
+                if ($a['concert_id'] === $b['concert_id']) {
+                    if ($a['heure'] === $b['heure']) $paires[] = [$a, $b];
+                    continue;
+                }
+                $meme_ensemble = normaliser($a['ensemble_fr']) !== '' && normaliser($a['ensemble_fr']) === normaliser($b['ensemble_fr']);
+                $meme_titre = normaliser($a['titre_fr']) !== '' && normaliser($a['titre_fr']) === normaliser($b['titre_fr']);
+                $meme_lieu = normaliser($a['lieu_ville']) === normaliser($b['lieu_ville']);
+                if ($meme_titre || ($meme_ensemble && $meme_lieu && $a['heure'] === $b['heure'])) $paires[] = [$a, $b];
+            }
+        }
+    }
+    return $paires;
+}
+
+// ---------- Enregistrement d'une fiche concert ----------
+
+/** Relie les noms saisis aux fiches de l'annuaire : rien n'est créé ici. */
+function concert_relier(array &$d): void
+{
+    $d['ensemble_id'] = fiche_trouver($d['ensemble_fr'], ['orchestre', 'ensemble']) ?? fiche_trouver($d['ensemble_en'], ['orchestre', 'ensemble']);
+    $d['salle_id'] = fiche_trouver($d['salle_fr'], ['salle', 'festival']) ?? fiche_trouver($d['salle_en'], ['salle', 'festival']);
+}
+
+/**
+ * Crée ou modifie un concert à partir d'un formulaire. Rend [identifiant, erreurs].
+ * $f : champs du concert, plus reps[], prog[], avec[] (listes de lignes).
+ * Les statuts ne se changent pas ici (statut_changer).
+ */
+function concert_enregistrer(?int $id, array $f): array
+{
+    $t = fn(string $k, int $max = 255) => mb_substr(trim((string) ($f[$k] ?? '')), 0, $max);
+    $erreurs = [];
+    $d = [
+        'type' => array_key_exists($f['type'] ?? '', TYPES_CONCERT) ? $f['type'] : 'concert',
+        'titre_fr' => $t('titre_fr'), 'titre_en' => $t('titre_en'),
+        'ensemble_fr' => $t('ensemble_fr'), 'ensemble_en' => $t('ensemble_en'),
+        'maison_id' => ctype_digit((string) ($f['maison_id'] ?? '')) ? (int) $f['maison_id'] : null,
+        'salle_fr' => $t('salle_fr'), 'salle_en' => $t('salle_en'),
+        'ville_fr' => $t('ville_fr', 120), 'ville_en' => $t('ville_en', 120),
+        'pays_fr' => $t('pays_fr', 120), 'pays_en' => $t('pays_en', 120),
+        'fuseau' => in_array($f['fuseau'] ?? '', timezone_identifiers_list(), true) ? $f['fuseau'] : '',
+        'mentions_fr' => $t('mentions_fr', 2000), 'mentions_en' => $t('mentions_en', 2000),
+        'lien_billetterie' => $t('lien_billetterie', 500), 'page_organisateur' => $t('page_organisateur', 500),
+        'temps_fort' => empty($f['temps_fort']) ? 0 : 1,
+        'notes_internes' => $t('notes_internes', 5000),
+    ];
+    if ($d['titre_fr'] === '') $erreurs[] = 'Le titre est obligatoire.';
+    foreach (['lien_billetterie' => 'Le lien de billetterie', 'page_organisateur' => 'La page de l\'organisateur'] as $k => $nom) {
+        if (!adresse_valide($d[$k])) $erreurs[] = $nom . ' doit être une adresse complète (https://…).';
+    }
+    concert_relier($d);
+    // la salle choisie dans l'annuaire apporte sa ville, son pays et son fuseau quand ils manquent
+    if ($d['salle_id'] && ($salle = fiche_lire($d['salle_id']))) {
+        foreach (['ville_fr', 'ville_en', 'pays_fr', 'pays_en', 'fuseau'] as $k) {
+            if ($d[$k] === '' && $salle[$k] !== '') $d[$k] = $salle[$k];
+        }
+    }
+
+    // représentations
+    $reps = [];
+    foreach (array_values($f['reps'] ?? []) as $i => $r) {
+        $date = trim((string) ($r['date'] ?? ''));
+        if ($date === '' && trim(implode('', array_map('strval', $r))) === trim((string) ($r['id'] ?? ''))) continue;   // ligne vide
+        $heure = heure_lire((string) ($r['heure'] ?? ''));
+        if (!date_valide($date)) { $erreurs[] = 'Représentation ' . ($i + 1) . ' : date illisible (AAAA-MM-JJ).'; continue; }
+        if ($heure === null) { $erreurs[] = 'Représentation du ' . date_fr($date) . ' : heure illisible (19:30).'; continue; }
+        $l = ['id' => ctype_digit((string) ($r['id'] ?? '')) ? (int) $r['id'] : null, 'date' => $date, 'heure' => $heure === '' ? null : $heure];
+        foreach (['salle_fr' => 255, 'salle_en' => 255, 'ville_fr' => 120, 'ville_en' => 120, 'pays_fr' => 120, 'pays_en' => 120, 'lien_billetterie' => 500, 'lien_source' => 500] as $k => $max) {
+            $l[$k] = mb_substr(trim((string) ($r[$k] ?? '')), 0, $max);
+        }
+        foreach (['lien_billetterie', 'lien_source'] as $k) {
+            if (!adresse_valide($l[$k])) $erreurs[] = 'Représentation du ' . date_fr($date) . ' : adresse incomplète (https://…).';
+        }
+        $reps[] = $l;
+    }
+    if (!$reps && $id === null) $erreurs[] = 'Indiquez au moins une représentation, avec sa date.';
+
+    // programme et participants
+    $prog = [];
+    foreach (array_values($f['prog'] ?? []) as $p) {
+        $l = [];
+        foreach (['compositeur_fr' => 255, 'compositeur_en' => 255, 'oeuvre_fr' => 500, 'oeuvre_en' => 500, 'mention_fr' => 255, 'mention_en' => 255] as $k => $max) {
+            $l[$k] = mb_substr(trim((string) ($p[$k] ?? '')), 0, $max);
+        }
+        if ($l['compositeur_fr'] === '' && $l['oeuvre_fr'] === '') continue;
+        $prog[] = $l;
+    }
+    $avec = [];
+    foreach (array_values($f['avec'] ?? []) as $p) {
+        $l = [];
+        foreach (['nom' => 255, 'role_fr' => 255, 'role_en' => 255] as $k => $max) $l[$k] = mb_substr(trim((string) ($p[$k] ?? '')), 0, $max);
+        if ($l['nom'] !== '') $avec[] = $l;
+    }
+    if ($erreurs) return [$id, $erreurs];
+
+    return [bd_transaction(function () use ($id, $d, $reps, $prog, $avec) {
+        if ($d['fuseau'] === '') $d['fuseau'] = fuseau_deviner($d['pays_fr'], $d['ville_fr'], $d['ville_en'], $reps[0]['date'] ?? null);
+        if ($id === null) {
+            $d['cle'] = concert_cle($d['titre_fr']);
+            $id = objet_enregistrer('concerts', null, $d, 'concert', $d['titre_fr']);
+        } else {
+            objet_enregistrer('concerts', $id, $d, 'concert', $d['titre_fr']);
+        }
+        $titre = $d['titre_fr'];
+
+        // représentations : celles qui restent sont modifiées, les nouvelles naissent « connues », les autres partent
+        $existantes = [];
+        foreach (bd_lignes('SELECT * FROM representations WHERE concert_id = ?', [$id]) as $r) $existantes[(int) $r['id']] = $r;
+        $gardees = [];
+        foreach ($reps as $l) {
+            $rid = $l['id'];
+            unset($l['id']);
+            if ($rid && isset($existantes[$rid])) {
+                $gardees[] = $rid;
+                // le lien source d'une date déjà annoncée ne s'efface pas par mégarde
+                if ($l['lien_source'] === '' && in_array($existantes[$rid]['statut'], ['annoncee', 'publiee'], true)) unset($l['lien_source']);
+                [$a, $b] = differences(array_intersect_key($existantes[$rid], $l), $l);
+                if ($b) {
+                    bd_modifier('representations', $b, ['id' => $rid]);
+                    journaliser('modification', 'concert', $id, $titre . ', ' . date_fr($existantes[$rid]['date']), $a, $b);
+                }
+            } else {
+                $l['concert_id'] = $id;
+                bd_inserer('representations', $l);
+                journaliser('creation', 'concert', $id, $titre . ', ' . date_fr($l['date']), null, ['date' => $l['date'], 'heure' => $l['heure'], 'statut' => 'connue']);
+            }
+        }
+        foreach ($existantes as $rid => $r) {
+            if (in_array($rid, $gardees, true)) continue;
+            bd_supprimer('representations', ['id' => $rid]);
+            journaliser('suppression', 'concert', $id, $titre . ', ' . date_fr($r['date']), ['date' => $r['date'], 'heure' => $r['heure'], 'statut' => $r['statut']], null);
+        }
+
+        // programme : remplacé d'un bloc s'il a changé
+        $colonnes = ['compositeur_fr', 'compositeur_en', 'oeuvre_fr', 'oeuvre_en', 'mention_fr', 'mention_en'];
+        $avant = array_map(fn($p) => array_intersect_key($p, array_flip($colonnes)), bd_lignes('SELECT * FROM programme WHERE concert_id = ? ORDER BY ordre, id', [$id]));
+        if ($avant != $prog) {
+            bd_supprimer('programme', ['concert_id' => $id]);
+            foreach ($prog as $i => $l) {
+                bd_inserer('programme', $l + ['concert_id' => $id, 'ordre' => $i, 'compositeur_id' => fiche_trouver($l['compositeur_fr'], ['compositeur'])]);
+            }
+            journaliser('modification', 'concert', $id, $titre . ', programme', ['programme' => $avant], ['programme' => $prog]);
+        } else {
+            // les liens vers l'annuaire suivent les fiches créées depuis
+            foreach (bd_lignes('SELECT id, compositeur_fr, compositeur_id FROM programme WHERE concert_id = ?', [$id]) as $p) {
+                $fiche = fiche_trouver($p['compositeur_fr'], ['compositeur']);
+                if ((int) $p['compositeur_id'] !== (int) $fiche) bd_modifier('programme', ['compositeur_id' => $fiche], ['id' => $p['id']]);
+            }
+        }
+
+        // participants : une ligne peut réunir plusieurs fiches (« A, B »)
+        $colonnes = ['nom', 'role_fr', 'role_en'];
+        $avant = array_map(fn($p) => array_intersect_key($p, array_flip($colonnes)), bd_lignes('SELECT * FROM participants WHERE concert_id = ? ORDER BY ordre, id', [$id]));
+        if ($avant != $avec) {
+            bd_requete('DELETE pf FROM participants_fiches pf JOIN participants p ON p.id = pf.participant_id WHERE p.concert_id = ?', [$id]);
+            bd_supprimer('participants', ['concert_id' => $id]);
+            foreach ($avec as $i => $l) bd_inserer('participants', $l + ['concert_id' => $id, 'ordre' => $i]);
+            journaliser('modification', 'concert', $id, $titre . ', participants', ['participants' => $avant], ['participants' => $avec]);
+        }
+        participants_relier($id);
+        return $id;
+    }), []];
+}
+
+/** Relie chaque participant d'un concert aux fiches de l'annuaire qui portent son nom. */
+function participants_relier(int $concert_id): void
+{
+    foreach (bd_lignes('SELECT id, nom FROM participants WHERE concert_id = ?', [$concert_id]) as $p) {
+        $fiches = [];
+        $entier = fiche_trouver($p['nom']);
+        if ($entier) {
+            $fiches[] = $entier;
+        } else {
+            foreach (array_map('trim', explode(',', $p['nom'])) as $nom) {
+                if ($nom !== '' && ($f = fiche_trouver($nom))) $fiches[] = $f;
+            }
+        }
+        $fiches = array_values(array_unique($fiches));
+        $actuelles = array_map('intval', bd_colonne('SELECT fiche_id FROM participants_fiches WHERE participant_id = ? ORDER BY fiche_id', [$p['id']]));
+        sort($fiches);
+        if ($fiches === $actuelles) continue;
+        bd_supprimer('participants_fiches', ['participant_id' => $p['id']]);
+        foreach ($fiches as $f) bd_inserer('participants_fiches', ['participant_id' => $p['id'], 'fiche_id' => $f]);
+    }
+}
+
+function concert_supprimer(int $id): void
+{
+    $c = bd_ligne('SELECT * FROM concerts WHERE id = ?', [$id]);
+    if (!$c) return;
+    bd_transaction(function () use ($id, $c) {
+        bd_requete('DELETE pf FROM participants_fiches pf JOIN participants p ON p.id = pf.participant_id WHERE p.concert_id = ?', [$id]);
+        foreach (['participants', 'programme', 'representations', 'notes_artiste'] as $t) bd_supprimer($t, ['concert_id' => $id]);
+        bd_supprimer('concerts', ['id' => $id]);
+        journaliser('suppression', 'concert', $id, $c['titre_fr'], ['cle' => $c['cle'], 'titre_fr' => $c['titre_fr'], 'type' => $c['type']], null);
+    });
+}
+
+/** Refait les liens d'un concert vers l'annuaire (après la création d'une fiche). */
+function concert_relier_tout(int $id): void
+{
+    $c = bd_ligne('SELECT * FROM concerts WHERE id = ?', [$id]);
+    if (!$c) return;
+    $d = ['ensemble_fr' => $c['ensemble_fr'], 'ensemble_en' => $c['ensemble_en'], 'salle_fr' => $c['salle_fr'], 'salle_en' => $c['salle_en']];
+    concert_relier($d);
+    bd_modifier('concerts', ['ensemble_id' => $d['ensemble_id'], 'salle_id' => $d['salle_id']], ['id' => $id]);
+    foreach (bd_lignes('SELECT id, compositeur_fr FROM programme WHERE concert_id = ?', [$id]) as $p) {
+        bd_modifier('programme', ['compositeur_id' => fiche_trouver($p['compositeur_fr'], ['compositeur'])], ['id' => $p['id']]);
+    }
+    participants_relier($id);
+}
+
+/** Applique un statut à toutes les représentations d'un concert qui peuvent le recevoir. Rend [faites, erreurs]. */
+function statut_changer_tout(int $concert_id, string $nouveau, array $champs = []): array
+{
+    $faites = 0;
+    $erreurs = [];
+    foreach (bd_lignes('SELECT id, date, statut FROM representations WHERE concert_id = ? ORDER BY date, heure, id', [$concert_id]) as $r) {
+        if ($r['statut'] === $nouveau || !in_array($nouveau, statuts_possibles($r['statut']), true)) continue;
+        $e = statut_changer((int) $r['id'], $nouveau, $champs);
+        if ($e) $erreurs[] = date_fr($r['date']) . ' : ' . $e; else $faites++;
+    }
+    return [$faites, $erreurs];
+}
