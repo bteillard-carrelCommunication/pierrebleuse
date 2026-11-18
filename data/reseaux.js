@@ -15,13 +15,13 @@ window.RESEAUX = [
   {
     "id": "youtube",
     "nom": "YouTube",
-    "url": "",
+    "url": "https://www.youtube.com/channel/UCxfxH_vfu5Dpct4smcYSUgQ",
     "barre": true
   },
   {
     "id": "linkedin",
     "nom": "LinkedIn",
-    "url": "",
+    "url": "https://www.linkedin.com/in/pierre-bleuse-25619671/",
     "barre": false
   }
 ];

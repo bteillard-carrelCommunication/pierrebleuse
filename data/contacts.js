@@ -3,7 +3,10 @@ window.CONTACTS = [
   {
     "structure": "HarrisonParrott",
     "lien": "https://www.harrisonparrott.com/artists/pierre-bleuse",
-    "mention": "Worldwide general management",
+    "mention": {
+      "fr": "General management",
+      "en": "Worldwide general management"
+    },
     "langue": "en",
     "personnes": [
       {
@@ -22,16 +25,19 @@ window.CONTACTS = [
   },
   {
     "structure": "Carrel Communication",
-    "lien": "",
+    "lien": "https://carrel-communication.com/",
     "mention": {
       "fr": "Communication",
       "en": "Communications"
     },
-    "langue": "",
+    "langue": "en",
     "personnes": [
       {
-        "nom": "",
-        "role": "",
+        "nom": "Benjamin Teillard",
+        "role": {
+          "fr": "Responsable communication",
+          "en": "Communication management"
+        },
         "telephone": "+33 6 89 90 57 31",
         "email": "communication@pierrebleuse.com"
       }
