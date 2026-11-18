@@ -26,7 +26,9 @@ from html.parser import HTMLParser
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-BASE = 'http://localhost:8888/pierrebleuse/'
+from cdp import adresse_site  # noqa: E402
+
+BASE = adresse_site()
 FIGE = 'date=2026-11-12&muet=1&aimant=0&t=104'
 SECTIONS = ['ouverture', 'bio', 'visuel-1', 'agenda', 'visuel-2', 'disques', 'parcours', 'visuel-3',
             'presse', 'telechargement', 'suivre', 'contact', 'pied']

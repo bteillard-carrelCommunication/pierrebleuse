@@ -7,7 +7,7 @@ defiler, cliquer, capturer, relever les erreurs de console.
 
     from cdp import Chrome
     with Chrome(taille=(1440, 900)) as c:
-        c.ouvrir('http://localhost:8888/pierrebleuse/')
+        c.ouvrir(adresse_site())
         c.attendre(2)
         print(c.js('document.title'))
         c.capture('/tmp/accueil.png')
@@ -18,7 +18,46 @@ En ligne de commande :
 """
 import base64, json, os, shutil, socket, struct, subprocess, sys, tempfile, time, urllib.request
 
-CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+CHROME = os.environ.get('CHROME') or '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+RACINE_SITE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def _env_pupitre():
+    """Les variables de pupitre/.env (CLE=valeur, # pour un commentaire), sans les afficher."""
+    v = {}
+    try:
+        with open(os.path.join(RACINE_SITE, 'pupitre', '.env'), encoding='utf-8') as f:
+            for ligne in f:
+                ligne = ligne.strip()
+                if not ligne or ligne[0] == '#' or '=' not in ligne:
+                    continue
+                cle, _, valeur = ligne.partition('=')
+                valeur = valeur.strip()
+                if len(valeur) >= 2 and valeur[0] in '"\'' and valeur[-1] == valeur[0]:
+                    valeur = valeur[1:-1]
+                v[cle.strip()] = valeur
+    except OSError:
+        pass
+    return v
+
+
+def adresse_site():
+    """Adresse du site, avec barre finale : SITE_URL, sinon le dossier parent de APP_URL (pupitre/.env)."""
+    url = os.environ.get('SITE_URL') or ''
+    if not url:
+        app = _env_pupitre().get('APP_URL', '').rstrip('/')
+        if not app:
+            raise SystemExit('Adresse du site inconnue : renseignez APP_URL dans pupitre/.env, ou SITE_URL.')
+        url = app.rsplit('/', 1)[0]
+    return url.rstrip('/') + '/'
+
+
+def php_cli():
+    """PHP en ligne de commande : PHP_CLI (environnement, puis pupitre/.env), sinon php du PATH."""
+    p = os.environ.get('PHP_CLI') or _env_pupitre().get('PHP_CLI') or shutil.which('php')
+    if not p:
+        raise SystemExit('PHP introuvable : renseignez PHP_CLI dans pupitre/.env.')
+    return p
 
 
 class WS:

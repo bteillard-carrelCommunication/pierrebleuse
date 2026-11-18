@@ -21,10 +21,10 @@ import json, os, secrets, subprocess, sys, urllib.parse
 
 RACINE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(RACINE, 'outils'))
-from cdp import Chrome  # noqa: E402
+from cdp import Chrome, adresse_site, php_cli  # noqa: E402
 
-PHP = os.environ.get('PHP_CLI', '/Applications/MAMP/bin/php/php8.3.14/bin/php')
-SITE = 'http://localhost:8888/pierrebleuse/'
+PHP = php_cli()
+SITE = adresse_site()
 P = SITE + 'pupitre/'
 CAPTURES = sys.argv[1] if len(sys.argv) > 1 else os.path.join(RACINE, 'docs', 'pupitre', 'captures')
 MDP = secrets.token_urlsafe(18)

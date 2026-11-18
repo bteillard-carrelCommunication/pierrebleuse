@@ -31,7 +31,7 @@ if (env('BD_NOM') === '' || env('BD_UTILISATEUR') === '') {
     fwrite(STDERR, "Renseignez d'abord BD_HOTE, BD_PORT, BD_NOM, BD_UTILISATEUR et BD_MOT_DE_PASSE dans pupitre/.env (modèle : pupitre/.env.exemple).\n");
     exit(1);
 }
-if (!preg_match('/^[A-Za-z0-9_]+$/', env('BD_NOM'))) { fwrite(STDERR, "BD_NOM : lettres, chiffres et tiret bas seulement.\n"); exit(1); }
+if (!preg_match('/^[A-Za-z0-9_-]+$/', env('BD_NOM'))) { fwrite(STDERR, "BD_NOM : lettres, chiffres, tiret et tiret bas seulement.\n"); exit(1); }
 try {
     $serveur = new PDO(sprintf('mysql:host=%s;port=%s;charset=utf8mb4', env('BD_HOTE', '127.0.0.1'), env('BD_PORT', '3306')),
         env('BD_UTILISATEUR'), env('BD_MOT_DE_PASSE'), [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
