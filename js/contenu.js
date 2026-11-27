@@ -1,5 +1,5 @@
 /* ==========================================================================
-   contenu.js · textes du site (français, anglais) et outils de langue
+   contenu.js · textes du site, dans chacune de ses langues, et outils de langue
 
    Chargé dans le <head>, avant tout le reste, sur toutes les pages. Deux parties :
 
@@ -11,20 +11,38 @@
       doux, bouton de retour en haut de page), liens sortants ouverts dans un
       nouvel onglet.
 
-   Deux sources de textes. Les libellés d'interface (menu, boutons, intitulés
-   de colonnes) sont dans le dictionnaire ci-dessous. Les textes éditables
-   (citation, biographie, mention de saison, texte de la lettre, crédit du
-   pied de page, description de la page) viennent de data/textes.js, écrit par
-   Pupitre et chargé avant ce fichier : ils complètent le dictionnaire.
+   Trois fichiers écrits par Pupitre sont chargés avant celui-ci :
+   - data/site.js (window.SITE) : les langues du site, la langue par défaut,
+     la langue de référence (celle de rédaction, qui sert de repli quand une
+     traduction manque), la couleur de fond, les blocs visibles ;
+   - data/libelles.js (window.LIBELLES) : les libellés d'interface (menu,
+     boutons, intitulés de colonnes), dans chaque langue ;
+   - data/textes.js (window.TEXTES) : les textes éditables (citation,
+     biographie, mention de saison, texte de la lettre, crédit du pied de
+     page, description de la page).
+   Le dictionnaire ci-dessous n'est plus qu'un secours, en français et en
+   anglais, si data/libelles.js manque : Pupitre fait foi.
 
-   Le HTML statique porte le français (repli sans JavaScript) ; en français,
-   appliquer() compare ce repli au dictionnaire et consigne les différences
-   dans SiteContenu.ecarts (contrôle de cohérence, doit rester vide).
+   Ajouter une langue ne demande aucun changement ici : elle se déclare dans
+   Pupitre (Langues), qui l'écrit dans data/site.js.
+
+   Le HTML statique porte la langue par défaut du site (repli sans
+   JavaScript) ; dans cette langue, appliquer() compare ce repli au
+   dictionnaire et consigne les différences dans SiteContenu.ecarts (contrôle
+   de cohérence, doit rester vide).
    ========================================================================== */
 (function () {
   'use strict';
 
-  var LANGUES = ['fr', 'en'];
+  /* Réglages du site : data/site.js. Sans ce fichier, le site d'avant : français et anglais. */
+  var SITE = window.SITE || {};
+  var REGLAGE_LANGUES = SITE.langues || {};
+  var LISTE_LANGUES = (Array.isArray(REGLAGE_LANGUES.liste) && REGLAGE_LANGUES.liste.length)
+    ? REGLAGE_LANGUES.liste
+    : [{ code: 'fr', nom: 'Français', locale: 'fr-FR' }, { code: 'en', nom: 'English', locale: 'en-GB' }];
+  var LANGUES = LISTE_LANGUES.map(function (l) { return l.code; });
+  var REFERENCE = LANGUES.indexOf(REGLAGE_LANGUES.reference) >= 0 ? REGLAGE_LANGUES.reference : LANGUES[0];
+  var DEFAUT = LANGUES.indexOf(REGLAGE_LANGUES.defaut) >= 0 ? REGLAGE_LANGUES.defaut : REFERENCE;
   var CLE_LANGUE = 'pb-langue';
   var NBSP = ' ';
   var racineDoc = document.documentElement;
@@ -41,7 +59,10 @@
     try { window.localStorage.setItem(CLE_LANGUE, l); } catch (e) { /* stockage indisponible */ }
   }
 
-  var langue = 'fr';
+  /* La langue : celle que demande l'adresse (?lang=), sinon celle que le visiteur a choisie à une
+     visite précédente, sinon la langue par défaut du site. La langue du navigateur n'est pas
+     consultée. */
+  var langue = DEFAUT;
   (function () {
     var p = parametres();
     var demandee = p ? p.get('lang') : null;
@@ -49,19 +70,21 @@
     var memo = lireMemoire();
     if (LANGUES.indexOf(memo) >= 0) langue = memo;
   })();
+  /* La langue du HTML statique, telle que Pupitre l'a écrite : <html lang>. */
+  var langueStatique = racineDoc.getAttribute('lang') || DEFAUT;
   racineDoc.lang = langue;
 
-  /* En anglais, les textes statiques (français) restent cachés jusqu'à leur
-     remplacement, pour ne pas montrer une page en deux langues. Garde-fou de
-     4 s, comme le moteur : si quelque chose casse, le français s'affiche. */
-  if (langue !== 'fr') {
+  /* Dans une autre langue que celle du HTML statique, les textes statiques restent cachés
+     jusqu'à leur remplacement, pour ne pas montrer une page en deux langues. Garde-fou de
+     4 s, comme le moteur : si quelque chose casse, le texte statique s'affiche. */
+  if (langue !== langueStatique) {
     racineDoc.classList.add('i18n-attente');
     setTimeout(function () { racineDoc.classList.remove('i18n-attente'); }, 4000);
   }
 
   /* ---------- 1. Dictionnaire -------------------------------------------- */
-  /* clé : [français, anglais]. *…* = italique. Les espaces insécables sont
-     posées par typo(), pas à la main. */
+  /* Secours si data/libelles.js manque. clé : [français, anglais]. *…* = italique. Les espaces
+     insécables sont posées par typo(), pas à la main. */
 
   var T = {
     'meta.titre': ['Pierre Bleuse, chef d\'orchestre', 'Pierre Bleuse, conductor'],
@@ -75,11 +98,17 @@
     'nav.contact': ['Contact', 'Contact'],
 
     'ouverture.defiler': ['Faire défiler la page', 'Scroll down'],
+    'ouverture.scroll': ['Scroll', 'Scroll'],
+    'video.lire': ['Lire la vidéo', 'Play the video'],
+    'video.pause': ['Mettre la vidéo en pause', 'Pause the video'],
+    'video.suivante': ['Vidéo suivante', 'Next video'],
+    'video.precedente': ['Vidéo précédente', 'Previous video'],
+    'video.position': ['Vidéo {n} sur {total}', 'Video {n} of {total}'],
     'lecteur.play': ['Play', 'Play'],
     'lecteur.pause': ['Pause', 'Pause'],
     'lecteur.titres': ['Choisir la musique', 'Choose the music'],
 
-    'agenda.titre': ['Agenda', 'Concerts'],
+    'agenda.titre': ['Les prochains concerts', 'Upcoming concerts'],
     'agenda.affiche': ['À l\'affiche', 'Coming up'],
     'agenda.saison': ['Les concerts', 'The concerts'],
     'agenda.tempsFort': ['Temps fort', 'Highlight'],      /* plus affiché : gardé avec le drapeau tempsFort des données */
@@ -118,15 +147,37 @@
     'concerts.compte.un': ['{n} concert', '{n} concert'],
     'concerts.compte.n': ['{n} concerts', '{n} concerts'],
     'concerts.aucun': ['Aucun concert ne correspond à cette recherche.', 'No concert matches this search.'],
+    'concerts.detail': ['Détail du concert', 'Concert details'],
+    'concerts.fermer': ['Refermer', 'Close'],
+    'concerts.presse': ['Revue de presse de ce concert', 'Press reviews'],
+    'concerts.description': ['Présentation', 'About'],
 
     'disques.titre': ['Discographie', 'Discography'],
     'disques.mot': ['Le mot de Pierre Bleuse', 'A word from Pierre Bleuse'],
     'disques.commander': ['Commander', 'Order'],
     'disques.streaming': ['Écouter', 'Listen'],
+    'disques.plus': ['En savoir plus', 'Find out more'],
+    'disques.presentation': ['Présentation', 'About the recording'],
+    'disques.contexte': ['Contexte artistique', 'Artistic context'],
+    'disques.oeuvres': ['Œuvres', 'Works'],
+    'disques.compositeurs': ['Compositeurs', 'Composers'],
+    'disques.interpretes': ['Interprètes', 'Performers'],
+    'disques.infos': ['À propos des œuvres', 'About the works'],
+    'disques.distinctions': ['Distinctions', 'Awards'],
+    'disques.critiques': ['La critique', 'Reviews'],
+    'disques.page': ['Page de l\'album', 'Album page'],
+    'disques.sortie': ['Sortie', 'Released'],
+    'disques.image': ['Image {n} sur {total}', 'Image {n} of {total}'],
+    'disques.image.suivante': ['Image suivante', 'Next image'],
+    'disques.image.precedente': ['Image précédente', 'Previous image'],
+    'panneau.fermer': ['Refermer', 'Close'],
 
     'parcours.titre': ['Parcours', 'Biography'],
     'parcours.fonctions': ['Fonctions', 'Positions'],
-    'parcours.opera': ['Opéra et création', 'Opera and new music'],
+    'parcours.opera': ['Opéra et création', 'Opera and new music'],      /* plus affiché : la rubrique est remplacée par parcours.collaborations */
+    'parcours.collaborations': ['Grands débuts et collaborations', 'Major debuts and collaborations'],
+    'parcours.depuis': ['depuis {annee}', 'since {annee}'],
+    'parcours.periode': ['{debut} à {fin}', '{debut} to {fin}'],
     'parcours.invites': ['Orchestres invités (sélection)', 'Guest conducting (selection)'],
     'parcours.zone.ameriques': ['Amériques', 'Americas'],
     'parcours.zone.europe-afrique': ['Europe et Afrique', 'Europe and Africa'],
@@ -136,6 +187,18 @@
 
     'presse.titre': ['Presse', 'Press'],
     'presse.lire': ['Lire l\'article', 'Read the article'],
+    'presse.plus': ['En savoir plus', 'Read more'],
+    'presse.traduction': ['Traduction', 'Translation'],
+    'presse.concerts': ['Concerts associés', 'Related concerts'],
+    'presse.albums': ['Albums associés', 'Related albums'],
+    'presse.citations': ['Autres citations', 'More quotes'],
+    'presse.auteur': ['Par {auteur}', 'By {auteur}'],
+    'presse.type.critique_concert': ['Critique de concert', 'Concert review'],
+    'presse.type.critique_album': ['Critique d\'album', 'Album review'],
+    'presse.type.portrait': ['Portrait', 'Profile'],
+    'presse.type.interview': ['Interview', 'Interview'],
+    'presse.type.actualite': ['Actualité', 'News'],
+    'presse.type.autre': ['Publication', 'Publication'],
     'presse.tous': ['Tous les articles', 'All articles'],
     'presse.col.media': ['Média', 'Publication'],
     'presse.col.article': ['Article', 'Article'],
@@ -170,16 +233,27 @@
     'yt.bouton': ['Charger la vidéo', 'Load the video']
   };
 
-  /* Textes éditables : data/textes.js (window.TEXTES), chaque champ en { fr, en }. La biographie
-     est une liste de paragraphes : bio.p1, bio.p2… Sans ce fichier, les clés manquent et le
-     français du HTML reste en place. */
+  /* Le dictionnaire de secours devient { fr, en } par clé, comme les données de Pupitre. */
+  Object.keys(T).forEach(function (cle) { T[cle] = { fr: T[cle][0], en: T[cle][1] }; });
+
+  /* Une entrée de Pupitre : une chaîne (même texte dans toutes les langues) ou { fr, en, … }. */
+  function completer(cle, champ) {
+    if (champ == null) return;
+    if (typeof champ === 'string') { var o = {}; o[REFERENCE] = champ; T[cle] = o; return; }
+    if (typeof champ === 'object') T[cle] = champ;
+  }
+
+  /* Libellés d'interface : data/libelles.js (window.LIBELLES). */
+  (function () {
+    var L = window.LIBELLES || {};
+    Object.keys(L).forEach(function (cle) { completer(cle, L[cle]); });
+  })();
+
+  /* Textes éditables : data/textes.js (window.TEXTES), chaque champ en chaîne ou en { fr, en, … }.
+     La biographie est une liste de paragraphes : bio.p1, bio.p2… Sans ce fichier, les clés
+     manquent et le texte du HTML reste en place. */
   (function () {
     var D = window.TEXTES || {};
-    function completer(cle, champ) {
-      if (champ == null) return;
-      if (typeof champ === 'string') { T[cle] = [champ, champ]; return; }
-      if (typeof champ.fr === 'string') T[cle] = [champ.fr, champ.en || champ.fr];
-    }
     completer('meta.description', D.description);
     completer('ouverture.citation', D.citation);
     completer('agenda.mention', D.saison);
@@ -190,20 +264,22 @@
 
   /* ---------- 1. Outils de texte ----------------------------------------- */
 
-  /* Texte d'une clé dans la langue courante, avec remplacement de {n}, {date}… */
+  /* Texte d'une clé dans la langue courante, avec remplacement de {n}, {date}… Traduction
+     manquante : le texte de la langue de référence. */
   function t(cle, vars) {
-    var paire = T[cle];
-    if (!paire) return '';
-    var s = paire[langue === 'en' ? 1 : 0];
+    var entree = T[cle];
+    if (!entree) return '';
+    var s = entree[langue] || entree[REFERENCE] || entree.fr || '';
     if (vars) s = s.replace(/\{(\w+)\}/g, function (m, k) { return (k in vars) ? String(vars[k]) : m; });
     return s;
   }
 
-  /* Champ de données écrit soit en chaîne, soit en { fr, en }. */
+  /* Champ de données écrit soit en chaîne, soit en { fr, en, … }. Traduction manquante : le
+     texte de la langue de référence. */
   function choisir(champ) {
     if (champ == null) return '';
     if (typeof champ === 'string' || typeof champ === 'number') return String(champ);
-    return champ[langue] || champ.fr || '';
+    return champ[langue] || champ[REFERENCE] || champ.fr || '';
   }
 
   /* Typographie : espaces insécables avant : ; ? ! », après « et après n° / No. */
@@ -241,10 +317,45 @@
     return String(h).replace(/[ \t\r\n]+/g, ' ').trim();
   }
 
+  /* Blocs masqués dans Pupitre (data/site.js) : la section quitte la page, avec son entrée de
+     menu. Elle n'occupe aucune place, ne compte ni dans l'aimantation ni dans le parcours du
+     bouton Scroll, et ses médias ne sont pas chargés. Le <head> porte déjà la règle CSS qui la
+     cache dès le premier affichage. */
+  function retirerBlocsMasques(racine) {
+    var blocs = SITE.blocs || {};
+    Object.keys(blocs).forEach(function (cle) {
+      if (blocs[cle] !== false) return;
+      var n = document.getElementById(cle);
+      if (n && n.parentNode) n.parentNode.removeChild(n);
+      racine.querySelectorAll('[data-menu-liste] a[href="#' + cle + '"]').forEach(function (a) {
+        var li = a.closest('li') || a;
+        if (li.parentNode) li.parentNode.removeChild(li);
+      });
+    });
+  }
+  function blocVisible(cle) {
+    return !(SITE.blocs && SITE.blocs[cle] === false);
+  }
+
+  /* Bascule de langue : un lien par langue du site. Le HTML en porte déjà la liste (zone écrite
+     par Pupitre) ; elle n'est refaite que si elle ne dit pas la même chose. */
+  function poserLangues(racine) {
+    racine.querySelectorAll('[data-langues]').forEach(function (boite) {
+      var presentes = Array.prototype.map.call(boite.querySelectorAll('[data-langue]'), function (a) { return a.getAttribute('data-langue'); });
+      if (presentes.join(',') === LANGUES.join(',')) return;
+      boite.innerHTML = LANGUES.map(function (l) {
+        return '<a href="?lang=' + l + '" data-langue="' + l + '" lang="' + l + '" hreflang="' + l + '">' + l.toUpperCase() + '</a>';
+      }).join('<span class="sep" aria-hidden="true">|</span>');
+    });
+  }
+
   function appliquer(racine) {
     racine = racine || document;
-    var fr = (langue === 'fr');
+    var fr = (langue === langueStatique);          /* la langue du HTML statique : le repli se compare au dictionnaire */
     var sonde = document.createElement('div');
+
+    retirerBlocsMasques(racine);
+    poserLangues(racine);
 
     racine.querySelectorAll('[data-t]').forEach(function (n) {
       var cle = n.getAttribute('data-t');
@@ -271,10 +382,14 @@
       });
     });
 
-    /* Pages rédigées en entier dans les deux langues (mentions légales, confidentialité,
-       crédits) : un bloc par langue, seul celui de la langue courante reste affiché. */
-    racine.querySelectorAll('[data-langue-bloc]').forEach(function (n) {
-      n.hidden = (n.getAttribute('data-langue-bloc') !== langue);
+    /* Pages rédigées en entier dans plusieurs langues (mentions légales, confidentialité,
+       crédits) : un bloc par langue, seul celui de la langue courante reste affiché ; si la page
+       n'est pas rédigée dans cette langue, celui de la langue par défaut, sinon de référence. */
+    var blocsLangue = racine.querySelectorAll('[data-langue-bloc]');
+    var redigees = Array.prototype.map.call(blocsLangue, function (n) { return n.getAttribute('data-langue-bloc'); });
+    var langueBloc = redigees.indexOf(langue) >= 0 ? langue : (redigees.indexOf(DEFAUT) >= 0 ? DEFAUT : (redigees.indexOf(REFERENCE) >= 0 ? REFERENCE : redigees[0]));
+    blocsLangue.forEach(function (n) {
+      n.hidden = (n.getAttribute('data-langue-bloc') !== langueBloc);
     });
 
     /* Titre de la page : <html data-titre="clé"> sur les pages secondaires. */
@@ -283,7 +398,7 @@
     var desc = document.querySelector('meta[name="description"]');
     if (desc && T['meta.description']) desc.setAttribute('content', brut(t('meta.description')));
 
-    /* Bascule de langue : deux liens qui rechargent la page dans l'autre
+    /* Bascule de langue : des liens qui rechargent la page dans une autre
        langue, en gardant les autres paramètres (?date=, ?reduit=…). */
     racine.querySelectorAll('[data-langue]').forEach(function (a) {
       var l = a.getAttribute('data-langue');
@@ -454,10 +569,18 @@
   if (document.body) installerRetourHaut();
   else document.addEventListener('DOMContentLoaded', installerRetourHaut);
 
+  var LOCALES_CONNUES = { fr: 'fr-FR', en: 'en-GB' };
+  var locale = (LISTE_LANGUES.filter(function (l) { return l.code === langue; })[0] || {}).locale || LOCALES_CONNUES[langue] || langue;
+
   window.SiteContenu = {
     langue: langue,
     langues: LANGUES.slice(),
-    locale: langue === 'en' ? 'en-GB' : 'fr-FR',
+    reference: REFERENCE,
+    defaut: DEFAUT,
+    statique: langueStatique,
+    locale: locale,
+    site: SITE,
+    blocVisible: blocVisible,
     parametres: parametres,
     t: t,
     choisir: choisir,

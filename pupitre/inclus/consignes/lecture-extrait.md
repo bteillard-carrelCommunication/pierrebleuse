@@ -16,6 +16,7 @@ Règles de transcription :
 - `programme` : une entrée par œuvre, dans l'ordre du document. `mention` reçoit ce que le document précise sur l'œuvre (création mondiale, commande, première française) ; sinon `null`.
 - `solistes` : une entrée par personne ou par groupe invité, avec son instrument, sa voix ou son rôle s'il est écrit. Le chef d'orchestre dont c'est l'agenda n'est pas un soliste.
 - `mentions` : ce que le document précise sur l'engagement et qui n'a pas d'autre place (débuts avec l'orchestre, enregistrement, diffusion, partenaire). Les remarques internes de l'agence (cachet, voyages, hébergement, contrats) n'en font pas partie : ne les recopie nulle part.
+- `annulee` : vrai seulement si le document dit en toutes lettres que cette représentation est annulée (« annulé », « cancelled », « abgesagt », une ligne barrée accompagnée de cette mention). Rends alors la représentation comme les autres, avec sa date, et recopie dans `motif` ce que le document en dit. Une date qui ne figure plus dans le document n'est pas une annulation : ne rends rien pour elle. Une date reportée n'est pas annulée : rends la nouvelle date, `annulee` à faux. Dans tous les autres cas, `annulee` est faux et `motif` est `null`.
 - `date_extrait` : la date à laquelle l'extrait a été établi, si le document la porte ; sinon `null`.
 
 Si le document ne contient aucun engagement lisible, rends une liste vide.

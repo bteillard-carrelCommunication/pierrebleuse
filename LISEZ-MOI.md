@@ -7,12 +7,107 @@ fonctionnent toujours, on n'y modifie plus rien.
 Ouvrir : `http://localhost:8888/pierrebleuse/` (MAMP). Le site n'est pas en ligne :
 `<meta name="robots" content="noindex">` reste en place jusqu'au lancement.
 
-Dernier état : retours du 13/11/2026 appliqués (ordre des fiches de l'agenda, logo en image,
-ouverture sur téléphone, recherche dans `concerts.html`, police Inria Serif, découpes des visuels,
-ordre des contacts, orchestres invités complétés ; voir « Choix faits »). Le site est administré par Pupitre (`pupitre/`, voir « Pupitre » ci-dessous et
-`pupitre/LISEZ-MOI.md`). Tout ce qui s'édite est dans `data/`, au format que Pupitre écrit (voir
-« Données » et « Repli sans JavaScript »). Le témoin du rendu (`python3 outils/temoin.py`) a été
-repris le 13/11/2026, après ces retours.
+Dernier état : **intervention du 27/11/2026** (cahier des charges
+`docs/cahier-des-charges-pupitre.md`), décrite dans la section qui suit. Le site est administré par
+Pupitre (`pupitre/`, voir « Pupitre » ci-dessous et `pupitre/LISEZ-MOI.md`) : tout ce qui s'édite
+est dans `data/`, au format que Pupitre écrit. Les sections plus bas décrivent la page telle
+qu'elle était après les retours du 13/11/2026 ; ce qui n'est pas repris dans « Intervention du
+27/11/2026 » n'a pas changé (nuée, moteur, matrice, barre du haut, aimantation, musique, lumière,
+pages légales), et là où les deux se contredisent, c'est la section du 27/11 qui dit vrai.
+
+## Intervention du 27/11/2026 : ce qui a changé sur le site
+
+**Réglages généraux (`data/site.js`).** Les langues du site, la langue de la première visite, la
+couleur de fond (variables CSS `--bg` et `--bg-rvb`, posées dans le `<head>` de chaque page) et la
+liste des blocs affichés. Un bloc masqué dans Pupitre n'occupe plus de place, quitte le menu, ne
+compte ni dans l'aimantation ni dans le parcours du bouton Scroll, et ne charge pas ses médias.
+
+**Langues.** Le site s'ouvre en **anglais**. Le français est proposé par la bascule (FR | EN) ;
+le choix du visiteur est retenu par son navigateur, une adresse `?lang=fr` l'emporte, et la langue
+du navigateur n'est pas consultée. Le HTML statique est écrit par Pupitre dans la langue de la
+première visite : `<html lang>`, titre, description, menus, intitulés, zones de repli, dates. Les
+libellés de l'interface sont dans `data/libelles.js` (administrés dans Pupitre) ; le dictionnaire
+de `js/contenu.js` n'est plus qu'un secours. Dans la langue du HTML statique, `SiteContenu.ecarts`
+(console) doit rester vide. Une langue de plus s'ajoute dans Pupitre, sans toucher au code.
+
+**Hero.** La citation et, sous elle, un lecteur réduit à deux pictogrammes : lecture ou pause, et
+liste des titres (volet). Sur téléphone, ces deux pictogrammes sont dans la barre du haut, comme
+avant. Le morceau d'ouverture se choisit dans Pupitre (« Playlist ») ; la lecture automatique
+garde ses règles (elle démarre au premier geste si le navigateur la retient). Le pictogramme de
+défilement est devenu un bouton fixe, centré en bas de l'écran, avec le mot « Scroll » : chaque
+clic mène à la section suivante, jusqu'au pied de page, où il s'efface.
+
+**Édito.** Le texte de l'édito est justifié, avec césure.
+
+**Blocs visuels.** Trois emplacements neutres (`visuel-1`, `visuel-2`, `visuel-3`) et le fond de
+« Restons en contact » (`suivre`) ; leur contenu se règle dans Pupitre (« Blocs visuels »). Ordre
+d'aujourd'hui : la photographie en lumière `bleuse-1`, puis la captation vidéo ; le troisième
+bloc (photographie `bleuse-3`) est masqué. Sur un bloc visuel, la nuée n'est pas visible : le
+média couvre la section, la nuée continue derrière. Un bloc peut porter plusieurs vidéos : le
+visiteur passe de l'une à l'autre (flèches, position, titre et description), en fichier ou sur
+YouTube (chargée après accord). Une vidéo qui joue avec son son prend le relais de la musique et
+le lui rend. Les animations sont des modules d'un registre (`js/animations.js`) ; l'algorithme de
+« lumière » n'a pas été touché.
+
+**Agenda.** Le titre devient « Les prochains concerts ». Le titre d'un concert mène à la page de
+l'organisateur quand elle est connue, sinon à sa fiche, un panneau dépliable de `concerts.html`
+(`concerts.html#c-<identifiant>`) : programme, interprètes, description, et « Revue de presse de
+ce concert » quand des articles lui sont associés.
+
+**Discographie.** Chaque album garde sa vignette ; « En savoir plus » ouvre un panneau détaillé
+sous la rangée : visuels en diaporama, informations générales, présentation, mot de l'artiste,
+distinctions, « La critique » (articles associés), plateformes d'écoute en pictogrammes, liens de
+commande. Sur téléphone, le panneau tient dans la hauteur de l'écran et défile en lui-même. Les
+deux distinctions du disque Ligeti figurent sur sa vignette.
+
+**Parcours.** « Fonctions » (la fonction en cours en tête, périodes écrites par le site), puis
+« Grands débuts et collaborations », qui remplace « Opéra et création » : cinq lignes au plus,
+choisies dans Pupitre. Aucune n'étant encore publiée, la rubrique ne s'affiche pas. La carte du
+monde place chaque orchestre dans sa ville.
+
+**Presse.** Sur l'accueil, une grille de quatre colonnes où chaque article choisi occupe une,
+deux ou quatre colonnes ; la vignette montre le média (son logo, ou son nom), la citation
+principale et le chapeau. Elle ouvre un panneau détaillé : résumé, citations dans leur langue
+avec leur traduction présentée comme telle, visuels, concerts et albums associés, « Lire
+l'article ». `presse.html` liste tous les articles publiés (`presse.html#a-<identifiant>`).
+Les huit exemples de maquette sont désormais dans la collection de Pupitre, marqués `exemple` ;
+`data/presse-exemples.js` n'est plus chargé.
+
+**Téléchargement.** Apparence inchangée. Une ressource peut porter un fichier ou une adresse, la
+langue du document (`hreflang`) et, s'il y en a, une ligne discrète : description, crédits,
+conditions d'utilisation.
+
+**Restons en contact.** Le bloc de texte est à gauche de la matrice (colonnes 1 à 4), sur un fond
+sombre légèrement transparent ; la photographie est cadrée plus haut (64 % / 28 %) : le visage
+reste dégagé à tous les formats, écrans très larges compris (vérifié à 1024, 1440, 1920, 2560 et
+3440 px). Sur téléphone, le bloc reste sous le visage, sur son dégradé.
+
+**Pied de page.** Inchangé. Le texte libre, à droite, garde les retours à la ligne saisis dans
+Pupitre ; les liens vers les pages légales, à gauche, restent posés par le site.
+
+**Fichiers de `data/` ajoutés ou changés.**
+
+| Fichier | Variable | Forme |
+|---|---|---|
+| `data/site.js` | `SITE` | `langues` (`reference`, `defaut`, `liste` de `{ code, nom, locale }`), `fond`, `blocs` (clé du bloc : vrai ou faux) |
+| `data/libelles.js` | `LIBELLES` | clé du libellé : chaîne, ou `{ fr, en, … }` |
+| `data/playlist.js` | `PLAYLIST` | par titre : `id`, `src`, `piste`, `titre`, `mention`, `ouverture` (le morceau d'ouverture), et, s'ils sont saisis, compositeur, œuvre, mouvement, orchestre, interprètes, nature, crédits |
+| `data/visuels.js` | `VISUELS` | par bloc : `elements`, liste de `{ type (image, video, youtube), src ou id, alt, position, positionMobile, animation { module, preset }, affiche, son, piste, titre, description, credit }` |
+| `data/agenda.js` | `AGENDA_DONNEES` | par événement, en plus : `description` quand elle est saisie ; un concert dépublié n'y figure pas |
+| `data/disques.js` | `DISQUES` | en plus : sous-titre, date de sortie, œuvres, interprètes, présentation, contexte, citations, `ecouter` et `commander` (listes de `{ plateforme, nom, url }`), `distinctions`, `visuels`, `articles` |
+| `data/presse.js` | `PRESSE` | par article : `type`, `media`, `logo`, `titre`, `auteur`, `date`, `langue`, `citations` (liste de `{ texte, langue, principale, traduction }`), `chapeau`, `resume`, `infos`, `lien`, `accueil`, `rang`, `largeur` (1, 2 ou 4), `visuels`, `concerts`, `albums`, `exemple` |
+| `data/parcours.js` | `PARCOURS` | `fonctions` (`intitule`, `institution`, `debut`, `fin`, `actuelle`, `une`), `collaborations` |
+| `data/orchestres.js` | `ORCHESTRES` | inchangé ; seules les lignes « affichées » y figurent |
+| `data/telechargements.js` | `TELECHARGEMENTS` | `id`, `libelle`, `fichier` (chemin ou adresse), et, s'ils sont saisis, `type`, `langue`, `description`, `credit`, `conditions` |
+
+**Repères ajoutés dans les pages** (zones réécrites par Pupitre) : `SITE` (couleur de fond et
+blocs masqués, dans le `<head>`), `LANGUES` (la bascule de langue), `VISUEL-1` à `VISUEL-3` et
+`VISUEL-SUIVRE`, `PARCOURS-COLLABORATIONS` (qui remplace `PARCOURS-OPERA`). Hors des repères,
+Pupitre réécrit aussi, dans la langue de la première visite, `<html lang>`, le `<title>`, le
+contenu des éléments `data-t`, les attributs `data-t-attr` et le bloc affiché des pages légales.
+
+**Avant la mise en ligne**, en plus de la liste du bas de ce document : voir
+`pupitre/LISEZ-MOI.md`, « Avant la mise en production ».
 
 ## Pupitre
 
@@ -506,12 +601,14 @@ préférences dans le navigateur (langue, musique en pause), polices Google Font
 chargées depuis des CDN. La tenir à jour si un formulaire, un outil de mesure ou un service tiers
 est ajouté.
 
-## Français et anglais
+## Langues
 
-Français par défaut, anglais avec `?lang=en` (choix mémorisé). Les libellés d'interface sont dans
-le dictionnaire de `js/contenu.js` ; les contenus, dans les champs `{ fr, en }` des fichiers de
-`data/` (`data/textes.js` complète le dictionnaire). En français, `SiteContenu.ecarts` (console)
-doit rester vide.
+Anglais par défaut depuis le 27/11/2026, français avec `?lang=fr` ou par la bascule (choix
+mémorisé, clé `pb-langue`). Les libellés de l'interface viennent de `data/libelles.js`, les
+contenus des champs `{ fr, en, … }` des fichiers de `data/` ; le dictionnaire de `js/contenu.js`
+ne sert que de secours si `data/libelles.js` manque. Une traduction absente laisse place au texte
+de la langue de référence (le français). Voir « Intervention du 27/11/2026 », plus haut, et
+`pupitre/LISEZ-MOI.md`, « Langues et traductions ».
 
 ## Paramètres d'adresse
 
@@ -660,7 +757,8 @@ Node n'est pas installé sur le poste : tout est en Python 3 standard ou en shel
 - Héberger sur le site les polices (Google Fonts) et les bibliothèques (Lenis, GSAP), ou garder
   les mentions correspondantes de la page de confidentialité.
 - Prévoir une version légère de la vidéo pour le téléphone (17 Mo aujourd'hui).
-- Retirer les faux articles de presse (`data/presse-exemples.js`, `assets/presse/exemples/`).
+- Supprimer les faux articles de presse dans Pupitre (« Revue de presse », « Supprimer tous les
+  faux articles »), publier, puis retirer `data/presse-exemples.js` et `assets/presse/exemples/`.
 - `_archives/`, `_sources/`, `docs/` et `pupitre/` ne se déploient pas avec le site statique.
 
 À garder : « Pause de l'animation » dans le pied de page.

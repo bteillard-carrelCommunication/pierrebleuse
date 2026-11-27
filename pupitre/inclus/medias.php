@@ -5,6 +5,13 @@
  * Un fichier déposé est contrôlé (type réel lu dans le fichier, taille), renommé, et rangé dans
  * stockage/medias/, où le serveur web n'entre pas et où PHP ne s'exécute pas. Il n'est copié dans
  * assets/ du site qu'à la publication, s'il est employé.
+ *
+ * Un média peut aussi n'être qu'une adresse externe (image, son, vidéo hébergée, lien YouTube) :
+ * rien n'est alors téléchargé ni copié, le site lit le média là où il est.
+ *
+ * Une seule médiathèque pour tout Pupitre. Le média porte ce qui lui est propre (titre, crédit,
+ * droits, texte alternatif) ; ses usages (media_emplois()) disent où il sert. Il sert à plusieurs
+ * endroits sans être copié, et ne se supprime pas tant qu'il est employé.
  */
 
 defined('PUPITRE') or exit;
@@ -119,6 +126,65 @@ function media_deposer(array $recu, array $meta = [], array $attendus = [])
     return $id;
 }
 
+/** Adresse acceptée pour un média externe : http ou https, sans espace ni guillemet. */
+function adresse_media_valide(string $u): bool
+{
+    return $u !== '' && (bool) preg_match('#^https?://[^\s<>"\']+$#i', $u) && strlen($u) <= 500;
+}
+
+/** Identifiant d'une vidéo YouTube lu dans une adresse (watch?v=, youtu.be/, embed/, shorts/, live/) ; '' sinon. */
+function youtube_id(string $u): string
+{
+    if (!preg_match('#^https?://(?:www\.|m\.)?(?:youtube\.com|youtube-nocookie\.com|youtu\.be)/#i', $u)) return '';
+    return preg_match('#(?:[?&]v=|youtu\.be/|/embed/|/shorts/|/live/)([\w-]{6,20})#', $u, $m) ? $m[1] : '';
+}
+
+/** Identifiant YouTube d'un média à adresse externe ; '' si ce n'en est pas un. */
+function media_youtube(?array $m): string
+{
+    return ($m && ($m['url_externe'] ?? '') !== '') ? youtube_id($m['url_externe']) : '';
+}
+
+/**
+ * Crée un média qui n'est qu'une adresse externe. $type : image, son, video ; vide : deviné d'après
+ * l'adresse. Rend l'identifiant du média, ou une chaîne : le message d'erreur.
+ */
+function media_creer_externe(string $url, string $type = '', array $meta = [])
+{
+    $url = trim($url);
+    if (!adresse_media_valide($url)) return 'Cette adresse est illisible : elle doit commencer par https:// ou http://.';
+    if ($type === '') {
+        $ext = strtolower(pathinfo((string) parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION));
+        if (youtube_id($url) !== '') $type = 'video';
+        elseif (in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'svg', 'gif', 'avif'], true)) $type = 'image';
+        elseif (in_array($ext, ['mp4', 'webm', 'mov', 'm4v'], true)) $type = 'video';
+        elseif (in_array($ext, ['mp3', 'm4a', 'aac', 'ogg', 'wav'], true)) $type = 'son';
+        else return 'Le type de ce média ne se devine pas à son adresse : précisez s\'il s\'agit d\'une image, d\'un son ou d\'une vidéo.';
+    }
+    if (!in_array($type, ['image', 'son', 'video'], true)) return 'Type de média inconnu.';
+    $deja = bd_valeur('SELECT id FROM medias WHERE url_externe = ?', [$url]);
+    if ($deja) return (int) $deja;                    // la même adresse n'entre pas deux fois
+    $c = compte();
+    $nom = youtube_id($url) !== '' ? 'YouTube ' . youtube_id($url) : (basename((string) parse_url($url, PHP_URL_PATH)) ?: (string) parse_url($url, PHP_URL_HOST));
+    $id = objet_enregistrer('medias', null, [
+        'type' => $type, 'url_externe' => $url, 'nom_origine' => mb_substr($nom, 0, 255),
+        'titre' => mb_substr(trim((string) ($meta['titre'] ?? '')), 0, 255),
+        'alt_fr' => mb_substr(trim((string) ($meta['alt_fr'] ?? '')), 0, 500),
+        'credit' => mb_substr(trim((string) ($meta['credit'] ?? '')), 0, 255),
+        'droits' => trim((string) ($meta['droits'] ?? '')),
+        'cree_par' => $c['id'] ?? null,
+    ], 'media', $nom);
+    $GLOBALS['medias_perimes'] = true;
+    return $id;
+}
+
+/** Un média peut-il sortir sur le site ? Un fichier ou une adresse, et des droits d'utilisation validés. */
+function media_publiable(?array $m): bool
+{
+    if (!$m || (int) ($m['droits_valides'] ?? 1) !== 1) return false;
+    return media_chemin_site($m) !== '';
+}
+
 /** Chemin du fichier d'un média sur le disque : dans stockage/, sinon dans le site. '' s'il manque. */
 function media_fichier(array $m): string
 {
@@ -135,23 +201,66 @@ function media_fichier(array $m): string
 
 function media_adresse(int $id): string
 {
+    $m = medias_par_id()[$id] ?? null;
+    if ($m && ($m['url_externe'] ?? '') !== '') return $m['url_externe'];
     return chemin_pupitre() . '/media.php?id=' . $id;
 }
 
 function media_nom(array $m): string
 {
+    if (trim((string) ($m['titre'] ?? '')) !== '') return $m['titre'];
     return $m['nom_origine'] !== '' ? $m['nom_origine'] : basename((string) ($m['chemin_site'] ?: $m['fichier']));
 }
 
-/** Les endroits où un média est employé : [[libellé, adresse dans Pupitre], …]. */
+/**
+ * Aperçu d'un média dans Pupitre : image, lecteur de son ou de vidéo, vignette d'une vidéo YouTube,
+ * lien d'un document. $classe : classe CSS de l'image ou du lecteur.
+ */
+function media_apercu(?array $m, string $classe = 'apercu-media'): string
+{
+    if (!$m) return '<p class="rien">Pas de média.</p>';
+    $id = (int) $m['id'];
+    $externe = ($m['url_externe'] ?? '') !== '';
+    if (!$externe && media_fichier($m) === '') return '<p class="message message--erreur">Le fichier de ce média est introuvable.</p>';
+    $src = e(media_adresse($id));
+    if ($m['type'] === 'image') return '<img class="' . e($classe) . '" src="' . $src . '" alt="' . e($m['alt_fr']) . '" loading="lazy">';
+    if ($m['type'] === 'son') return '<audio controls preload="none" src="' . $src . '"></audio>';
+    if ($m['type'] === 'video') {
+        $yt = media_youtube($m);
+        if ($yt !== '') {
+            return '<a class="apercu-youtube ' . e($classe) . '" href="' . e($m['url_externe']) . '" target="_blank" rel="noopener">'
+                . '<img src="https://i.ytimg.com/vi/' . e($yt) . '/hqdefault.jpg" alt="" loading="lazy"><span>Vidéo YouTube · ouvrir</span></a>';
+        }
+        return '<video class="lecteur ' . e($classe) . '" controls preload="metadata" src="' . $src . '"></video>';
+    }
+    return '<p><a class="bouton" href="' . $src . '">Télécharger le document</a></p>';
+}
+
+/** Noms des objets qui emploient des médias par `medias_usages` : table => [nom, page de Pupitre, paramètre de la clé, paramètres fixes]. */
+const OBJETS_A_MEDIAS = [
+    'blocs' => ['Bloc', 'visuels', '', []],
+    'disques' => ['Album', 'disque', 'id', []],
+    'articles' => ['Article de presse', 'article', 'id', []],
+];
+
+/**
+ * Les endroits où un média est employé : [[libellé, adresse dans Pupitre], …]. Tous les usages y
+ * sont : ceux de `medias_usages` (éléments des blocs visuels, visuels des albums et des articles) et
+ * ceux des tables qui ne désignent qu'un média (titres de la playlist, téléchargements, logos).
+ */
 function media_emplois(int $id): array
 {
     $e = [];
-    foreach (bd_lignes('SELECT cle FROM visuels WHERE media_id = ? OR affiche_id = ?', [$id, $id]) as $v) {
-        $e[] = ['Visuel « ' . $v['cle'] . ' »', url('visuels')];
+    foreach (bd_lignes('SELECT * FROM medias_usages WHERE media_id = ? OR affiche_id = ? ORDER BY objet, objet_id, ordre', [$id, $id]) as $u) {
+        [$nom, $page, $param, $fixes] = OBJETS_A_MEDIAS[$u['objet']] ?? [ucfirst($u['objet']), '', '', []];
+        $libelle = $u['objet'] === 'blocs' ? (blocs_tous()[$u['objet_id']]['nom'] ?? $u['objet_id']) : '';
+        if ($u['objet'] === 'disques') $libelle = (string) bd_valeur('SELECT titre FROM disques WHERE id = ?', [$u['objet_id']]);
+        if ($u['objet'] === 'articles') $libelle = (string) bd_valeur('SELECT titre_fr FROM articles WHERE id = ?', [$u['objet_id']]);
+        $adresse = $page === '' ? '' : url($page, $fixes + ($param !== '' ? [$param => $u['objet_id']] : [])) . ($u['objet'] === 'blocs' ? '#' . $u['objet_id'] : '');
+        $e[] = [$nom . ' « ' . preg_replace('/\*/', '', $libelle) . ' »' . ((int) $u['affiche_id'] === $id && (int) $u['media_id'] !== $id ? ' (image d\'attente)' : '') . ($u['publie'] ? '' : ' · non publié'), $adresse];
     }
     foreach (bd_lignes('SELECT titre_fr FROM musiques WHERE media_id = ?', [$id]) as $t) {
-        $e[] = ['Musique « ' . $t['titre_fr'] . ' »', url('musiques')];
+        $e[] = ['Playlist « ' . preg_replace('/\*/', '', $t['titre_fr']) . ' »', url('musiques')];
     }
     foreach (bd_lignes('SELECT libelle_fr FROM telechargements WHERE media_id = ?', [$id]) as $t) {
         $e[] = ['Téléchargement « ' . $t['libelle_fr'] . ' »', url('contenu', ['type' => 'telechargements'])];
@@ -167,7 +276,9 @@ function medias_choix(array $types): array
 {
     $marques = implode(',', array_fill(0, count($types), '?'));
     $choix = [];
-    foreach (bd_lignes("SELECT * FROM medias WHERE type IN ($marques) ORDER BY id DESC", $types) as $m) $choix[(int) $m['id']] = media_nom($m);
+    foreach (bd_lignes("SELECT * FROM medias WHERE type IN ($marques) ORDER BY id DESC", $types) as $m) {
+        $choix[(int) $m['id']] = media_nom($m) . (($m['url_externe'] ?? '') !== '' ? ' (adresse externe)' : '');
+    }
     return $choix;
 }
 
@@ -175,7 +286,8 @@ function media_supprimer(int $id): ?string
 {
     $m = bd_ligne('SELECT * FROM medias WHERE id = ?', [$id]);
     if (!$m) return null;
-    if (media_emplois($id)) return 'Ce média est employé : retirez-le d\'abord des écrans qui s\'en servent.';
+    $emplois = media_emplois($id);
+    if ($emplois) return 'Ce média est employé à ' . pluriel(count($emplois), 'endroit', 'endroits') . ' : retirez-le d\'abord des écrans qui s\'en servent (ils sont listés sur sa fiche).';
     if (!empty($m['fichier'])) @unlink(STOCKAGE . '/medias/' . basename($m['fichier']));
     objet_supprimer('medias', $id, 'media', media_nom($m));
     $GLOBALS['medias_perimes'] = true;

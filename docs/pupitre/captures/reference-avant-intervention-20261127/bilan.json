@@ -1,0 +1,44 @@
+{
+ "accueil-fr": {
+  "url": "http://localhost:8888/pierrebleuse/?lang=fr&date=2026-11-12&muet=1&aimant=0&t=104",
+  "ecarts": "[]",
+  "erreurs": [],
+  "titre": "Pierre Bleuse, chef d'orchestre",
+  "lang": "fr"
+ },
+ "accueil-en": {
+  "url": "http://localhost:8888/pierrebleuse/?lang=en&date=2026-11-12&muet=1&aimant=0&t=104",
+  "ecarts": "[]",
+  "erreurs": [],
+  "titre": "Pierre Bleuse, conductor",
+  "lang": "en"
+ },
+ "concerts-fr": {
+  "url": "http://localhost:8888/pierrebleuse/concerts.html?lang=fr&date=2026-11-12&muet=1&aimant=0&t=104",
+  "ecarts": "[]",
+  "erreurs": [],
+  "titre": "Tous les concerts · Pierre Bleuse",
+  "lang": "fr"
+ },
+ "concerts-en": {
+  "url": "http://localhost:8888/pierrebleuse/concerts.html?lang=en&date=2026-11-12&muet=1&aimant=0&t=104",
+  "ecarts": "[]",
+  "erreurs": [],
+  "titre": "All concerts · Pierre Bleuse",
+  "lang": "en"
+ },
+ "presse-fr": {
+  "url": "http://localhost:8888/pierrebleuse/presse.html?lang=fr&date=2026-11-12&muet=1&aimant=0&t=104",
+  "ecarts": "[]",
+  "erreurs": [],
+  "titre": "Tous les articles · Pierre Bleuse",
+  "lang": "fr"
+ },
+ "presse-en": {
+  "url": "http://localhost:8888/pierrebleuse/presse.html?lang=en&date=2026-11-12&muet=1&aimant=0&t=104",
+  "ecarts": "[]",
+  "erreurs": [],
+  "titre": "All articles · Pierre Bleuse",
+  "lang": "en"
+ }
+}

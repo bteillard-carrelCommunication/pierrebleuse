@@ -21,6 +21,7 @@ const DROITS = [
     'contenus'      => ['pilote', 'editeur'],   // contenus du site
     'medias'        => ['pilote', 'editeur'],   // médiathèque
     'import'        => ['pilote', 'editeur'],   // extrait de l'agence : dépôt et validation
+    'communication' => ['pilote', 'editeur'],   // pilotage de la communication : calendrier éditorial, réseaux, lettre
     'site.voir'     => ['pilote', 'editeur'],   // écran « Le site » : écarts, prévisualisation
     'site.publier'  => ['pilote'],              // publier, revenir à la publication précédente
     'journal'       => ['pilote', 'editeur'],

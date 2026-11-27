@@ -4,6 +4,8 @@
  *
  * Un écran de contenu (pages/contenus/liste.php) affiche une ou plusieurs listes. Chaque liste
  * dit sa table et ses champs ; l'enregistrement, l'ordre, le contrôle et le journal sont communs.
+ * Les collections plus riches (concerts, orchestres, discographie, revue de presse, parcours,
+ * playlist) ont leurs propres écrans et leurs propres fichiers dans inclus/.
  *
  * Types de champ : ligne, texte, bi (français et anglais côte à côte), bi-texte, nombre, decimal,
  * adresse, email, case, date-souple (AAAA-MM-JJ ou AAAA-MM), fiche (annuaire), media (médiathèque), choix.
@@ -12,75 +14,41 @@
 
 defined('PUPITRE') or exit;
 
-/** Les six textes du site, dans l'ordre de l'écran : clé => [libellé, type de champ, aide]. */
+/**
+ * Les textes du site : clé => [libellé, type de champ, aide]. Chacun se règle sur l'écran de son
+ * bloc (inclus/blocs.php, blocs_description()).
+ */
+/** Types de ressources de l'espace de téléchargement. */
+const TYPES_TELECHARGEMENT = ['biographie' => 'Biographie', 'photographie' => 'Photographies', 'document' => 'Document', 'autre' => 'Autre'];
+
 const TEXTES = [
     'citation' => ['Citation de l\'ouverture', 'bi', ''],
-    'biographie' => ['Biographie', 'bi-texte', 'Un paragraphe par bloc : séparez-les par une ligne vide.'],
+    'biographie' => ['Édito', 'bi-texte', 'Un paragraphe par bloc : séparez-les par une ligne vide.'],
     'saison' => ['Mention de saison', 'bi', 'Sous le titre de l\'agenda, sur l\'accueil et sur la page des concerts.'],
     'lettre' => ['Texte de la lettre', 'bi', ''],
-    'credit' => ['Crédit du pied de page', 'bi-texte', ''],
-    'description' => ['Description de la page', 'bi-texte', 'Pour les moteurs de recherche et les partages. Une phrase ou deux.'],
+    'credit' => ['Texte libre du pied de page', 'bi-texte', 'À droite du pied de page : crédits, mentions, droits. Les liens vers les pages légales, à gauche, sont posés par le site.'],
+    'description' => ['Description du site', 'bi-texte', 'Pour les moteurs de recherche et les partages. Une phrase ou deux.'],
 ];
 
 function contenus(): array
 {
     return [
-        'parcours' => [
-            'titre' => 'Parcours',
-            'fichier' => 'data/parcours.js',
-            'apercu' => ['PARCOURS-FONCTIONS' => 'Fonctions', 'PARCOURS-OPERA' => 'Opéra et création'],
-            'listes' => [
-                'fonctions' => ['titre' => 'Fonctions', 'table' => 'parcours_lignes', 'fixe' => ['liste' => 'fonctions'], 'ajout' => 'Ajouter une fonction',
-                    'champs' => [['texte', 'bi', 'Ligne', 'requis' => true]]],
-                'opera' => ['titre' => 'Opéra et création', 'table' => 'parcours_lignes', 'fixe' => ['liste' => 'opera'], 'ajout' => 'Ajouter une ligne',
-                    'champs' => [['texte', 'bi', 'Ligne', 'requis' => true, 'aide' => '*…* pour l\'italique.']]],
-            ],
-        ],
-        'disques' => [
-            'titre' => 'Disques',
-            'fichier' => 'data/disques.js',
-            'intro' => 'Du plus récent au plus ancien : l\'ordre de la liste est celui du site.',
-            'apercu' => ['DISQUES' => ''],
-            'listes' => [
-                'disques' => ['titre' => '', 'table' => 'disques', 'cle' => 'titre', 'ajout' => 'Ajouter un disque', 'champs' => [
-                    ['titre', 'ligne', 'Titre', 'requis' => true, 'aide' => '*…* pour l\'italique.', 'rang' => 'tete'],
-                    ['annee', 'nombre', 'Année', 'rang' => 'tete'],
-                    ['maison_id', 'fiche', 'Maison de disques', 'categories' => ['maison_de_disques'], 'rang' => 'tete'],
-                    ['descriptif', 'bi-texte', 'Descriptif', 'aide' => 'Interprètes, distinctions : une ligne par ligne affichée.'],
-                    ['mot', 'bi-texte', 'Le mot de l\'artiste'],
-                    ['commander', 'texte', 'Liens « Commander »', 'aide' => 'Un par ligne : Nom | https://…', 'rang' => 'liens'],
-                    ['streaming', 'texte', 'Liens « Écouter »', 'aide' => 'Un par ligne : Nom | https://…', 'rang' => 'liens'],
-                    ['lien', 'adresse', 'Page du disque (« En savoir plus »)'],
-                ]],
-            ],
-        ],
-        'presse' => [
-            'titre' => 'Presse',
-            'fichier' => 'data/presse.js',
-            'intro' => 'Les quatre premiers articles sont sur l\'accueil, tous sur la page de la presse. Le logo est celui de la fiche du média, dans l\'annuaire.',
-            'apercu' => ['PRESSE' => ''],
-            'listes' => [
-                'articles' => ['titre' => '', 'table' => 'articles', 'cle' => 'titre_fr', 'ajout' => 'Ajouter un article', 'champs' => [
-                    ['media_id', 'fiche', 'Média', 'categories' => ['media'], 'requis' => true],
-                    ['titre', 'bi', 'Titre de l\'article', 'aide' => '*…* pour l\'italique.'],
-                    ['auteur', 'ligne', 'Auteur', 'rang' => 'signature'],
-                    ['date_article', 'date-souple', 'Date', 'aide' => 'AAAA-MM-JJ, ou AAAA-MM si le jour est inconnu.', 'rang' => 'signature'],
-                    ['verbatim', 'texte', 'Verbatim', 'aide' => 'Cité dans sa langue, avec ses guillemets.'],
-                    ['langue', 'ligne', 'Langue du verbatim', 'aide' => 'Code de la langue : fr, en, de…', 'max' => 2],
-                    ['resume', 'bi-texte', 'Résumé'],
-                    ['lien', 'adresse', 'Adresse de l\'article'],
-                ]],
-            ],
-        ],
         'telechargements' => [
             'titre' => 'Téléchargements',
             'fichier' => 'data/telechargements.js',
-            'intro' => 'Sans fichier, la ligne porte la mention « à venir ». Les fichiers se déposent dans la médiathèque.',
+            'intro' => 'Les ressources de l\'espace de téléchargement : biographies, photographies, autres documents. Sans fichier ni adresse, la ligne porte la mention « à venir ». Une ressource dépubliée quitte le site sans être supprimée. Les fichiers se déposent dans la médiathèque.',
             'apercu' => ['TELECHARGEMENTS' => ''],
             'listes' => [
-                'telechargements' => ['titre' => '', 'table' => 'telechargements', 'cle' => 'libelle_fr', 'ajout' => 'Ajouter une ligne', 'champs' => [
-                    ['libelle', 'bi', 'Libellé', 'requis' => true],
-                    ['media_id', 'media', 'Fichier', 'types' => ['document', 'image']],
+                'telechargements' => ['titre' => '', 'table' => 'telechargements', 'cle' => 'libelle_fr', 'ajout' => 'Ajouter une ressource', 'champs' => [
+                    ['libelle', 'bi', 'Titre', 'requis' => true],
+                    ['type', 'choix', 'Type', 'options' => TYPES_TELECHARGEMENT, 'vide' => '— à préciser —', 'defaut' => '', 'rang' => 'nature'],
+                    ['langue', 'ligne', 'Langue du document', 'max' => 3, 'aide' => 'Son code : fr, en… Vide si la langue est sans objet (photographies).', 'rang' => 'nature'],
+                    ['description', 'bi-texte', 'Description (facultative)', 'aide' => 'Une ligne discrète sous le titre.'],
+                    ['media_id', 'media', 'Fichier (médiathèque)', 'types' => ['document', 'image'], 'rang' => 'source'],
+                    ['url', 'adresse', 'ou adresse du fichier', 'aide' => 'Un fichier ou un dossier hébergé ailleurs. L\'adresse l\'emporte sur le fichier.', 'rang' => 'source'],
+                    ['credit', 'ligne', 'Crédits', 'max' => 255, 'aide' => 'Photographe, auteur, source.'],
+                    ['conditions', 'bi-texte', 'Conditions d\'utilisation (facultatives)', 'aide' => 'Par exemple : « Libre de droits pour la presse, mention du crédit obligatoire ».'],
+                    ['publie', 'case', 'Publié : la ressource figure sur le site', 'defaut' => 1],
                 ]],
             ],
         ],
@@ -122,10 +90,11 @@ function contacts_groupes_choix(): array
     return $c;
 }
 
-/** Colonnes de la base qu'occupe un champ. */
+/** Colonnes qu'occupe un champ dans les données : une par langue des contenus s'il est traduisible, la langue de référence d'abord. */
 function champ_colonnes(array $champ): array
 {
-    return in_array($champ[1], ['bi', 'bi-texte'], true) ? [$champ[0] . '_fr', $champ[0] . '_en'] : [$champ[0]];
+    if (!in_array($champ[1], ['bi', 'bi-texte'], true)) return [$champ[0]];
+    return array_map(fn(string $langue) => $champ[0] . '_' . $langue, langues());
 }
 
 function liste_colonnes(array $liste): array
@@ -190,6 +159,9 @@ function ligne_lire(array $liste, array $recu): array
                 case 'email':
                     if ($v !== '' && !filter_var($v, FILTER_VALIDATE_EMAIL)) $erreurs[] = $libelle . ' : adresse e-mail illisible.';
                     break;
+                case 'date-souple-annee':
+                    if ($v !== '' && !preg_match('/^\d{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12]\d|3[01]))?)?$/', $v)) $erreurs[] = $libelle . ' : AAAA, AAAA-MM ou AAAA-MM-JJ.';
+                    break;
                 case 'date-souple':
                     if ($v !== '' && !preg_match('/^\d{4}-(0[1-9]|1[0-2])(-(0[1-9]|[12]\d|3[01]))?$/', $v)) $erreurs[] = $libelle . ' : AAAA-MM-JJ ou AAAA-MM.';
                     break;
@@ -232,6 +204,8 @@ function liste_enregistrer(string $titre, array $liste, array $recues): array
         if (!is_array($r)) continue;
         [$d, $e] = ligne_lire($liste, $r);
         if ($d === null) continue;
+        // contrôle propre à la liste (option « controle ») : un message, ou rien
+        if (!empty($liste['controle']) && ($m = ($liste['controle'])($d))) $e[] = $m;
         foreach ($e as $m) $erreurs[] = 'Ligne ' . (count($lignes) + 1) . ' · ' . $m;
         $id = ctype_digit((string) ($r['id'] ?? '')) && isset($existantes[(int) $r['id']]) ? (int) $r['id'] : null;
         $lignes[] = [$id, $d];
@@ -277,15 +251,20 @@ function textes_lire(): array
     return $t;
 }
 
-function textes_enregistrer(array $recus): void
+/** Enregistre les textes reçus (champs <clé>_fr, <clé>_en…). $cles : les seuls textes à lire ; sans elles, tous. */
+function textes_enregistrer(array $recus, ?array $cles = null): void
 {
     $avant = textes_lire();
+    $reference = langue_reference();
     foreach (TEXTES as $cle => $_) {
-        $fr = trim(str_replace("\r\n", "\n", (string) ($recus[$cle . '_fr'] ?? '')));
-        $en = trim(str_replace("\r\n", "\n", (string) ($recus[$cle . '_en'] ?? '')));
-        $a = ['fr' => $avant[$cle]['fr'] ?? '', 'en' => $avant[$cle]['en'] ?? ''];
-        if ($a === ['fr' => $fr, 'en' => $en]) continue;
-        bd_requete('INSERT INTO textes (cle, fr, en) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE fr = VALUES(fr), en = VALUES(en)', [$cle, $fr, $en]);
-        journaliser('modification', 'texte', null, TEXTES[$cle][0], $a, ['fr' => $fr, 'en' => $en]);
+        if ($cles !== null && !in_array($cle, $cles, true)) continue;
+        $neuf = [];
+        foreach (langues() as $langue) $neuf[$langue] = trim(str_replace("\r\n", "\n", (string) ($recus[$cle . '_' . $langue] ?? '')));
+        $a = [$reference => (string) ($avant[$cle][$reference] ?? '')];
+        foreach (langues_autres() as $langue) $a[$langue] = (string) (traduction('textes', $cle, 'texte', $langue)['texte'] ?? '');
+        if ($a === $neuf) continue;
+        bd_requete('INSERT INTO textes (cle, ' . bd_nom($reference) . ') VALUES (?, ?) ON DUPLICATE KEY UPDATE ' . bd_nom($reference) . ' = VALUES(' . bd_nom($reference) . ')', [$cle, $neuf[$reference]]);
+        foreach (langues_autres() as $langue) traduction_poser('textes', $cle, 'texte', $langue, $neuf[$langue]);
+        journaliser('modification', 'texte', null, TEXTES[$cle][0], $a, $neuf);
     }
 }

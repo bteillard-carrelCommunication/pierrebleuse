@@ -59,7 +59,7 @@ $comptes = bd_lignes("SELECT * FROM comptes ORDER BY actif DESC, FIELD(role, 'pi
   <?php foreach ($comptes as $c): ?>
     <tr<?= $c['actif'] ? '' : ' class="passee"' ?>>
       <th scope="row"><?= e($c['nom']) ?><?= (int) $c['id'] === (int) $moi['id'] ? ' <span class="puce">vous</span>' : '' ?><?= $c['actif'] ? '' : ' <span class="puce puce--erreur">désactivé</span>' ?></th>
-      <td><?= e($c['email']) ?></td>
+      <td class="insecable"><?= e($c['email']) ?></td>
       <td>
         <form method="post" class="en-ligne"><?= champ_csrf() ?><input type="hidden" name="action" value="role"><input type="hidden" name="id" value="<?= (int) $c['id'] ?>">
           <label class="sr" for="role-<?= (int) $c['id'] ?>">Rôle de <?= e($c['nom']) ?></label>

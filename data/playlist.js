@@ -11,7 +11,8 @@ window.PLAYLIST = [
     "mention": {
       "fr": "Extrait, domaine public",
       "en": "Excerpt, public domain"
-    }
+    },
+    "ouverture": true
   },
   {
     "id": "berlioz",

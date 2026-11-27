@@ -7,6 +7,8 @@
 defined('PUPITRE') or exit;
 
 $type = recu('type');
+// ces collections ont désormais leurs propres écrans
+if (isset(['parcours' => 1, 'disques' => 1, 'presse' => 1][$type])) rediriger(url($type));
 $contenu = contenus()[$type] ?? null;
 if (!$contenu) {
     http_response_code(404);
@@ -32,11 +34,9 @@ if (est_post() && isset($contenu['listes'][recu('liste')])) {
         rediriger(url('contenu', ['type' => $type]));
     }
 }
-$maquette = $type === 'presse' && ($racine = site_racine()) !== '' && str_contains((string) @file_get_contents($racine . '/index.html'), 'presse-exemples.js');
 ?>
 <div class="titre"><h1><?= e($contenu['titre']) ?></h1><span class="titre__suite"><?= e($contenu['fichier']) ?></span></div>
 <?php if (!empty($contenu['intro'])): ?><p class="intro"><?= e($contenu['intro']) ?></p><?php endif; ?>
-<?php if ($maquette): ?><p class="message message--alerte">Le site charge encore les faux articles de maquette (data/presse-exemples.js) : ils remplacent à l'écran les articles ci-dessous tant que ce fichier n'est pas retiré des pages.</p><?php endif; ?>
 <?php if ($erreurs): ?><ul class="erreurs" role="alert"><?php foreach ($erreurs as $m): ?><li><?= e($m) ?></li><?php endforeach; ?></ul><?php endif; ?>
 
 <?php foreach ($contenu['listes'] as $cle => $liste): ?>
@@ -46,7 +46,7 @@ $maquette = $type === 'presse' && ($racine = site_racine()) !== '' && str_contai
   <?php
     // après une erreur, on réaffiche ce qui vient d'être saisi
     $lignes = ($erreurs && $fautive === $cle) ? array_values(array_filter($_POST['lignes'] ?? [], 'is_array')) : liste_lire($liste);
-    echo liste_formulaire($liste, $lignes);
+    echo liste_formulaire($liste, $lignes, 'lignes', $erreurs && $fautive === $cle);
   ?>
   <div class="actions"><button type="submit" class="bouton bouton--plein">Enregistrer<?= $liste['titre'] !== '' ? ' : ' . e(mb_strtolower($liste['titre'])) : '' ?></button></div>
 </form>

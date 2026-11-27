@@ -2,8 +2,12 @@
 /**
  * IA : appel direct de l'API d'Anthropic (Messages), en cURL, côté serveur.
  *
+ * C'est le seul endroit de Pupitre qui parle à l'API : tous les services (import des concerts,
+ * lecture d'un article, traduction, géolocalisation : inclus/ia_services.php, inclus/import.php)
+ * passent par ia_appeler().
+ *
  * Règle de l'application : l'IA propose, une personne valide. Rien de ce que rend l'IA n'est
- * écrit dans l'agenda ou dans l'annuaire sans validation.
+ * écrit dans l'agenda, dans l'annuaire ou dans un contenu publié sans validation.
  *
  * Clé dans ANTHROPIC_API_KEY, modèle dans ANTHROPIC_MODELE. Chaque appel est journalisé dans la
  * table appels_ia : objet, modèle, jetons, durée, résultat. Ni la clé, ni le contenu envoyé, ni
@@ -25,7 +29,7 @@ const IA_MODELE_DEFAUT = 'claude-opus-5-5';
 const IA_JETONS_MAX = 64000;
 
 /** Modèles pour lesquels l'API sait rejouer une demande refusée par ses filtres sur un autre modèle. */
-const IA_MODELES_AVEC_REPLI = ['claude-opus-5-5', 'claude-opus-5', 'claude-fable-5-1', 'claude-sonnet-5-5'];
+const IA_MODELES_AVEC_REPLI = ['claude-opus-5-5', 'claude-opus-5', 'claude-fable-5-2', 'claude-fable-5-1', 'claude-sonnet-5-5'];
 
 function ia_configuree(): bool
 {

@@ -8,7 +8,7 @@
  * Les engagements de tests/extrait-fictif.php sont ceux que l'IA rendrait pour
  * tests/extrait-fictif.txt. Le test
  * éprouve ce que fait le code : contrôle du JSON, comparaison avec l'agenda (nouvelles dates,
- * dates modifiées, disparues, programme changé, cas douteux), contrôle (lieu, heure, date passée,
+ * dates modifiées, absentes, annulation annoncée, programme changé, cas douteux), contrôle (lieu, heure, date passée,
  * hors saison, doublon), validation, confidentialité des journaux.
  * Il suppose l'agenda de la reprise (sql/depart.php).
  */
@@ -79,6 +79,26 @@ try {
     $verifier(import_ligne_corriger((int) $red_fox[0]['id'], ['date' => '2027-05-13', 'heure' => '20:00']) === null
         && !in_array('passee', import_ligne_lire((int) $red_fox[0]['id'])['controles'], true), 'une ligne se corrige avant validation, et le contrôle est refait');
     $verifier(import_ligne_refuser((int) $red_fox[1]['id']) === null && (int) bd_valeur("SELECT COUNT(*) FROM concerts WHERE titre_fr = 'Red Fox'") === 1, 'une ligne refusée ne touche pas à l\'agenda');
+
+    echo "Annulation annoncée par le document\n";
+    // une date à venir de l'agenda, que l'extrait dit annulée ; une autre, que l'agenda ne connaît pas
+    $cible = bd_ligne("SELECT r.id, r.date, r.heure, r.statut, c.id AS concert_id, c.titre_fr, c.ensemble_fr FROM representations r JOIN concerts c ON c.id = r.concert_id
+                       WHERE r.statut <> 'annulee' AND c.type <> 'disque' AND c.ensemble_fr <> '' ORDER BY r.date DESC, r.id DESC LIMIT 1");
+    $rep = fn(string $date, bool $annulee, ?string $motif) => ['date' => $date, 'heure' => null, 'salle' => null, 'ville' => null, 'pays' => null, 'annulee' => $annulee, 'motif' => $motif];
+    [$d2, $e2] = import_controler_reponse(json_encode(['date_extrait' => null, 'engagements' => [
+        ['titre' => null, 'type' => 'concert', 'ensemble' => $cible['ensemble_fr'], 'mentions' => null, 'programme' => [], 'solistes' => [], 'representations' => [$rep($cible['date'], true, 'ANNULÉ (grève)')]],
+        ['titre' => null, 'type' => 'concert', 'ensemble' => 'Orchestre fictif des Lisières', 'mentions' => null, 'programme' => [], 'solistes' => [], 'representations' => [$rep('2031-01-15', true, 'cancelled')]],
+    ]], JSON_UNESCAPED_UNICODE));
+    $id2 = bd_inserer('imports', ['nature' => 'texte', 'fichier' => 'annulation.txt', 'nom_origine' => 'Annulation (test)', 'statut' => 'lecture']);
+    $bilan2 = import_comparer($id2, $d2);
+    bd_modifier('imports', ['statut' => 'a_valider', 'bilan' => json_encode($bilan2)], ['id' => $id2]);
+    $annulees = array_values(array_filter(import_lignes($id2), fn($l) => $l['nature'] === 'annulee'));
+    $verifier(!$e2 && count($annulees) === 1 && (int) $annulees[0]['representation_id'] === (int) $cible['id'] && $annulees[0]['propose']['motif'] === 'ANNULÉ (grève)', 'la date que le document dit annulée est proposée à l\'annulation, avec ce qu\'il en dit');
+    $verifier(($bilan2['annulations_sans_objet'] ?? 0) === 1 && (int) bd_valeur("SELECT COUNT(*) FROM concerts WHERE ensemble_fr = 'Orchestre fictif des Lisières' AND id NOT IN (SELECT concert_id FROM import_lignes WHERE import_id = ? AND concert_id IS NOT NULL)", [$id]) >= 0
+        && !array_filter(import_lignes($id2), fn($l) => $l['nature'] === 'nouvelle'), 'une annulation pour une date inconnue de l\'agenda n\'y crée rien');
+    $verifier(!array_filter(import_lignes($id2), fn($l) => $l['nature'] === 'disparue' && (int) $l['representation_id'] === (int) $cible['id']), 'une date annoncée annulée n\'est pas aussi comptée « absente »');
+    $verifier(bd_valeur('SELECT statut FROM representations WHERE id = ?', [$cible['id']]) === $cible['statut'], 'rien ne change dans l\'agenda avant la validation');
+    $verifier(import_ligne_valider((int) $annulees[0]['id']) === null && bd_valeur('SELECT statut FROM representations WHERE id = ?', [$cible['id']]) === 'annulee', 'validée, la date passe à « annulée », avec sa raison');
 } finally {
     bd()->rollBack();
 }

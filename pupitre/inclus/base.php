@@ -71,30 +71,55 @@ function bd_nom(string $nom): string
     return '`' . $nom . '`';
 }
 
-/** INSERT : rend l'identifiant créé. */
+/**
+ * INSERT : rend l'identifiant créé. Les champs traduisibles écrits dans une autre langue que la
+ * langue de référence (titre_en, titre_de…) partent d'eux-mêmes dans la table des traductions
+ * (inclus/langues.php).
+ */
 function bd_inserer(string $table, array $donnees): int
 {
+    [$donnees, $traductions] = traductions_separer($table, $donnees);
     $colonnes = array_keys($donnees);
     $sql = 'INSERT INTO ' . bd_nom($table) . ' (' . implode(', ', array_map('bd_nom', $colonnes)) . ') VALUES ('
         . implode(', ', array_fill(0, count($colonnes), '?')) . ')';
     bd_requete($sql, array_values($donnees));
-    return (int) bd()->lastInsertId();
+    $id = (int) bd()->lastInsertId();
+    if ($traductions) {
+        $cle = cle_primaire($table);
+        traductions_poser($table, (string) ($cle === 'id' ? $id : ($donnees[$cle] ?? '')), $traductions);
+    }
+    return $id;
 }
 
-/** UPDATE … WHERE (égalités) : rend le nombre de lignes touchées. */
+/** UPDATE … WHERE (égalités) : rend le nombre de lignes touchées. Mêmes règles de langue que bd_inserer(). */
 function bd_modifier(string $table, array $donnees, array $ou): int
 {
-    if (!$donnees) return 0;
-    $sql = 'UPDATE ' . bd_nom($table) . ' SET ' . implode(', ', array_map(fn($c) => bd_nom($c) . ' = ?', array_keys($donnees)))
-        . ' WHERE ' . implode(' AND ', array_map(fn($c) => bd_nom($c) . ' = ?', array_keys($ou)));
-    return bd_requete($sql, array_merge(array_values($donnees), array_values($ou)))->rowCount();
+    [$donnees, $traductions] = traductions_separer($table, $donnees);
+    $n = 0;
+    if ($donnees) {
+        $sql = 'UPDATE ' . bd_nom($table) . ' SET ' . implode(', ', array_map(fn($c) => bd_nom($c) . ' = ?', array_keys($donnees)))
+            . ' WHERE ' . implode(' AND ', array_map(fn($c) => bd_nom($c) . ' = ?', array_keys($ou)));
+        $n = bd_requete($sql, array_merge(array_values($donnees), array_values($ou)))->rowCount();
+    }
+    if ($traductions) {
+        $cle = cle_primaire($table);
+        if (!array_key_exists($cle, $ou)) throw new ErreurBase('Une traduction ne s\'écrit que sur une ligne désignée par sa clé.');
+        traductions_poser($table, (string) $ou[$cle], $traductions);
+    }
+    return $n;
 }
 
-/** DELETE … WHERE (égalités). */
+/** DELETE … WHERE (égalités). Les lignes supprimées emportent leurs traductions. */
 function bd_supprimer(string $table, array $ou): int
 {
-    $sql = 'DELETE FROM ' . bd_nom($table) . ' WHERE ' . implode(' AND ', array_map(fn($c) => bd_nom($c) . ' = ?', array_keys($ou)));
-    return bd_requete($sql, array_values($ou))->rowCount();
+    $condition = implode(' AND ', array_map(fn($c) => bd_nom($c) . ' = ?', array_keys($ou)));
+    $cles = [];
+    if (isset(TRADUISIBLES[$table]) && langues_installees()) {
+        $cles = bd_colonne('SELECT ' . bd_nom(cle_primaire($table)) . ' FROM ' . bd_nom($table) . ' WHERE ' . $condition, array_values($ou));
+    }
+    $n = bd_requete('DELETE FROM ' . bd_nom($table) . ' WHERE ' . $condition, array_values($ou))->rowCount();
+    foreach ($cles as $cle) traductions_retirer($table, (string) $cle);
+    return $n;
 }
 
 /** Exécute une fonction dans une transaction : tout, ou rien. */

@@ -1,20 +1,22 @@
 /* etourneaux.css · socle du site et moteur de la nuée
    (base typographique, canvas, HUD de mesure, panneau de réglages)
 
-   Inria Serif (serif, depuis le 13/11/2026) + Inter (linéale), petites étiquettes mono. Fond noir, blanc cassé,
-   lumière froide de la nuée. La mise en page du site est dans site.css.
+   Inria Serif (serif, depuis le 13/11/2026) + Inter (linéale), petites étiquettes mono. Fond noir (ou la
+   couleur réglée dans Pupitre : --bg et --bg-rvb), blanc cassé, lumière froide de la nuée. La mise en
+   page du site est dans site.css.
 
    Calques, de l'arrière vers l'avant (un seul contexte d'empilement, la racine) :
-     1. le fond noir (body) ;
+     1. le fond (body), de la couleur --bg ;
      2. la nuée : un canvas fixe en « éclaircir » (z 2) ;
-     3. les sections « nuée en arrière-plan » (.nuee-arriere-plan, z 3), avec leur fond noir
+     3. les sections « nuée en arrière-plan » (.nuee-arriere-plan, z 3), avec leur fond (--bg)
         plus ou moins opaque (.fond-N) ;
      puis la barre du haut (z 10), le HUD (z 14), le panneau de réglages (z 20).
    Une section « nuée au premier plan » (.nuee-premier-plan) ne crée pas de contexte
    d'empilement : son contenu reste sous la nuée, sauf les blocs qui portent --z-dessus. */
 
 :root {
-  --bg: #000;
+  --bg: #000;                    /* couleur de fond générale du site : Pupitre la règle (Apparence), le <head> de chaque page la pose */
+  --bg-rvb: 0 0 0;               /* la même, en « r v b », pour les fonds translucides : rgb(var(--bg-rvb) / .8) */
   --fg: #f1ece4;
   --muted: #8f8a82;
   --lavande: #5a638d;

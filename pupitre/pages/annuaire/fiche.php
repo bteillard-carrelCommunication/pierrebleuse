@@ -38,12 +38,16 @@ if (est_post()) {
             'nom' => mb_substr(recu('nom'), 0, 190),
             'nom_provisoire' => empty($_POST['nom_provisoire']) ? 0 : 1,
             'autres_noms' => implode("\n", lignes(recu('autres_noms'))),
-            'ville_fr' => recu('ville_fr'), 'ville_en' => recu('ville_en'), 'pays_fr' => recu('pays_fr'), 'pays_en' => recu('pays_en'),
             'latitude' => $nombre('latitude'), 'longitude' => $nombre('longitude'),
+            'verifie' => empty($_POST['verifie']) ? 0 : 1,
+            'langue' => preg_match('/^[a-z]{2,3}$/', mb_strtolower(recu('langue'))) ? mb_strtolower(recu('langue')) : '',
+            'typo' => array_key_exists(recu('typo'), TYPOS_MEDIA) ? recu('typo') : '',
+            'premiere_collaboration' => recu('premiere_collaboration'),
             'fuseau' => in_array(recu('fuseau'), timezone_identifiers_list(), true) ? recu('fuseau') : '',
             'site' => recu('site'), 'mots_diese' => recu('mots_diese'), 'credit' => recu('credit'),
             'logo_id' => recu_entier('logo_id'), 'notes' => recu('notes'),
-        ];
+        ] + recu_bi($_POST, 'ville', 120) + recu_bi($_POST, 'pays', 120);
+        if ($d['premiere_collaboration'] !== '' && !preg_match('/^\d{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12]\d|3[01]))?)?$/', $d['premiere_collaboration'])) $erreurs[] = 'Première collaboration : une année (2019), un mois (2019-03) ou un jour (2019-03-14).';
         if ($d['nom'] === '') $erreurs[] = 'Le nom est obligatoire.';
         if (!adresse_valide($d['site'])) $erreurs[] = 'Le site doit être une adresse complète (https://…).';
         foreach (['latitude' => 90, 'longitude' => 180] as $k => $max) {
@@ -83,6 +87,10 @@ $v = function (string $k) use ($f, $erreurs) {
 };
 $coche = fn(string $k) => (est_post() && $erreurs && recu('action') === 'enregistrer') ? !empty($_POST[$k]) : !empty($f[$k]);
 $titre = $nouvelle ? 'Nouvelle fiche' : $f['nom'];
+$resaisie = est_post() && $erreurs && recu('action') === 'enregistrer';
+$orchestre = in_array($v('categorie') ?: 'orchestre', CATEGORIES_ORCHESTRE, true);
+// traductions d'un champ : celles de la base, ou ce qui vient d'être saisi
+$lgf = fn(string $champ) => ($resaisie || !$id) ? ['valeurs' => saisie_bi($_POST, $champ)] : ['objet' => ['annuaire', $id, $champ]];
 $concerts = $f ? fiche_concerts($id) : [];
 $doublons = $f ? fiches_doublons($id) : [];
 $liens = ['ensemble' => 'ensemble', 'salle' => 'salle', 'participant' => 'participant', 'compositeur' => 'compositeur'];
@@ -102,14 +110,21 @@ $liens = ['ensemble' => 'ensemble', 'salle' => 'salle', 'participant' => 'partic
     <?= champ_case('nom_provisoire', 'Nom à fournir : en attendant, le site n\'affiche que la ville', $coche('nom_provisoire')) ?>
     <?= champ_texte('autres_noms', 'Autres noms', $v('autres_noms'), ['aide' => 'Un par ligne : nom dans une autre langue, sigle, ancien nom. Ils servent à reconnaître la fiche à l\'import et à repérer les doublons.']) ?>
     <div class="colonnes">
-      <?= champ_bi('ville', 'Ville', $v('ville_fr'), $v('ville_en')) ?>
-      <?= champ_bi('pays', 'Pays', $v('pays_fr'), $v('pays_en')) ?>
+      <?= champ_bi('ville', $orchestre ? 'Ville de référence' : 'Ville', $v('ville_fr'), $v('ville_en'), $lgf('ville')) ?>
+      <?= champ_bi('pays', 'Pays', $v('pays_fr'), $v('pays_en'), $lgf('pays')) ?>
     </div>
     <div class="colonnes">
       <?= champ('latitude', 'Latitude', $v('latitude'), ['indication' => '48.86', 'aide' => 'Degrés décimaux, nord positif.']) ?>
       <?= champ('longitude', 'Longitude', $v('longitude'), ['indication' => '2.35', 'aide' => 'Degrés décimaux, est positif.']) ?>
       <?= champ_choix('fuseau', 'Fuseau', array_combine(timezone_identifiers_list(), timezone_identifiers_list()), $v('fuseau'), ['vide' => '— inconnu —']) ?>
     </div>
+    <?php if ($orchestre): ?>
+    <div class="colonnes">
+      <?= champ_case('verifie', 'Ville et coordonnées de référence vérifiées', $coche('verifie')) ?>
+      <?= champ('premiere_collaboration', 'Première collaboration', $v('premiere_collaboration'), ['max' => 10, 'indication' => '2019', 'aide' => 'Année, mois (2019-03) ou jour (2019-03-14). Facultative.']) ?>
+    </div>
+    <p class="aide">La ville de référence est celle de l'orchestre, pas celle d'un concert donné ailleurs. Sa place sur la carte du monde se règle sur l'écran <a href="<?= e($id ? url('carte', ['orchestre' => $id]) . '#placer' : url('carte')) ?>">Carte interactive</a>.</p>
+    <?php endif; ?>
     <div class="colonnes">
       <?= champ('site', 'Site', $v('site'), ['type' => 'url', 'indication' => 'https://…']) ?>
       <?= champ('mots_diese', 'Mots-dièse', $v('mots_diese'), ['indication' => '#…']) ?>
@@ -118,7 +133,13 @@ $liens = ['ensemble' => 'ensemble', 'salle' => 'salle', 'participant' => 'partic
       <?= champ('credit', 'Crédit', $v('credit'), ['aide' => 'Mention à porter quand on cite ou qu\'on montre ce nom.']) ?>
       <?= champ_choix('logo_id', 'Logo', medias_choix(['image']), $v('logo_id'), ['vide' => '— aucun —', 'aide' => 'Choisi dans la médiathèque. Pour un média : le logo de la presse, affiché en blanc.']) ?>
     </div>
-    <?= champ_texte('notes', 'Notes', $v('notes')) ?>
+    <?php if (($v('categorie') ?: 'orchestre') === 'media'): ?>
+    <div class="colonnes">
+      <?= champ('langue', 'Langue principale du média', $v('langue'), ['max' => 3, 'indication' => 'en', 'aide' => 'Code de la langue : fr, en, de…']) ?>
+      <?= champ_choix('typo', 'Écriture de son nom sur le site', TYPOS_MEDIA, $v('typo'), ['aide' => 'Sans logo, le site écrit le nom du média : ce choix en règle le caractère. Avec un logo, le logo suffit.']) ?>
+    </div>
+    <?php endif; ?>
+    <?= champ_texte('notes', $orchestre ? 'Informations complémentaires' : 'Notes', $v('notes')) ?>
     <div class="actions"><button type="submit" class="bouton bouton--plein"><?= $nouvelle ? 'Créer la fiche' : 'Enregistrer la fiche' ?></button></div>
   </form>
 
@@ -161,7 +182,7 @@ $liens = ['ensemble' => 'ensemble', 'salle' => 'salle', 'participant' => 'partic
     <?php if (!$parcours): ?><p class="rien">N'y figure pas.</p><?php else: ?>
     <ul class="items"><?php foreach ($parcours as $x): ?><li><span>Orchestre invité, placé à <?= e($x['ville_fr']) ?></span></li><?php endforeach; ?></ul>
     <?php endif; ?>
-    <p class="actions"><a class="bouton bouton--petit" href="<?= e(url('orchestres')) ?>">Orchestres invités</a></p>
+    <p class="actions"><a class="bouton bouton--petit" href="<?= e(url('carte')) ?>">Carte interactive</a></p>
   </div>
   <?php endif; ?>
   <div class="carte">

@@ -1,6 +1,6 @@
 {
   "version": "2026-11-13",
-  "note": "Uniquement des représentations annoncées par leur organisateur. Tout champ texte est soit une chaîne, soit un objet {fr, en}. Une tournée porte ville, pays, salle et lien dans chaque représentation. Dates et heures locales de la salle.",
+  "note": "Uniquement des représentations annoncées par leur organisateur, de concerts publiés. Tout champ texte est soit une chaîne, soit un objet {fr, en}. Une tournée porte ville, pays, salle et lien dans chaque représentation. Dates et heures locales de la salle.",
   "maisons": {
     "eic": "Ensemble intercontemporain",
     "odense": "Orchestre symphonique d'Odense",

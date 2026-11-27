@@ -6,8 +6,11 @@
       contenu se pose sur la matrice par une classe .bloc-… ; la matrice se
       replie à 1179 px (deux blocs par ligne) puis à 720 px (une colonne).
    2. Profondeur : chaque section dit où passe la nuée (.nuee-premier-plan ou
-      .nuee-arriere-plan) et, en arrière-plan, l'opacité de son fond noir
+      .nuee-arriere-plan) et, en arrière-plan, l'opacité de son fond
       (.fond-0 à .fond-100, de 5 en 5). Voir aussi l'en-tête d'etourneaux.css.
+   3. Couleur de fond : tous les arrière-plans du site (page, sections, barre,
+      halos sous les textes, volets) prennent la couleur réglée dans Pupitre,
+      par --bg et --bg-rvb (etourneaux.css les définit, le <head> les pose).
    Les règles du moteur (canvas, HUD, panneau) sont dans etourneaux.css.
    ========================================================================== */
 
@@ -62,13 +65,13 @@
 .fond-60 { --fond: .6; }    .fond-65 { --fond: .65; }  .fond-70 { --fond: .7; }   .fond-75 { --fond: .75; }
 .fond-80 { --fond: .8; }    .fond-85 { --fond: .85; }  .fond-90 { --fond: .9; }   .fond-95 { --fond: .95; }
 .fond-100 { --fond: 1; }
-/* section de contenu : fond noir à l'opacité choisie, entre la nuée et le texte. Une section fait
+/* section de contenu : fond à l'opacité choisie, entre la nuée et le texte. Une section fait
    au moins un écran (l'aimantation s'arrête sur elle) et son contenu commence nettement sous la
    barre du haut. */
 .section {
   min-height: 100vh; min-height: 100svh;
   padding: calc(var(--barre-h) + 11vh) 0 16vh;
-  background-color: rgb(0 0 0 / var(--fond, 0));
+  background-color: rgb(var(--bg-rvb) / var(--fond, 0));
 }
 @media (max-width: 720px) { .section { padding: calc(var(--barre-h) + 6vh) 0 13vh; } }
 
@@ -103,7 +106,7 @@ main a[href]:hover, .pied a[href]:hover { text-decoration-color: #fff; color: #f
 .lien:hover { border-bottom-color: #fff; }
 .bouton {
   display: inline-block; padding: .75rem 1.35rem;
-  border: 1px solid rgba(241, 236, 228, .45); border-radius: 999px; background: rgba(0, 0, 0, .3);
+  border: 1px solid rgba(241, 236, 228, .45); border-radius: 999px; background: rgb(var(--bg-rvb) / .3);
   font-size: .66rem; font-weight: 400; letter-spacing: .18em; text-transform: uppercase; color: #fff;
   text-decoration: none !important; cursor: pointer;
   transition: border-color .3s, background-color .3s;
@@ -137,7 +140,7 @@ html.js-timeout [data-revele] { opacity: 1 !important; transform: none !importan
 .barre > * { pointer-events: auto; }
 .barre::before {                               /* voile de la barre : il apparaît avec elle */
   content: ''; position: absolute; inset: 0 0 -44px; z-index: -1;
-  background: linear-gradient(to bottom, #000 46%, rgba(0, 0, 0, .9) 66%, rgba(0, 0, 0, 0));
+  background: linear-gradient(to bottom, rgb(var(--bg-rvb)) 46%, rgb(var(--bg-rvb) / .9) 66%, rgb(var(--bg-rvb) / 0));
   opacity: var(--barre); pointer-events: none;
 }
 /* le logo : une image blanche sur fond transparent (assets/img/logo-pierre-bleuse-blanc.png, 13/11/2026) */
@@ -191,7 +194,7 @@ html.js-timeout [data-revele] { opacity: 1 !important; transform: none !importan
   position: absolute; top: calc(100% + .95rem); right: -.4rem; z-index: 1;
   width: max-content; min-width: 17rem; max-width: min(24rem, calc(100vw - 2 * var(--bord)));
   padding: .7rem 1.1rem .8rem .9rem;
-  background: rgba(0, 0, 0, .95); border: 1px solid rgba(241, 236, 228, .16);
+  background: rgb(var(--bg-rvb) / .95); border: 1px solid rgba(241, 236, 228, .16);
 }
 
 @media (max-width: 1179px) {
@@ -202,7 +205,7 @@ html.js-timeout [data-revele] { opacity: 1 !important; transform: none !importan
     display: none;
     position: absolute; top: calc(100% - .3rem); right: var(--bord);
     flex-direction: column; gap: 0; min-width: 13rem; padding: .5rem 0;
-    background: rgba(0, 0, 0, .95); border: 1px solid rgba(241, 236, 228, .16);
+    background: rgb(var(--bg-rvb) / .95); border: 1px solid rgba(241, 236, 228, .16);
   }
   .menu-pret.menu-ouvert .barre__menu ul { display: flex; }
   .menu-pret .barre__menu a { display: block; padding: .85rem 1.3rem; }
@@ -262,7 +265,9 @@ html.js-timeout [data-revele] { opacity: 1 !important; transform: none !importan
 [data-ecouter]:hover .ecoute__icone,
 [data-ecouter]:focus-visible .ecoute__icone,
 [data-playlist]:hover .ecoute__icone,
-[data-playlist]:focus-visible .ecoute__icone { border-color: #fff; box-shadow: 0 0 18px rgba(197, 205, 214, .35); }
+[data-playlist]:focus-visible .ecoute__icone,
+[data-video-lecture]:hover .ecoute__icone,
+[data-video-lecture]:focus-visible .ecoute__icone { border-color: #fff; box-shadow: 0 0 18px rgba(197, 205, 214, .35); }
 [data-etat="lecture"] .ecoute__icone,
 [data-playlist][aria-expanded="true"] .ecoute__icone { border-color: var(--froid); }
 @media (prefers-reduced-motion: reduce) { .ecoute__icone { transition: none; } }
@@ -292,7 +297,7 @@ html.js-timeout [data-revele] { opacity: 1 !important; transform: none !importan
 .titre.est-courant .titre__nom { font-weight: 500; }
 
 /* ==========================================================================
-   Ouverture : le noir, la nuée au premier plan ; en bas à droite, la citation
+   Ouverture : le fond, la nuée au premier plan ; en bas à droite, la citation
    et le lecteur, sur leur halo sombre
    ========================================================================== */
 .ouverture { height: 100vh; height: 100svh; overflow: hidden; }
@@ -309,29 +314,56 @@ html.js-timeout [data-revele] { opacity: 1 !important; transform: none !importan
 /* halo sombre sous le bloc, au-dessus de la nuée : ses cœurs blancs n'y passent pas */
 .ouverture__bloc::before {
   content: ''; position: absolute; inset: -4.4rem -3rem; z-index: -1;
-  background: radial-gradient(closest-side, rgba(0, 0, 0, .66), rgba(0, 0, 0, .55) 72%, rgba(0, 0, 0, 0));
+  background: radial-gradient(closest-side, rgb(var(--bg-rvb) / .66), rgb(var(--bg-rvb) / .55) 72%, rgb(var(--bg-rvb) / 0));
   pointer-events: none;
 }
 .ouverture__citation {
   font-family: var(--serif); font-style: italic; font-weight: 300;
   font-size: clamp(1.55rem, 2.1vw, 2.1rem); line-height: 1.2; color: #fff;
 }
-.lecteur { margin-top: 1.9rem; }
-/* liste des titres de l'ouverture : son texte est aligné sur l'icône de lecture ; le point du
-   titre en cours passe dans la marge */
-.lecteur__titres { margin-top: 1.15rem; }
-.lecteur__titres .titre { padding-left: 0; }
-.lecteur__titres .titre::before { left: -.85rem; }
-/* invitation à défiler : un petit pictogramme au centre, en bas ; il mène à la section suivante */
+/* Lecteur de l'ouverture : deux pictogrammes sous la citation, lecture / pause puis la note de
+   musique. La liste des titres s'ouvre dessous, dans un volet, là où elle était écrite en clair :
+   --volet-reserve garde cette place, pour que la citation et le lecteur restent où ils étaient. */
+.ouverture__texte { --volet-reserve: 11.9rem; }
+@media (min-width: 1680px) { .ouverture__texte { --volet-reserve: 10rem; } }
+.lecteur { position: relative; display: flex; align-items: center; gap: .9rem; min-height: 2.625rem; margin-top: 1.9rem; margin-bottom: var(--volet-reserve); }
+.lecteur .ecoute__bouton { padding: .2rem 0; gap: 0; }
+.volet--ouverture {
+  top: calc(100% + .75rem); left: -.9rem; right: auto;
+  width: calc(100% + 1.8rem); min-width: 0; max-width: none;
+  max-height: calc(var(--volet-reserve) + 12vh - 2.2rem); overflow-y: auto; overscroll-behavior: contain;
+}
+/* Bouton Scroll : la petite flèche dans son rond et, dessous, le mot, très discret. Fixe, en bas au
+   centre : il reste là pendant la descente (les commandes vidéo sont à gauche, le retour en haut à
+   droite) et mène à la section suivante ; il s'efface sur la dernière (.hint--fin, js/main.js). */
 .hint {
-  position: absolute; left: 50%; bottom: 1.5rem; z-index: var(--z-dessus);
-  display: grid; place-items: center; width: 2.6rem; height: 2.6rem; margin-left: -1.3rem;
-  border: 1px solid rgba(241, 236, 228, .3); border-radius: 50%;
+  position: fixed; left: 50%; bottom: 1.05rem; z-index: 9;                 /* sous la barre du haut, devant les sections */
+  display: grid; justify-items: center; gap: .42rem; width: 5rem; margin-left: -2.5rem;
   color: rgba(241, 236, 228, .85);
-  transition: border-color .3s, color .3s;
+  transition: opacity .5s ease, visibility 0s linear 0s, color .3s;
+}
+main a.hint[href], main a.hint[href]:hover { text-decoration: none; }
+.hint__rond {
+  display: grid; place-items: center; width: 2.6rem; height: 2.6rem;
+  border: 1px solid rgba(241, 236, 228, .3); border-radius: 50%; background: rgb(var(--bg-rvb) / .35);
+  transition: border-color .3s;
+}
+.hint::before {                                    /* halo sombre, comme sous les textes : le bouton se lit sur la nuée et sur les images */
+  content: ''; position: absolute; inset: -1.1rem -1.6rem -.7rem; z-index: -1;
+  background: radial-gradient(closest-side, rgb(var(--bg-rvb) / .6), rgb(var(--bg-rvb) / .42) 60%, rgb(var(--bg-rvb) / 0));
+  pointer-events: none;
+}
+.hint__mot {
+  font-family: var(--sans); font-size: .56rem; font-weight: 300; letter-spacing: .42em; text-transform: uppercase; line-height: 1;
+  margin-right: -.42em;                             /* l'interlettrage ne décentre pas le mot */
+  color: rgba(241, 236, 228, .8); text-shadow: 0 0 6px rgb(var(--bg-rvb)), 0 1px 10px rgb(var(--bg-rvb) / .9);
+  transition: color .3s;
 }
 .hint svg { width: 1.25rem; height: 1.25rem; animation: hint-descend 2.6s cubic-bezier(.45, 0, .2, 1) infinite; }
-.hint:hover, .hint:focus-visible { border-color: #fff; color: #fff; }
+.hint:hover, .hint:focus-visible { color: #fff; }
+.hint:hover .hint__rond, .hint:focus-visible .hint__rond { border-color: #fff; }
+.hint:hover .hint__mot, .hint:focus-visible .hint__mot { color: #fff; }
+.hint--fin { opacity: 0; visibility: hidden; transition: opacity .5s ease, visibility 0s linear .5s; }
 @keyframes hint-descend {
   0%, 100% { transform: translateY(-2px); opacity: .5; }
   50% { transform: translateY(3px); opacity: 1; }
@@ -340,18 +372,21 @@ html.js-timeout [data-revele] { opacity: 1 !important; transform: none !importan
 .reduit .hint svg, .animation-en-pause .hint svg { animation: none; }
 .panneau-ouvert .hint { visibility: hidden !important; }
 @media (min-width: 721px) and (max-height: 620px) {
-  .ouverture__texte { bottom: 7vh; width: min(24rem, 46vw); }
+  .ouverture__texte { bottom: 7vh; width: min(24rem, 46vw); --volet-reserve: 7.4rem; }
   .ouverture__citation { font-size: 1.4rem; }
   .lecteur { margin-top: 1.1rem; }
   .lecteur .titre__mention { display: none; }
+  .volet--ouverture { max-height: calc(var(--volet-reserve) + 7vh - 2.2rem); }
 }
 @media (max-width: 720px) {
   /* téléphone (13/11/2026) : le bloc de l'ouverture (citation, lecteur) n'est pas affiché. Seule la
      barre du haut l'est, entière dès le haut de la page (menu, petit lecteur), comme après le début
      du défilement sur ordinateur : js/main.js tient --barre à 1 sous 721 px. */
   .ouverture__texte { display: none; }
-  .hint { bottom: .9rem; width: 2.2rem; height: 2.2rem; margin-left: -1.1rem; }
+  .hint { bottom: .7rem; gap: .36rem; }
+  .hint__rond { width: 2.2rem; height: 2.2rem; }
 }
+@media (prefers-reduced-motion: reduce) { .hint, .hint--fin { transition: none; } }
 
 /* ==========================================================================
    Sections de contenu : en-tête, rangs
@@ -379,19 +414,30 @@ html.js-timeout [data-revele] { opacity: 1 !important; transform: none !importan
   padding: .9rem 0 .95rem; border-top: 1px solid rgba(197, 205, 214, .16);
   font-size: .94rem; font-weight: 400; line-height: 1.45; color: #fff;
 }
+/* ligne « à la une » d'une liste du parcours : mise en avant, sans changer le dessin de la liste */
+.liste li.liste__une { font-family: var(--serif); font-size: 1.12rem; line-height: 1.35; }
+main .liste li a[href] { text-decoration-color: rgba(197, 205, 214, .35); }
 h3.mention { margin: 0 0 1.4rem; }
 
-/* ------- bio : pas de fond de section ; le texte porte son fond noir à 50 %, à bords vaporeux ------- */
+/* ------- édito : pas de fond de section ; le texte porte son fond à 50 %, à bords vaporeux. Texte
+   justifié, avec césure (dans la langue de la page, <html lang>) : sans elle, la justification
+   creuserait des blancs entre les mots dans une colonne étroite, et plus encore sur téléphone. ------- */
 .bio { display: flex; flex-direction: column; justify-content: center; }
 .bio__texte { position: relative; }
+.bio__texte .texte {
+  text-align: justify; text-justify: inter-word; text-align-last: left;
+  -webkit-hyphens: auto; hyphens: auto;
+  hyphenate-limit-chars: 6 3 3; -webkit-hyphenate-limit-before: 3; -webkit-hyphenate-limit-after: 3;
+  overflow-wrap: break-word;
+}
 .bio__texte::before {
   content: ''; position: absolute; inset: -1.8rem -2rem; z-index: -1;
   border-radius: 2.6rem;
-  background: rgb(0 0 0 / .5);
-  box-shadow: 0 0 3.4rem 2.8rem rgb(0 0 0 / .5);   /* le halo prolonge le fond à la même opacité : aucun bord net */
+  background: rgb(var(--bg-rvb) / .5);
+  box-shadow: 0 0 3.4rem 2.8rem rgb(var(--bg-rvb) / .5);   /* le halo prolonge le fond à la même opacité : aucun bord net */
   pointer-events: none;
 }
-@media (max-width: 720px) { .bio__texte::before { inset: -1.4rem -6px; box-shadow: 0 0 2.4rem 1.4rem rgb(0 0 0 / .5); } }
+@media (max-width: 720px) { .bio__texte::before { inset: -1.4rem -6px; box-shadow: 0 0 2.4rem 1.4rem rgb(var(--bg-rvb) / .5); } }
 
 /* ------- fiches : le format de l'agenda, repris par les disques et la presse. Toutes alignées en
    haut ; marges entre les fiches augmentées de 20 % (rangées : 6 rem au lieu de 5 ; colonnes : un
@@ -426,6 +472,9 @@ h3.mention { margin: 0 0 1.4rem; }
   font-size: clamp(1.25rem, 1.55vw, 1.55rem); line-height: 1.18; color: #fff;   /* Inria Serif est plus large que Cormorant : corps réduit */
 }
 .fiche__titre a { text-decoration-thickness: 1px; }
+/* le titre d'une fiche de l'agenda mène à la fiche interne du concert : même dessin qu'un titre, souligné au survol */
+main .fiche__titre a.fiche__vers[href] { color: inherit; text-decoration: none; }
+main .fiche__titre a.fiche__vers[href]:hover, main .fiche__titre a.fiche__vers[href]:focus-visible { text-decoration: underline; text-decoration-thickness: 1px; text-decoration-color: rgba(197, 205, 214, .6); }
 .fiche__serie { margin-top: 1.1rem; font-size: .82rem; line-height: 1.45; color: var(--froid); }
 .fiche__lieu, .fiche__ensemble { font-size: .8rem; line-height: 1.45; color: var(--muted); }
 .fiche__ensemble { margin-top: .35rem; color: rgba(241, 236, 228, .8); }
@@ -439,6 +488,97 @@ h3.mention { margin: 0 0 1.4rem; }
 .fiche__mot { margin-top: 1rem; font-family: var(--serif); font-style: italic; font-size: 1.1rem; line-height: 1.35; color: #fff; }
 .fiche__liens { list-style: none; display: flex; flex-wrap: wrap; gap: .5rem 1.1rem; margin-top: .5rem; }
 .fiche > .lien { margin-top: 1.2rem; }
+/* « En savoir plus » d'une vignette : un bouton qui a le dessin d'un lien */
+button.lien { background: none; border-width: 0 0 1px; border-radius: 0; cursor: pointer; font-family: inherit; font-weight: inherit; }
+button.lien[aria-expanded="true"] { border-bottom-color: #fff; }
+.fiche.est-ouverte::after { background: linear-gradient(to right, rgba(197, 205, 214, .7), rgba(197, 205, 214, 0)); }
+
+/* ------- panneaux détaillés (albums, articles) : un accordéon sous la rangée de la vignette, sur
+   toute la largeur de la grille. Fermé, il n'est pas dans la page. Il ne dépasse pas la hauteur de
+   l'écran : son contenu défile à l'intérieur, et le bouton de fermeture reste en place. Son fond,
+   presque opaque, garde le texte lisible ; la nuée reste derrière la section. ------- */
+.panneau {
+  grid-column: 1 / -1; position: relative; margin: -3.2rem 0 0;
+  background: rgb(var(--bg-rvb) / .93); border: 1px solid rgba(197, 205, 214, .18);
+  text-shadow: none;
+}
+.panneau:focus { outline: none; }
+.panneau__corps {
+  max-height: calc(100vh - var(--barre-h) - 2.4rem); max-height: calc(100svh - var(--barre-h) - 2.4rem);
+  overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+  padding: 2.4rem 4.4rem 2.6rem 2.2rem;
+}
+.panneau__fermer {
+  position: absolute; top: .8rem; right: .8rem; z-index: 1;
+  display: grid; place-items: center; width: 2.4rem; height: 2.4rem;
+  border: 1px solid rgba(241, 236, 228, .3); border-radius: 50%; background: rgb(var(--bg-rvb) / .85);
+  color: #fff; cursor: pointer; transition: border-color .3s;
+}
+.panneau__fermer svg { width: 1.2rem; height: 1.2rem; }
+.panneau__fermer:hover, .panneau__fermer:focus-visible { border-color: #fff; }
+.panneau .fiche__label:first-child { margin-top: 0; }
+@media (max-width: 720px) {
+  .panneau { margin: 1.4rem -6px 0; }
+  .panneau__corps { padding: 3.4rem 1rem 1.8rem; max-height: calc(100vh - var(--barre-h) - 1rem); max-height: calc(100svh - var(--barre-h) - 1rem); }
+}
+
+/* ------- panneau d'un album ------- */
+.album__tete { display: flex; gap: 2rem; align-items: flex-start; }
+.album__identite { min-width: 0; }
+.album__titre { font-family: var(--serif); font-weight: 400; font-size: clamp(1.5rem, 2vw, 2rem); line-height: 1.15; color: #fff; }
+.album__sous-titre { margin-top: .4rem; font-family: var(--serif); font-style: italic; font-size: 1.1rem; line-height: 1.3; color: rgba(241, 236, 228, .88); }
+.album__tete .fiche__dates { margin-top: .9rem; }
+.album__colonnes { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); column-gap: calc(var(--gouttiere) * 2); margin-top: 2rem; }
+.album__colonnes--une { grid-template-columns: minmax(0, 1fr); max-width: 44rem; }
+.album__colonne > .fiche__label:first-child, .album__colonne > .album__zone:first-child .fiche__label { margin-top: 0; }
+.album__texte { margin-top: .5rem; font-size: .86rem; line-height: 1.6; color: rgba(241, 236, 228, .9); }
+.album__texte + .album__texte { margin-top: .8rem; }
+/* les notes personnelles de l'artiste : à part, dans le caractère de sa voix */
+.album__mot { margin-top: 1.5rem; padding-left: 1.1rem; border-left: 1px solid rgba(197, 205, 214, .35); }
+.album__mot .fiche__label { margin-top: 0; }
+.album__mot .fiche__mot { margin-top: .5rem; }
+.album__parole { margin-top: .8rem; font-family: var(--serif); font-style: italic; font-weight: 300; font-size: 1.15rem; line-height: 1.3; color: #fff; }
+.album__page { margin-top: 1.5rem; }
+.distinctions, .critiques, .plateformes { list-style: none; margin-top: .6rem; }
+.distinction { padding: .55rem 0; border-top: 1px solid rgba(197, 205, 214, .14); font-size: .84rem; line-height: 1.45; }
+.distinction:first-child { border-top: 0; padding-top: 0; }
+.distinction > span { display: block; }
+.distinction--logo { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: .8rem; }
+.distinction--logo > span { grid-column: 2; }
+.distinction__logo { grid-column: 1; grid-row: 1 / span 3; height: 2.2rem; width: auto; filter: brightness(0) invert(1); }
+.distinction__intitule { color: #fff; }
+.distinction--une .distinction__intitule { font-family: var(--serif); font-size: 1.05rem; }
+.distinction__detail { font-size: .7rem; letter-spacing: .12em; text-transform: uppercase; color: var(--froid); }
+.distinction__description { color: rgba(241, 236, 228, .8); }
+.critique { padding: 1rem 0; border-top: 1px solid rgba(197, 205, 214, .14); }
+.critique:first-child { border-top: 0; padding-top: 0; }
+.critique__citation { font-family: var(--serif); font-style: italic; font-weight: 300; font-size: 1.15rem; line-height: 1.3; color: #fff; }
+.critique__titre { font-size: .9rem; line-height: 1.45; color: #fff; }
+.critique__signature { margin-top: .5rem; font-size: .64rem; letter-spacing: .16em; text-transform: uppercase; line-height: 1.6; color: var(--froid); }
+.critique__resume { margin-top: .4rem; font-size: .8rem; line-height: 1.5; color: rgba(241, 236, 228, .82); }
+.critique__liens, .article__liens { display: flex; flex-wrap: wrap; gap: .5rem 1.4rem; margin-top: .9rem; }
+.album__zone { margin-top: 1.5rem; }
+.plateformes { display: flex; flex-wrap: wrap; gap: .6rem .9rem; }
+main a.plateforme[href] {
+  display: inline-flex; align-items: center; gap: .55rem; padding: .45rem .9rem .45rem .7rem;
+  border: 1px solid rgba(241, 236, 228, .3); border-radius: 999px; text-decoration: none;
+  font-size: .76rem; letter-spacing: .04em; color: #fff; transition: border-color .3s, background-color .3s;
+}
+main a.plateforme[href]:hover, main a.plateforme[href]:focus-visible { border-color: #fff; background: rgba(197, 205, 214, .12); }
+.plateforme svg { width: 1.15rem; height: 1.15rem; flex: none; }
+/* petit diaporama : à sa place dans le panneau, de dimensions réduites */
+.diapo { flex: none; width: min(13rem, 34vw); }
+.diapo__image { width: 100%; aspect-ratio: 1; object-fit: cover; background: rgba(197, 205, 214, .08); }
+.diapo__commandes { display: flex; align-items: center; justify-content: center; gap: .5rem; margin-top: .5rem; }
+.diapo__bouton { display: grid; place-items: center; width: 1.8rem; height: 1.8rem; border: 1px solid rgba(241, 236, 228, .3); border-radius: 50%; background: none; color: rgba(241, 236, 228, .85); cursor: pointer; transition: border-color .3s, color .3s; }
+.diapo__bouton svg { width: 1rem; height: 1rem; }
+.diapo__bouton:hover, .diapo__bouton:focus-visible { border-color: #fff; color: #fff; }
+.diapo__position { min-width: 2.6rem; text-align: center; font-size: .6rem; letter-spacing: .2em; color: rgba(241, 236, 228, .8); font-variant-numeric: tabular-nums; }
+.diapo__credit { margin-top: .4rem; font-size: .62rem; line-height: 1.4; color: var(--muted); }
+.article-detail .diapo { width: min(16rem, 60vw); margin-bottom: 1.2rem; }
+.article-detail .diapo__image { aspect-ratio: 3 / 2; }
+@media (max-width: 1179px) { .album__colonnes { grid-template-columns: minmax(0, 1fr); row-gap: 1.6rem; } }
+@media (max-width: 720px) { .album__tete { display: block; } .diapo { width: 9rem; margin-bottom: 1.2rem; } }
 
 /* ------- tableaux : dates suivantes, concerts passés, pages « tous les … » ------- */
 .tableau { width: 100%; border-collapse: collapse; text-align: left; }
@@ -459,7 +599,36 @@ h3.mention { margin: 0 0 1.4rem; }
 .tableau__titre { display: block; color: #fff; }
 /* ligne visée par un « En savoir plus » (concerts.html#c-…) : sous la barre, et repérée */
 .tableau tr[id] { scroll-margin-top: calc(var(--barre-h) + 2rem); }
-.tableau tr:target > * { background: rgba(197, 205, 214, .09); }
+.tableau tr:target > *, .tableau tr.est-ouverte > * { background: rgba(197, 205, 214, .09); }
+/* fiche interne d'un concert (page des concerts) : le titre de la ligne la déplie dessous. Le même
+   panneau sert aux albums et aux articles (voir « Panneaux détaillés »). */
+.tableau__ouvrir {
+  display: inline; padding: 0; background: none; border: 0; cursor: pointer; text-align: left;
+  font: inherit; color: inherit;
+  text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .24em; text-decoration-color: rgba(197, 205, 214, .35);
+  transition: text-decoration-color .3s;
+}
+.tableau__ouvrir:hover, .tableau__ouvrir:focus-visible, .tableau__ouvrir[aria-expanded="true"] { text-decoration-color: #fff; }
+.tableau__presse { display: block; margin: .55rem 0 0 auto; background: none; border-width: 0 0 1px; cursor: pointer; }
+.tableau__action .lien + .lien { margin-top: .55rem; }
+.tableau .tableau__fiche > td { padding: 0 0 2.2rem; border-top: 0; background: rgba(197, 205, 214, .05); }
+.concert-fiche {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 1.5fr); column-gap: var(--gouttiere); row-gap: 1.6rem;
+  padding: 1.6rem 1.4rem 0;
+}
+.concert-fiche .fiche__label:first-child { margin-top: 0; }
+.concert-fiche__lien { margin-top: 1.1rem; }
+.concert-fiche__texte { font-size: .86rem; line-height: 1.55; color: rgba(241, 236, 228, .88); margin-top: .5rem; }
+.concert-fiche__presse { margin-top: 1.4rem; scroll-margin-top: calc(var(--barre-h) + 2rem); }
+.concert-fiche__presse:first-child { margin-top: 0; }
+.concert-fiche__articles { list-style: none; margin-top: .5rem; }
+.concert-fiche__articles li + li { margin-top: .9rem; }
+main a.concert-fiche__article[href] { display: block; text-decoration: none; }
+.concert-fiche__media { display: block; font-size: .62rem; letter-spacing: .22em; text-transform: uppercase; color: var(--froid); }
+.concert-fiche__citation { display: block; margin-top: .25rem; font-family: var(--serif); font-style: italic; font-weight: 300; font-size: 1.05rem; line-height: 1.3; color: #fff; }
+.concert-fiche__titre { display: block; margin-top: .25rem; font-size: .84rem; line-height: 1.45; color: #fff; }
+main a.concert-fiche__article[href]:hover .concert-fiche__citation, main a.concert-fiche__article[href]:hover .concert-fiche__titre { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .2em; }
+@media (max-width: 1179px) { .concert-fiche { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .concert-fiche__colonne--large { grid-column: 1 / -1; } }
 .tableau__ensemble { display: block; margin-top: .15rem; color: rgba(241, 236, 228, .8); }
 .tableau__programme { display: block; margin-top: .3rem; font-size: .76rem; line-height: 1.5; color: var(--muted); }
 .tableau .tableau__action { text-align: right; white-space: nowrap; }
@@ -476,6 +645,11 @@ h3.mention { margin: 0 0 1.4rem; }
   .tableau .tableau__mois { margin-bottom: .35rem; }
   .tableau .tableau__action { text-align: left; margin-top: .5rem; }
   .tableau td:empty { display: none; }
+  .tableau tr.tableau__fiche { padding: 0 0 1.4rem; border-top: 0; }
+  .tableau tr.tableau__fiche[hidden] { display: none; }
+  .concert-fiche { display: block; padding: 1rem .9rem 0; }
+  .concert-fiche__colonne + .concert-fiche__colonne { margin-top: 1.4rem; }
+  .tableau__presse { margin-left: 0; }
   .rang__suite { text-align: left; }
 }
 /* repli sans JavaScript : la liste simple de l'agenda */
@@ -495,13 +669,13 @@ h3.mention { margin: 0 0 1.4rem; }
 /* ------- parcours : fonctions, opéra et création, carte du monde et liste des orchestres ------- */
 .parcours { padding-bottom: 0; }
 .parcours .grille + .grille { margin-top: 9vh; }
-/* bandeau de la carte : un fond noir sur toute la largeur, jusqu'au bas de la section. --bandeau
+/* bandeau de la carte : un fond sur toute la largeur, jusqu'au bas de la section. --bandeau
    est l'opacité voulue, fond de la section compris : le calcul retire ce que la section pose déjà. */
 .parcours__bandeau {
   --bandeau: .9;
   margin-top: 9vh; padding: 9vh 0 16vh;
-  background-color: rgb(0 0 0 / .8);             /* repli : 90 % sur une section à 50 % */
-  background-color: rgb(0 0 0 / calc((var(--bandeau) - var(--fond, 0)) / max(.001, 1 - var(--fond, 0))));
+  background-color: rgb(var(--bg-rvb) / .8);     /* repli : 90 % sur une section à 50 % */
+  background-color: rgb(var(--bg-rvb) / calc((var(--bandeau) - var(--fond, 0)) / max(.001, 1 - var(--fond, 0))));
 }
 .carte svg { width: 100%; height: auto; overflow: visible; }
 .carte__terre { fill: none; stroke: rgba(197, 205, 214, .26); stroke-linecap: round; }
@@ -543,31 +717,58 @@ h3.mention { margin: 0 0 1.4rem; }
   .orchestres-zones { grid-template-columns: 1fr; row-gap: 2.4rem; }
 }
 
-/* ------- presse : logo et nom du média, titre, verbatim clé, court résumé, date et auteur, lien ------- */
-.article__media { min-height: 2.2rem; }
-.article__nom {
-  display: block;
-  font-family: var(--serif); font-weight: 400; font-style: italic;
-  font-size: clamp(1.4rem, 1.8vw, 1.8rem); line-height: 1.15; color: #fff;
-}
-.article__logo { height: 1.6rem; width: auto; max-width: 100%; margin-bottom: .7rem; filter: brightness(0) invert(1); }   /* logo en blanc */
-.article__logo + .article__nom {                 /* avec un logo, le nom devient sa légende */
-  font-family: var(--sans); font-style: normal;
-  font-size: .62rem; letter-spacing: .22em; text-transform: uppercase; line-height: 1.5; color: var(--muted);
-}
-.article__titre { margin-top: .9rem; font-size: .86rem; font-weight: 400; line-height: 1.45; color: #fff; }
+/* ------- presse : une composition éditoriale. Chaque article occupe une, deux ou quatre colonnes de
+   la grille de quatre (réglé dans Pupitre) ; plus il est large, plus sa citation est grande. Dans
+   l'ordre : la citation, le média (son logo, ou son nom : jamais les deux), le chapeau ou le résumé,
+   la date, « En savoir plus », « Lire l'article ». ------- */
+.article--l1 { grid-column: span 3; }
+.article--l2 { grid-column: span 6; }
+.article--l4 { grid-column: 1 / -1; }
+@media (max-width: 1179px) { .article--l1 { grid-column: span 6; } .article--l2, .article--l4 { grid-column: 1 / -1; } }
 .article__verbatim {
-  margin-top: 1.1rem;
   font-family: var(--serif); font-style: italic; font-weight: 300;
   font-size: clamp(1.2rem, 1.5vw, 1.5rem); line-height: 1.25; color: #fff;
 }
-.article__resume { margin-top: .9rem; font-size: .8rem; line-height: 1.5; color: rgba(241, 236, 228, .82); }
-.article__date { margin-top: 1rem; font-size: .66rem; letter-spacing: .16em; text-transform: uppercase; line-height: 1.6; color: var(--froid); }
+.article--l2 .article__verbatim { font-size: clamp(1.5rem, 2.1vw, 2.15rem); line-height: 1.2; }
+.article--l4 .article__verbatim { font-size: clamp(1.8rem, 3vw, 3.1rem); line-height: 1.14; max-width: 26em; }
+.article__traduction { margin-top: .7rem; font-size: .82rem; line-height: 1.5; color: rgba(241, 236, 228, .82); }
+.article__traduction-mention { margin-right: .5em; font-size: .58rem; letter-spacing: .22em; text-transform: uppercase; color: var(--muted); }
+.article__media { margin-top: 1.3rem; }
+.article > .article__media:first-child { margin-top: 0; }
+.article__nom {
+  display: block;
+  font-family: var(--serif); font-weight: 400; font-style: italic;
+  font-size: clamp(1.1rem, 1.3vw, 1.3rem); line-height: 1.15; color: #fff;
+}
+.article__nom--romain { font-style: normal; }
+.article__nom--capitales { font-family: var(--sans); font-style: normal; font-size: .72rem; letter-spacing: .24em; text-transform: uppercase; }
+.article__nom--gras { font-family: var(--sans); font-style: normal; font-weight: 700; letter-spacing: -.01em; }
+.article__logo { height: 1.6rem; width: auto; max-width: min(100%, 12rem); filter: brightness(0) invert(1); }   /* logo en blanc */
+.article__titre { margin-top: .9rem; font-size: .86rem; font-weight: 400; line-height: 1.45; color: #fff; }
+.article__resume { margin-top: .8rem; font-size: .8rem; line-height: 1.5; color: rgba(241, 236, 228, .82); max-width: 44em; }
+.article__date { margin-top: .9rem; font-size: .66rem; letter-spacing: .16em; text-transform: uppercase; line-height: 1.6; color: var(--froid); }
 .article__date span + span::before { content: '·'; margin: 0 .6em; }
+/* détail d'un article : dans le panneau de l'accueil, ou sous sa ligne sur la page Presse */
+.article-detail { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); column-gap: calc(var(--gouttiere) * 2); row-gap: 1.6rem; }
+.article-detail__titre { font-family: var(--serif); font-weight: 400; font-size: clamp(1.3rem, 1.7vw, 1.7rem); line-height: 1.2; color: #fff; }
+.article-detail .etiquette { display: block; margin: 0 0 .7rem; }
+.article-detail .article__verbatim { margin-top: 1.4rem; }
+.article-detail__citation { margin-top: .9rem; font-family: var(--serif); font-style: italic; font-weight: 300; font-size: 1.1rem; line-height: 1.3; color: rgba(241, 236, 228, .95); }
+.article-detail__chapeau { font-size: .94rem; line-height: 1.55; color: #fff; }
+.article-detail__chapeau + .album__texte { margin-top: .9rem; }
+.article-detail__lire { margin-top: 1.5rem; }
+.tableau--presse .tableau__action .lien { display: inline-block; }
+.tableau--presse .tableau__action .lien + .lien { margin-top: .6rem; }
+.tableau .tableau__fiche .article-detail { padding: 1.6rem 1.4rem 0; }
+@media (max-width: 1179px) { .article-detail { grid-template-columns: minmax(0, 1fr); } }
 
 /* ------- téléchargement, contacts ------- */
 .telechargement .section__titre, .contacts .section__titre { font-size: clamp(2rem, 2.9vw, 2.8rem); margin-bottom: 2.6rem; }
 .telechargement .liste li { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
+/* une ressource qui porte une ligne d'information (description, crédits, conditions) : la ligne passe dessous */
+.telechargement .liste li.tel--detail { flex-wrap: wrap; row-gap: .2rem; }
+.telechargement .liste li.tel--detail > :first-child { flex: 1 1 0%; min-width: 0; }
+.tel__info { flex-basis: 100%; font-family: var(--sans); font-size: .7rem; line-height: 1.5; letter-spacing: .02em; color: var(--muted); }
 .contact { padding: 1.1rem 0 1.2rem; border-top: 1px solid rgba(197, 205, 214, .16); font-size: .9rem; font-weight: 400; line-height: 1.6; }
 .contact__nom { font-size: 1rem; color: #fff; }
 .contact__role { color: var(--muted); font-size: .8rem; line-height: 1.45; margin-bottom: .35rem; }
@@ -582,8 +783,10 @@ h3.mention { margin: 0 0 1.4rem; }
 .contacts__agence { margin-bottom: 1.2rem; font-family: var(--serif); font-size: clamp(1.15rem, 1.4vw, 1.3rem); line-height: 1.15; color: #fff; }
 
 /* ==========================================================================
-   Visuels : image, vidéo, YouTube ou couleur, à l'opacité choisie
-   (data/visuels.js ; l'opacité est celle de la classe .fond-N de la section)
+   Blocs visuels : une image (telle quelle ou animée), une ou plusieurs vidéos
+   (data/visuels.js). Un bloc visuel est opaque (.fond-100) et passe devant la
+   nuée (.nuee-arriere-plan) : le vol d'étourneaux n'y est pas visible, il
+   continue derrière et reparaît à la section suivante.
    ========================================================================== */
 .visuel { height: 100vh; height: 100svh; overflow: hidden; }
 .visuel__media {
@@ -591,7 +794,8 @@ h3.mention { margin: 0 0 1.4rem; }
   object-fit: cover; opacity: var(--fond, 1);
   pointer-events: none; -webkit-touch-callout: none; user-select: none;
 }
-.visuel--youtube .visuel__media { opacity: 1; pointer-events: auto; background: #000; }   /* un lecteur YouTube ne se voile pas */
+.visuel--youtube .visuel__media { opacity: 1; pointer-events: auto; background: var(--bg); }   /* un lecteur YouTube ne se voile pas */
+.visuel { background-color: var(--bg); }         /* derrière le média, jamais la nuée */
 .visuel__media.est-commandee { pointer-events: auto; }   /* vidéo avec ses commandes (mouvement réduit) */
 /* image en « lumière » (les découpes, js/lumiere.js) : le canvas remplace l'image une fois prêt.
    En attendant, l'image est dans la pénombre (pas d'éclair au chargement) ; elle revient en pleine
@@ -605,19 +809,49 @@ h3.mention { margin: 0 0 1.4rem; }
 .js .visuel--lumiere:not(.lumiere-echec):not(.lumiere-perdue) img.visuel__media { filter: brightness(.14); }
 html.js-timeout .visuel--lumiere:not(.lumiere-prete) img.visuel__media { filter: none; }
 @media (prefers-reduced-motion: reduce) { .visuel__lumiere, .lumiere-prete img.visuel__media { transition: none; } }
-.visuel__yt { position: absolute; inset: 0; display: grid; place-items: center; background: #000; }
+.visuel__yt { position: absolute; inset: 0; display: grid; place-items: center; background: var(--bg); }
 .visuel__yt iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
 .visuel__consentement { position: relative; max-width: 31rem; padding: 1rem 1.4rem; text-align: center; }
 .visuel__consentement p { font-size: .84rem; line-height: 1.5; font-weight: 400; color: rgba(241, 236, 228, .9); }
 .visuel__consentement .bouton { margin-top: 1.1rem; }
-/* visuel porteur d'un bloc (« Suivre ») : le bloc sur la matrice, avec son halo sombre */
-.visuel__contenu { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); }
-.suivre__bloc { position: relative; }
-.suivre__bloc::before {
-  content: ''; position: absolute; inset: -3.4rem -3rem; z-index: -1;
-  background: radial-gradient(closest-side, rgba(0, 0, 0, .74), rgba(0, 0, 0, .6) 70%, rgba(0, 0, 0, 0));
-  pointer-events: none;
+/* Commandes d'un bloc vidéo : en bas à gauche (le bouton Scroll est au centre, le retour en haut à
+   droite). Lecture / pause, dans le rond des boutons du lecteur de musique ; pour plusieurs vidéos,
+   deux flèches et la position ; au-dessus, le titre et la description de la vidéo, s'ils existent. */
+.visuel__commandes {
+  position: absolute; left: var(--bord); bottom: 1.35rem; z-index: 1;
+  max-width: min(26rem, calc(50vw - 4.5rem));
+  text-shadow: 0 1px 12px rgb(var(--bg-rvb) / .7);
 }
+.visuel__boutons { display: flex; align-items: center; gap: .5rem; }
+.visuel__bouton {
+  display: grid; place-items: center; width: 2.2rem; height: 2.2rem; padding: 0;
+  background: none; border: 0; border-radius: 50%; cursor: pointer; color: rgba(241, 236, 228, .85);
+  transition: color .3s;
+}
+.visuel__bouton .ecoute__icone { width: 2.2rem; height: 2.2rem; background: rgb(var(--bg-rvb) / .35); }
+.visuel__bouton--fleche { width: 1.9rem; height: 1.9rem; border: 1px solid rgba(241, 236, 228, .3); background: rgb(var(--bg-rvb) / .35); transition: border-color .3s, color .3s; }
+.visuel__bouton--fleche svg { width: 1.05rem; height: 1.05rem; }
+.visuel__bouton--fleche:hover, .visuel__bouton--fleche:focus-visible { border-color: #fff; color: #fff; }
+.visuel__bouton[data-video-lecture] + .visuel__bouton--fleche { margin-left: .5rem; }
+.visuel__position { min-width: 2.6rem; text-align: center; font-size: .6rem; letter-spacing: .2em; color: rgba(241, 236, 228, .8); font-variant-numeric: tabular-nums; }
+.visuel__legende { margin-bottom: .8rem; }
+.visuel__titre { display: block; font-family: var(--serif); font-style: italic; font-weight: 300; font-size: 1.15rem; line-height: 1.25; color: #fff; }
+.visuel__description { display: block; margin-top: .3rem; font-size: .76rem; line-height: 1.5; color: rgba(241, 236, 228, .82); }
+.panneau-ouvert .visuel__commandes { visibility: hidden; }
+@media (max-width: 720px) {
+  .visuel__commandes { bottom: .85rem; max-width: calc(50vw - 3.2rem); }
+  .visuel__description { display: none; }
+}
+/* visuel porteur d'un bloc (« Restons en contact ») : le bloc à gauche de la matrice (colonnes 1 à 4),
+   sur un fond sombre légèrement transparent, pour que le visage reste dégagé à tous les formats,
+   écrans très larges compris. Sur téléphone, le bloc passe sous le visage, sur un dégradé. */
+.visuel__contenu { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); }
+.suivre__bloc {
+  position: relative; grid-column: 1 / span 4; max-width: 27rem;
+  padding: 2.5rem 2.3rem 2.2rem;
+  background: rgb(var(--bg-rvb) / .7); border: 1px solid rgba(197, 205, 214, .14);
+}
+@media (max-width: 1179px) { .suivre__bloc { grid-column: 1 / span 5; padding: 2rem 1.8rem 1.8rem; } }
 .suivre__titre { font-family: var(--serif); font-style: italic; font-weight: 300; font-size: clamp(1.8rem, 2.4vw, 2.4rem); line-height: 1.1; color: #fff; margin-bottom: 1.6rem; }
 .suivre .mention { margin: 0 0 .7rem; color: #fff; }
 /* inscription à la lettre : champ (inerte pour l'instant), bouton, et les réseaux en pictogrammes
@@ -625,7 +859,7 @@ html.js-timeout .visuel--lumiere:not(.lumiere-prete) img.visuel__media { filter:
 .lettre { margin-top: 1.2rem; }
 .champ {
   display: block; width: 100%; height: var(--h-bouton); padding: 0 1.2rem;
-  border: 1px solid rgba(241, 236, 228, .45); border-radius: 999px; background: rgba(0, 0, 0, .35);
+  border: 1px solid rgba(241, 236, 228, .45); border-radius: 999px; background: rgb(var(--bg-rvb) / .35);
   font-size: .82rem; font-weight: 400; color: #fff;
 }
 .champ::placeholder { color: rgba(241, 236, 228, .62); opacity: 1; }
@@ -635,7 +869,7 @@ html.js-timeout .visuel--lumiere:not(.lumiere-prete) img.visuel__media { filter:
 .reseaux { list-style: none; display: flex; gap: .45rem; }
 .reseaux a {
   display: grid; place-items: center; width: var(--h-bouton); height: var(--h-bouton);
-  border: 1px solid rgba(241, 236, 228, .45); border-radius: 50%; background: rgba(0, 0, 0, .3);
+  border: 1px solid rgba(241, 236, 228, .45); border-radius: 50%; background: rgb(var(--bg-rvb) / .3);
   color: #fff; transition: border-color .3s, background-color .3s;
 }
 .reseaux a[href]:hover, .reseaux a[href]:focus-visible { border-color: #fff; background: rgba(197, 205, 214, .12); }
@@ -643,21 +877,22 @@ html.js-timeout .visuel--lumiere:not(.lumiere-prete) img.visuel__media { filter:
 .reseaux .inerte { color: rgba(241, 236, 228, .45); border-color: rgba(241, 236, 228, .22); }
 .lettre__note { margin-top: .85rem; font-size: .6rem; letter-spacing: .2em; text-transform: uppercase; color: rgba(241, 236, 228, .7); }
 @media (max-width: 720px) {
-  .visuel__contenu { top: auto; bottom: 0; transform: none; padding: 5rem 0 2.6rem; background: linear-gradient(to top, rgba(0, 0, 0, .82) 45%, rgba(0, 0, 0, 0)); }
-  .suivre__bloc::before { display: none; }
+  .visuel__contenu { top: auto; bottom: 0; transform: none; padding: 5rem 0 2.6rem; background: linear-gradient(to top, rgb(var(--bg-rvb) / .82) 45%, rgb(var(--bg-rvb) / 0)); }
+  .suivre__bloc { grid-column: 1 / -1; max-width: none; padding: 0; background: none; border: 0; }
 }
 
 /* ==========================================================================
-   Pied de page : fond noir, toute la largeur (comme la barre du haut)
+   Pied de page : fond plein, toute la largeur (comme la barre du haut)
    ========================================================================== */
 .pied {
   display: flex; justify-content: space-between; align-items: flex-start; gap: 1.2rem 3rem; flex-wrap: wrap;
   padding: 2.6rem calc(var(--bord) + 3.9rem) 2.8rem var(--bord);   /* à droite : la place du bouton de retour en haut */
-  background-color: rgb(0 0 0 / var(--fond, 1));
+  background-color: rgb(var(--bg-rvb) / var(--fond, 1));
   font-size: .72rem; line-height: 1.6; letter-spacing: .04em; color: var(--muted);
 }
 .pied__liens > * + *::before { content: '·'; display: inline-block; margin: 0 .65em 0 .4em; color: var(--muted); }
 .pied__credit { max-width: 46rem; text-align: right; }
+.pied__credit [data-t="pied.credit"] { white-space: pre-line; }     /* texte libre de Pupitre : ses retours à la ligne sont gardés */
 .pied__outils { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .3rem 1.4rem; margin-top: .7rem; }
 .pied__outil { background: none; border: 0; cursor: pointer; color: var(--muted); text-decoration: underline; text-decoration-color: rgba(143, 138, 130, .5); text-underline-offset: .24em; }
 .pied__outil:hover, .pied__outil:focus-visible, .pied__outil[aria-pressed="true"], .pied__outil[aria-expanded="true"] { color: #fff; }
@@ -682,7 +917,7 @@ html.js-timeout .visuel--lumiere:not(.lumiere-prete) img.visuel__media { filter:
 .filtres__champ span { font-size: .6rem; letter-spacing: .24em; text-transform: uppercase; color: var(--muted); }
 .filtres input, .filtres select {
   width: 100%; height: var(--h-bouton); padding: 0 1.1rem;
-  border: 1px solid rgba(241, 236, 228, .45); border-radius: 999px; background-color: rgba(0, 0, 0, .35);
+  border: 1px solid rgba(241, 236, 228, .45); border-radius: 999px; background-color: rgb(var(--bg-rvb) / .35);
   font: inherit; font-size: .82rem; font-weight: 400; color: #fff;
 }
 .filtres select {
@@ -729,7 +964,7 @@ html.js-timeout .visuel--lumiere:not(.lumiere-prete) img.visuel__media { filter:
 .retour-haut {
   position: fixed; right: var(--bord); bottom: 1.5rem; z-index: 9;      /* sous la barre du haut, devant les sections */
   display: grid; place-items: center; width: 2.6rem; height: 2.6rem;
-  border: 1px solid rgba(241, 236, 228, .4); border-radius: 50%; background: rgba(0, 0, 0, .6);
+  border: 1px solid rgba(241, 236, 228, .4); border-radius: 50%; background: rgb(var(--bg-rvb) / .6);
   color: #fff;
   opacity: 0; visibility: hidden;
   transition: opacity .4s ease, visibility 0s linear .4s, border-color .3s;

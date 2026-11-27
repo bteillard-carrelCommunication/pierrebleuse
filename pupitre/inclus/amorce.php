@@ -9,20 +9,35 @@ require_once __DIR__ . '/fonctions.php';
 require_once __DIR__ . '/base.php';
 require_once __DIR__ . '/droits.php';
 require_once __DIR__ . '/reglages.php';
+require_once __DIR__ . '/langues.php';
+require_once __DIR__ . '/sauvegarde.php';
+require_once __DIR__ . '/migrations.php';
 require_once __DIR__ . '/journal.php';
 require_once __DIR__ . '/mail.php';
 require_once __DIR__ . '/connexion.php';
 require_once __DIR__ . '/annuaire.php';
 require_once __DIR__ . '/agenda.php';
+require_once __DIR__ . '/orchestres.php';
 require_once __DIR__ . '/medias.php';
 require_once __DIR__ . '/contenus.php';
+require_once __DIR__ . '/blocs.php';
+require_once __DIR__ . '/animations.php';
+require_once __DIR__ . '/visuels.php';
+require_once __DIR__ . '/presse.php';
+require_once __DIR__ . '/discographie.php';
+require_once __DIR__ . '/parcours.php';
 require_once __DIR__ . '/site/export.php';
 require_once __DIR__ . '/site/repli.php';
 require_once __DIR__ . '/publication.php';
 require_once __DIR__ . '/taches.php';
 require_once __DIR__ . '/ia.php';
+require_once __DIR__ . '/ia_services.php';
 require_once __DIR__ . '/import.php';
+require_once __DIR__ . '/communication.php';
 require_once __DIR__ . '/alertes.php';
+require_once __DIR__ . '/notifications.php';
+require_once __DIR__ . '/icones.php';
+require_once __DIR__ . '/navigation.php';
 require_once RACINE . '/gabarits/composants.php';
 
 mb_internal_encoding('UTF-8');
@@ -64,7 +79,8 @@ if (!en_cli()) {
     header('X-Frame-Options: DENY');
     header('X-Content-Type-Options: nosniff');
     header('Referrer-Policy: same-origin');
-    header("Content-Security-Policy: default-src 'self'; img-src 'self' data: blob:; media-src 'self' blob:; style-src 'self' 'unsafe-inline'; script-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
+    // images, sons et vidéos : aussi ceux d'une adresse externe (médias « adresse externe » de la médiathèque, aperçus) ; jamais de script d'ailleurs
+    header("Content-Security-Policy: default-src 'self'; img-src 'self' data: blob: https:; media-src 'self' blob: https:; style-src 'self' 'unsafe-inline'; script-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
     header('Cache-Control: no-store');
     session_demarrer();
 }

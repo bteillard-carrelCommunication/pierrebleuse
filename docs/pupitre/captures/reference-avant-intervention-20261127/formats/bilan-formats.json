@@ -1,0 +1,32 @@
+{
+ "accueil-fr-telephone-390x844": {
+  "url": "http://localhost:8888/pierrebleuse/?lang=fr&date=2026-11-12&muet=1&aimant=0&t=104",
+  "ecarts": "[]",
+  "erreurs": [],
+  "debordement_horizontal": false
+ },
+ "accueil-en-telephone-390x844": {
+  "url": "http://localhost:8888/pierrebleuse/?lang=en&date=2026-11-12&muet=1&aimant=0&t=104",
+  "ecarts": "[]",
+  "erreurs": [],
+  "debordement_horizontal": false
+ },
+ "accueil-fr-large-1920x1080": {
+  "url": "http://localhost:8888/pierrebleuse/?lang=fr&date=2026-11-12&muet=1&aimant=0&t=104",
+  "ecarts": "[]",
+  "erreurs": [],
+  "debordement_horizontal": false
+ },
+ "accueil-fr-ultrawide-2560x1080": {
+  "url": "http://localhost:8888/pierrebleuse/?lang=fr&date=2026-11-12&muet=1&aimant=0&t=104",
+  "ecarts": "[]",
+  "erreurs": [],
+  "debordement_horizontal": false
+ },
+ "accueil-fr-ultrawide-3440x1440": {
+  "url": "http://localhost:8888/pierrebleuse/?lang=fr&date=2026-11-12&muet=1&aimant=0&t=104",
+  "ecarts": "[]",
+  "erreurs": [],
+  "debordement_horizontal": false
+ }
+}

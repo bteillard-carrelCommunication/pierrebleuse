@@ -10,12 +10,14 @@ defined('PUPITRE') or exit;
 const REGLAGES = [
     'artiste_nom'   => '',               // nom de l'artiste
     'sous_titre'    => '',               // affiché sous « Pupitre »
-    'langues'       => 'fr,en',          // langues des contenus, la première est la langue de référence
+    'langues'       => 'fr,en',          // ancien réglage : les langues sont désormais dans la table `langues` (inclus/langues.php)
     'fuseau'        => 'Europe/Paris',   // fuseau de l'artiste et de l'agence
     'site_racine'   => '..',             // racine du site à alimenter, relative à pupitre/ ou absolue
     'site_adresse'  => '',               // adresse du site, pour les liens « voir sur le site »
     'saison_debut'  => '',               // AAAA-MM-JJ ; vide : 1er septembre de la saison en cours
     'saison_fin'    => '',               // AAAA-MM-JJ ; vide : 31 août suivant
+    'fond'          => '#000000',        // couleur de fond générale du site (variable CSS --bg)
+    'fond_initial'  => '#000000',        // la couleur d'origine, que « Restaurer » remet
 ];
 
 function reglages_tous(): array
@@ -42,13 +44,6 @@ function reglage_ecrire(string $cle, string $valeur): void
 {
     bd_requete('INSERT INTO reglages (cle, valeur) VALUES (?, ?) ON DUPLICATE KEY UPDATE valeur = VALUES(valeur)', [$cle, $valeur]);
     $GLOBALS['reglages_perimes'] = true;
-}
-
-/** Langues des contenus : ['fr', 'en']. */
-function langues(): array
-{
-    $l = array_values(array_filter(array_map('trim', explode(',', reglage('langues')))));
-    return $l ?: ['fr'];
 }
 
 /** Racine du site à alimenter, en chemin absolu ; '' si elle n'existe pas. */

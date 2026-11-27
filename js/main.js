@@ -14,20 +14,32 @@
  *
  * Musique : la liste est window.PLAYLIST (data/playlist.js). Un seul élément <audio>, dont on
  * change la source (un élément déjà lancé par un geste peut enchaîner les titres sans nouveau
- * geste, y compris dans Safari). Lecture automatique à l'ouverture ; si le navigateur la refuse,
- * elle part au premier clic ou à la première touche. Quand la musique s'arrête, la nuée glisse
- * en FONDU secondes vers le programme autonome du moteur (déterministe, sans hasard à
- * l'exécution) ; quand on change de titre, l'ancien se fond dans le nouveau en FONDU_TITRE.
+ * geste, y compris dans Safari). Le site commence par le morceau d'ouverture (marqué « ouverture »
+ * dans Pupitre, quel que soit son rang ; à défaut le premier). Lecture automatique à l'ouverture ;
+ * si le navigateur la refuse, elle part au premier clic ou à la première touche. Quand la musique
+ * s'arrête, la nuée glisse en FONDU secondes vers le programme autonome du moteur (déterministe,
+ * sans hasard à l'exécution) ; quand on change de titre, l'ancien se fond dans le nouveau en
+ * FONDU_TITRE. Un seul lecteur : les boutons Play / Pause et les listes de titres de l'ouverture et
+ * de la barre du haut le pilotent tous, et montrent le même état. Quand on quitte la page en
+ * musique (changement de langue, page des concerts), le titre et sa position sont notés : au
+ * retour, dans la même session, la musique reprend où elle en était.
  *
- * Vidéo avec son (visuel 3, data/visuels.js, son: true) : elle part quand la section occupe la
- * moitié de la fenêtre et prend le relais de la musique en FONDU_VIDEO (jamais les deux sons
- * ensemble) ; la nuée suit alors sa bande-son. Quand on quitte la section, la vidéo s'arrête et la
- * musique reprend où elle en était. Le bouton Play / Pause reste le maître du son : musique en
- * pause, la vidéo joue muette. Si le navigateur refuse le son de la vidéo, elle joue muette et
- * la musique continue.
+ * Vidéos des blocs visuels (data/visuels.js) : la vidéo d'un bloc part quand la section occupe la
+ * moitié de la fenêtre. Avec son (son: true), elle prend le relais de la musique en FONDU_VIDEO
+ * (jamais les deux sons ensemble) ; la nuée suit alors sa bande-son. Quand on quitte la section, la
+ * vidéo s'arrête et la musique reprend où elle en était, si elle jouait avant ; si le visiteur
+ * l'avait mise en pause, elle ne repart pas. Le bouton Play / Pause de la musique reste le maître
+ * du son : musique en pause, la vidéo joue muette. Si le navigateur refuse le son de la vidéo, elle
+ * joue muette et la musique continue. Chaque bloc vidéo a son petit bouton lecture / pause ; un
+ * bloc de plusieurs vidéos, deux flèches et une position : une seule vidéo est chargée à la fois.
+ * Une vidéo YouTube ne se charge qu'à la demande du visiteur ; la musique se tait alors.
  *
- * Visuels « lumière » (les découpes, js/lumiere.js) : une scène par section [data-lumiere],
- * mesurée et rendue ici.
+ * Images animées des blocs visuels : une scène par section [data-animation], créée par le registre
+ * des modules (js/animations.js), mesurée et rendue ici. Aujourd'hui un module : « lumiere » (les
+ * découpes, js/lumiere.js).
+ *
+ * Bouton Scroll : fixe, en bas au centre. Il mène à la section suivante (les blocs masqués ne sont
+ * plus dans la page), et s'efface sur la dernière.
  *
  * Aimantation des sections (réglage « aimant », à travailler) : dès que 10 % d'une section sont
  * à l'écran dans le sens du défilement, la page défile seule jusqu'à elle. Avec Lenis, au moment
@@ -64,9 +76,10 @@
   const IMAGE = { l: 1920, h: 1080 };       // repère de la nuée (les figures sont dessinées en 16:9)
   const CLE_REGLAGES = 'pb-nuee-reglages-v1';
   const CLE_MUSIQUE = 'pb-musique';         // sessionStorage : '0' si le visiteur a mis la musique en pause
+  const CLE_REPRISE = 'pb-musique-reprise'; // sessionStorage : titre et position quand on a quitté la page en musique
   const FONDU = 2.5;                        // s : musique ↔ programme autonome
   const FONDU_TITRE = 2;                    // s : ancien titre → nouveau
-  const FONDU_VIDEO = 1.5;                  // s : musique ↔ son de la vidéo (visuel 3)
+  const FONDU_VIDEO = 1.5;                  // s : musique ↔ son de la vidéo d'un bloc visuel
   const SEUIL_AIMANT = 0.10;                // part d'une section à l'écran qui déclenche l'aimantation
   const FIGURES = ['auto', 'traine', 'masse', 'voile', 'fil'];
   const PLAYLIST = Array.isArray(window.PLAYLIST) ? window.PLAYLIST : [];
@@ -117,11 +130,12 @@
   const boutonsEcouter = $$('[data-ecouter]');
   const listesTitres = $$('[data-titres]');
   const titresCourants = $$('[data-titre-courant]');
-  const boutonPlaylist = $('[data-playlist]');
-  const voletPlaylist = $('[data-playlist-volet]');
+  // listes de titres : un bouton et son volet par lecteur (ouverture, barre du haut)
+  const playlists = $$('[data-lecteur]').map((boite) => ({
+    boite, bouton: boite.querySelector('[data-playlist]'), volet: boite.querySelector('[data-playlist-volet]'), barre: boite.classList.contains('mini'),
+  })).filter((p) => p.bouton && p.volet);
   const boutonsReglages = $$('[data-ouvrir-reglages]');
   const boutonsPause = $$('[data-pause-animation]');
-  const videoSon = $('video[data-video-son]');
 
   /* ---------- réglages (panneau, ou valeurs par défaut s'il manque) ---------- */
   const forces = {};
@@ -148,7 +162,7 @@
   let gel = null;                  // { t, mur, auto } : horloges figées (tests, ?t=)
   let mur = 0, dernier = performance.now(), sale = true;
   let vLisse = 0, yPrec = null, dprVu = window.devicePixelRatio || 1;
-  let nImages = 0, tIps = performance.now(), ips = 0, tHud = 0, opaciteVue = -1, canvasVisible = null, sansNueeVu = null, hintVu = '', barreVue = -1;
+  let nImages = 0, tIps = performance.now(), ips = 0, tHud = 0, opaciteVue = -1, canvasVisible = null, sansNueeVu = null, hintVu = null, barreVue = -1;
   const L = { vw: innerWidth, vh: innerHeight, cw: innerWidth, ch: innerHeight, dpr: 1, rect: { x: 0, y: 0, w: innerWidth, h: innerHeight } };
   const dern = { v: 0, params: null, opacite: 0, sources: [], barre: 0 };
 
@@ -237,8 +251,8 @@
     ecoute = true;
     attenteLecture = 0;
     majLecteur();
-    // sur la vidéo du visuel 3 : c'est elle qui prend le son, la musique attend qu'on la quitte
-    if (scene && scene.actif) { sonVideo(true); return; }
+    // sur une vidéo avec son : c'est elle qui prend le son, la musique attend qu'on la quitte
+    if (scene && scene.actif && scene.sonore && !scene.youtube) { scene.pauseVoulue = false; sonVideo(scene, true); return; }
     Promise.resolve(sur('lecteur.ecouter', () => l.ecouter(), 'virtuelle')).then((r) => {
       if (lecteur !== l || !ecoute || r !== 'virtuelle') return;
       // lecture refusée : l'horloge revient au début du titre et attend
@@ -251,7 +265,7 @@
   function arreter() {
     ecoute = false;
     if (lecteur) sur('lecteur.pause', () => lecteur.pause());
-    if (scene && !REDUIT) sonVideo(false);           // la vidéo continue, muette
+    if (!REDUIT) for (const S of scenes) if (S.son || S.relais) sonVideo(S, false);   // la vidéo continue, muette
     majLecteur();
   }
   // Bouton Play / Pause : un geste du visiteur. Son choix est mémorisé pour la session.
@@ -343,66 +357,77 @@
     if (T) for (const n of titresCourants) { const h = enHtml(texte(T.d.titre)); if (n.innerHTML !== h) n.innerHTML = h; }
     racineDoc.classList.toggle('musique-en-cours', ecoute);
   }
-  function ouvrirPlaylist(ouvrir) {
-    if (!boutonPlaylist || !voletPlaylist) return;
-    voletPlaylist.hidden = !ouvrir;
-    boutonPlaylist.setAttribute('aria-expanded', ouvrir ? 'true' : 'false');
+  // Liste des titres : un volet par lecteur, un seul ouvert à la fois.
+  function ouvrirPlaylist(p, ouvrir) {
+    if (ouvrir) for (const q of playlists) if (q !== p) ouvrirPlaylist(q, false);
+    p.volet.hidden = !ouvrir;
+    p.bouton.setAttribute('aria-expanded', ouvrir ? 'true' : 'false');
   }
-  function fermerPlaylist() { ouvrirPlaylist(false); }
+  function fermerPlaylist() { for (const p of playlists) if (!p.volet.hidden) ouvrirPlaylist(p, false); }
+  const playlistOuverte = () => playlists.find((p) => !p.volet.hidden) || null;
   for (const b of boutonsEcouter) b.addEventListener('click', basculerEcoute);
-  if (boutonPlaylist && voletPlaylist) {
-    boutonPlaylist.addEventListener('click', () => ouvrirPlaylist(voletPlaylist.hidden));
+  for (const p of playlists) p.bouton.addEventListener('click', () => ouvrirPlaylist(p, p.volet.hidden));
+  if (playlists.length) {
     document.addEventListener('click', (e) => {
-      if (voletPlaylist.hidden) return;
+      const p = playlistOuverte();
+      if (!p) return;
       const c = e.target && e.target.closest ? e.target : null;
-      if (!c || (!c.closest('[data-playlist-volet]') && !c.closest('[data-playlist]'))) fermerPlaylist();
+      if (!c || !p.boite.contains(c)) fermerPlaylist();
     });
   }
 
-  /* ---------- vidéo avec son (visuel 3) : relais de la musique ---------- */
-  // x : part de la vidéo dans le son et dans la conduite de la nuée (0 → 1 en FONDU_VIDEO, quand
-  // elle joue vraiment) ; son : elle porte le son ; relais : la musique s'est tue pour elle et
-  // reprendra quand on quittera la section.
-  const scene = videoSon ? { v: videoSon, el: videoSon.closest('[data-section]') || videoSon.parentNode, piste: null, haut: 0, h: 0, actif: false, x: 0, son: false, relais: false, vue: 0 } : null;
-  if (scene) {
-    const adresse = videoSon.getAttribute('data-piste');
-    if (adresse && M && typeof M.chargerPiste === 'function') {
-      sur('Musique.chargerPiste (vidéo)', () => {
-        Promise.resolve(M.chargerPiste(adresse)).then((p) => { scene.piste = p || null; }, (e) => avertir('piste de la vidéo indisponible', e));
-      });
-    }
-    videoSon.loop = true;
-    if (REDUIT) {
-      // mouvement réduit : pas de lecture automatique ; le visiteur lance la vidéo lui-même, avec
-      // les commandes du navigateur, et la musique se tait à ce moment-là
-      videoSon.controls = true;
-      videoSon.muted = false;
-      videoSon.classList.add('est-commandee');
-      videoSon.addEventListener('play', () => {
-        if (!ecoute) return;
-        ecoute = false;
-        if (lecteur) sur('lecteur.pause', () => lecteur.pause());
-        majLecteur();
-      });
-    }
+  /* ---------- vidéos des blocs visuels : lecture, commandes, relais de la musique ---------- */
+  // Une scène par bloc vidéo (js/sections.js les recense : SiteSections.videos). Dans une scène :
+  // liste : les vidéos du bloc ; i : celle qui est chargée ; v : l'élément <video> (un seul par bloc) ;
+  // x : part de la vidéo dans le son et dans la conduite de la nuée (0 → 1 en FONDU_VIDEO, quand elle
+  // joue vraiment) ; sonore : la vidéo chargée a du son ; son : elle porte le son en ce moment ;
+  // relais : la musique s'est tue pour elle et reprendra quand on quittera la section ; pauseVoulue :
+  // le visiteur a mis la vidéo en pause ; youtube : la vidéo chargée est un lecteur YouTube.
+  const SV = (window.SiteSections && window.SiteSections.videos) || {};
+  const scenes = Object.keys(SV).map((id) => {
+    const d = SV[id], el = d.section;
+    const v = el.querySelector('video[data-video-bloc]');
+    const cmd = el.querySelector('[data-video-commandes]');
+    return {
+      el, v, liste: d.elements, i: 0, outils: d, piste: null, pistes: {}, haut: 0, h: 0, actif: false, x: 0, vue: 0,
+      sonore: !!(d.elements[0] && d.elements[0].son), son: false, relais: false, pauseVoulue: false,
+      youtube: !!(d.elements[0] && d.elements[0].type === 'youtube'), boiteYt: v ? null : el.querySelector('.visuel__yt'),
+      cmd: cmd ? {
+        boite: cmd, lecture: cmd.querySelector('[data-video-lecture]'), precedente: cmd.querySelector('[data-video-precedente]'),
+        suivante: cmd.querySelector('[data-video-suivante]'), position: cmd.querySelector('[data-video-position]'), legende: cmd.querySelector('[data-video-legende]'),
+      } : null,
+    };
+  });
+  let scene = null;                // la scène qui a la main : celle qu'on regarde, ou celle qu'on vient de quitter tant que son fondu dure
+  function chargerPisteVideo(S) {
+    const adresse = S.sonore && S.liste[S.i] ? S.liste[S.i].piste : null;
+    S.piste = adresse ? (S.pistes[adresse] || null) : null;
+    if (!adresse || S.pistes[adresse] !== undefined || !M || typeof M.chargerPiste !== 'function') return;
+    S.pistes[adresse] = null;
+    sur('Musique.chargerPiste (vidéo)', () => {
+      Promise.resolve(M.chargerPiste(adresse)).then(
+        (p) => { S.pistes[adresse] = p || null; if (S.liste[S.i] && S.liste[S.i].piste === adresse) S.piste = p || null; },
+        (e) => avertir('piste de la vidéo indisponible', e));
+    });
   }
-  function jouerVideo() {
+  function jouerVideo(S) {
     let p;
-    try { p = scene.v.play(); } catch (e) { p = Promise.reject(e); }
+    try { p = S.v.play(); } catch (e) { p = Promise.reject(e); }
     return Promise.resolve(p);
   }
   // Donner ou retirer le son à la vidéo. Refusé hors d'un geste : elle joue muette et la musique
   // continue (ou reprend).
-  function sonVideo(oui) {
-    const S = scene, v = S.v;
+  function sonVideo(S, oui) {
+    const v = S.v;
+    if (!v) return;
     if (!oui) { v.muted = true; S.son = false; S.relais = false; return; }
     v.muted = false;
     v.volume = Math.max(0.001, lisse(S.x));
     S.son = true;
-    jouerVideo().then(() => {}, () => {
+    jouerVideo(S).then(() => {}, () => {
       if (!S.son) return;
       v.muted = true; S.son = false;
-      jouerVideo().then(() => {}, () => {});
+      jouerVideo(S).then(() => {}, () => {});
       if (S.relais) { S.relais = false; reprendreMusique(); }
     });
   }
@@ -417,20 +442,161 @@
       majLecteur();
     }, () => {});
   }
-  function entrerScene() {
-    const S = scene;
-    if (ecoute) sonVideo(true);
-    else { S.v.muted = true; S.son = false; jouerVideo().then(() => {}, () => {}); }
+  // Lance la vidéo chargée : avec son si la musique jouait (elle lui cède la place), muette sinon.
+  function lancerVideo(S) {
+    if (!S.v || S.youtube) return;
+    if (ecoute && S.sonore) sonVideo(S, true);
+    else { S.v.muted = true; S.son = false; jouerVideo(S).then(() => {}, () => {}); }
   }
-  function quitterScene() {
-    const S = scene;
+  // Arrêt net d'une scène (une autre prend la main, ou la vidéo change) : plus de son, plus d'image qui tourne.
+  function couperScene(S) {
+    if (S.v) { if (!S.v.paused) S.v.pause(); S.v.muted = true; }
+    S.son = false; S.x = 0;
+  }
+  function retirerYouTube(S) {
+    // le lecteur YouTube chargé est retiré : la boîte de consentement revient, plus rien ne joue
+    if (!S.youtube || !S.boiteYt || !S.boiteYt.querySelector('iframe')) return;
+    const neuve = S.outils.mediaYouTube(S.liste[S.i], S.el);
+    neuve.classList.add('visuel__media');
+    S.boiteYt.parentNode.replaceChild(neuve, S.boiteYt);
+    S.boiteYt = neuve;
+  }
+  function entrerScene(S) {
+    if (scene && scene !== S) { const relais = scene.relais; couperScene(scene); scene.relais = false; S.relais = false; if (relais && !S.sonore) reprendreMusique(); }
+    scene = S;
+    S.pauseVoulue = false;
+    lancerVideo(S);
+    majCommandes(S);
+  }
+  function quitterScene(S) {
+    retirerYouTube(S);
+    S.pauseVoulue = false;
     if (S.relais) { S.relais = false; reprendreMusique(); }
+    majCommandes(S);
   }
-  function majScene(dt, y) {
-    const S = scene, v = S.v;
+  // Charge une autre vidéo du bloc dans le même lecteur ; elle part si on regarde la section.
+  function changerVideo(S, i) {
+    const n = S.liste.length;
+    if (n < 2) return;
+    i = ((i % n) + n) % n;
+    if (i === S.i) return;
+    const e = S.liste[i];
+    const avaitSon = S.son || S.relais;
+    retirerYouTube(S);
+    S.i = i;
+    S.youtube = e.type === 'youtube';
+    S.sonore = !!e.son && !S.youtube;
+    S.pauseVoulue = false;
+    if (S.youtube) {
+      if (S.v) { couperScene(S); S.v.hidden = true; }
+      const boite = S.outils.mediaYouTube(e, S.el);
+      boite.classList.add('visuel__media');
+      if (S.boiteYt) S.boiteYt.parentNode.replaceChild(boite, S.boiteYt); else S.el.insertBefore(boite, S.el.firstChild);
+      S.boiteYt = boite;
+      // la musique reprend si elle s'était tue pour la vidéo précédente : rien ne joue tant que YouTube n'est pas chargé
+      if (S.relais) { S.relais = false; reprendreMusique(); }
+    } else {
+      if (S.boiteYt) { S.boiteYt.parentNode.removeChild(S.boiteYt); S.boiteYt = null; }
+      if (!S.v) {
+        // le bloc commençait par une vidéo YouTube : son lecteur vidéo est créé à la première vraie vidéo
+        const v = document.createElement('video');
+        v.className = 'visuel__media';
+        v.muted = true; v.defaultMuted = true; v.playsInline = true;
+        v.setAttribute('muted', ''); v.setAttribute('playsinline', ''); v.setAttribute('disablepictureinpicture', ''); v.setAttribute('data-video-bloc', '');
+        v.preload = 'metadata';
+        S.el.insertBefore(v, S.el.firstChild);
+        S.v = v;
+        armerVideo(S);
+      }
+      S.v.hidden = false;
+      S.v.pause();
+      S.outils.poserVideo(S.v, e);
+      sur('video.load', () => S.v.load());
+      chargerPisteVideo(S);
+      if (S.actif && !REDUIT) {
+        // le son suit : si la vidéo précédente le portait, la nouvelle le reprend ; sinon la règle commune
+        if (avaitSon && S.sonore) { S.x = Math.min(S.x, 0.999); sonVideo(S, true); }
+        else {
+          if (avaitSon) { S.son = false; if (S.relais) { S.relais = false; reprendreMusique(); } }     // la nouvelle vidéo n'a pas de son : la musique revient
+          lancerVideo(S);
+        }
+      }
+    }
+    S.el.classList.toggle('visuel--youtube', S.youtube);
+    S.el.classList.toggle('visuel--video', !S.youtube);
+    majCommandes(S);
+  }
+  // Commandes du bloc : état du bouton lecture / pause, position, titre et description de la vidéo chargée.
+  function majCommandes(S) {
+    const c = S.cmd;
+    if (!c) return;
+    const joue = !!S.v && !S.youtube && !S.v.paused && !S.v.ended;
+    if (c.lecture) {
+      c.lecture.hidden = S.youtube || REDUIT;              // YouTube et mouvement réduit : les commandes du lecteur lui-même
+      c.lecture.setAttribute('data-etat', joue ? 'lecture' : 'arret');
+      c.lecture.setAttribute('aria-label', brut(joue ? t('video.pause', 'Pause') : t('video.lire', 'Play')));
+    }
+    if (c.position) {
+      const lib = (S.i + 1) + ' / ' + S.liste.length;
+      if (c.position.textContent !== lib) c.position.textContent = lib;
+      c.position.setAttribute('aria-label', brut((C && C.t('video.position', { n: S.i + 1, total: S.liste.length })) || lib));
+    }
+    if (c.legende) {
+      const e = S.liste[S.i] || {};
+      const titre = texte(e.titre), description = texte(e.description);
+      const h = (titre ? '<span class="visuel__titre">' + enHtml(titre) + '</span>' : '') + (description ? '<span class="visuel__description">' + enHtml(description) + '</span>' : '');
+      if (c.legende.innerHTML !== h) c.legende.innerHTML = h;
+      c.legende.hidden = !h;
+    }
+  }
+  function armerVideo(S) {
+    const v = S.v;
+    v.loop = S.liste.length < 2;                       // une seule vidéo : en boucle ; plusieurs : la suivante à la fin
+    v.addEventListener('ended', () => { if (S.liste.length > 1 && S.actif) changerVideo(S, S.i + 1); });
+    for (const ev of ['play', 'pause', 'playing']) v.addEventListener(ev, () => majCommandes(S));
+    if (REDUIT) {
+      // mouvement réduit : pas de lecture automatique ; le visiteur lance la vidéo lui-même, avec
+      // les commandes du navigateur, et la musique se tait à ce moment-là
+      v.controls = true;
+      v.muted = false;
+      v.classList.add('est-commandee');
+      v.addEventListener('play', () => {
+        if (!ecoute) return;
+        ecoute = false;
+        if (lecteur) sur('lecteur.pause', () => lecteur.pause());
+        majLecteur();
+      });
+    }
+  }
+  for (const S of scenes) {
+    if (S.v) armerVideo(S);
+    chargerPisteVideo(S);
+    const c = S.cmd;
+    if (c && c.lecture) {
+      // bouton lecture / pause de la vidéo : un geste du visiteur
+      c.lecture.addEventListener('click', () => {
+        if (!S.v || S.youtube) return;
+        if (S.v.paused) { S.pauseVoulue = false; if (!S.actif) { S.v.muted = true; S.son = false; jouerVideo(S).then(() => {}, () => {}); } else lancerVideo(S); }
+        else { S.pauseVoulue = true; S.v.pause(); }
+        majCommandes(S);
+      });
+    }
+    if (c && c.precedente) c.precedente.addEventListener('click', () => changerVideo(S, S.i - 1));
+    if (c && c.suivante) c.suivante.addEventListener('click', () => changerVideo(S, S.i + 1));
+    // lecteur YouTube chargé par le visiteur : la musique se tait, elle reprendra quand on quittera la section
+    S.el.addEventListener('pb:youtube', () => {
+      if (!ecoute || S.relais) return;
+      S.relais = true;
+      if (lecteur) sur('lecteur.pause', () => lecteur.pause());
+    });
+    majCommandes(S);
+  }
+  function majScene(S, dt, y) {
+    const v = S.v;
     S.vue = clamp01((Math.min(y + L.vh, S.haut + S.h) - Math.max(y, S.haut)) / Math.max(1, Math.min(L.vh, S.h)));
     const veut = S.vue >= 0.5 && G().animation !== false && !REDUIT && !gel;
-    if (veut !== S.actif) { S.actif = veut; if (veut) entrerScene(); else quitterScene(); }
+    if (veut !== S.actif) { S.actif = veut; if (veut) entrerScene(S); else quitterScene(S); }
+    if (!v || S.youtube) { if (S.x !== 0) S.x = 0; return; }
     const joue = !v.paused && !v.ended && v.readyState >= 2;
     const cible = S.actif && joue ? 1 : 0;
     if (S.x !== cible) S.x = cible > S.x ? Math.min(1, S.x + dt / FONDU_VIDEO) : Math.max(0, S.x - dt / FONDU_VIDEO);
@@ -439,33 +605,36 @@
       // fondu croisé : la musique descend pendant que la vidéo monte, puis se met en pause
       const vol = Math.max(0, Math.min(1, k));
       if (Math.abs(v.volume - vol) > 0.004) v.volume = vol;
-      if (audio) { const va = Math.max(0, Math.min(1, 1 - k)); if (Math.abs(audio.volume - va) > 0.004) audio.volume = va; }
+      if (audio && scene === S) { const va = Math.max(0, Math.min(1, 1 - k)); if (Math.abs(audio.volume - va) > 0.004) audio.volume = va; }
       if (S.actif && S.x >= 1 && !S.relais && ecoute) {
         S.relais = true;
         if (lecteur) sur('lecteur.pause', () => lecteur.pause());
       }
-    } else if (audio && audio.volume !== 1 && !S.relais) audio.volume = 1;
+    } else if (audio && scene === S && audio.volume !== 1 && !S.relais) audio.volume = 1;
     if (!S.actif && S.x <= 0) {
       if (!v.paused) v.pause();                      // sortie terminée : la vidéo s'arrête
       if (S.son) { S.son = false; v.muted = true; }
-      if (audio && audio.volume !== 1) audio.volume = 1;
+      if (audio && scene === S && audio.volume !== 1) audio.volume = 1;
     }
   }
 
-  /* ---------- visuels « lumière » (les découpes) : une scène par section [data-lumiere] ---------- */
-  const LM = window.Lumiere || null;
+  /* ---------- images animées des blocs visuels : une scène par section [data-animation] ---------- */
+  // Le module vient du registre (js/animations.js) ; ses réglages, de Pupitre (data/visuels.js).
+  // « lumieres » garde son nom : le seul module d'aujourd'hui est « lumiere » (les découpes).
+  const AN = window.SiteAnimations || null;
   const lumieres = [];
-  for (const sec of $$('[data-lumiere]')) {
+  for (const sec of $$('[data-animation]')) {
+    const module = sec.getAttribute('data-animation');
+    const reglages = sur('réglages de l\'animation', () => JSON.parse(sec.getAttribute('data-animation-reglages') || '{}'), {}) || {};
     const foc = (sec.getAttribute('data-focal') || '').split(',').map(Number);
-    const sc = LM ? sur('Lumiere.creer', () => LM.creer(sec, {
-      preset: sec.getAttribute('data-lumiere'), reduit: REDUIT,
-      focus: foc.length === 2 && foc.every((x) => isFinite(x)) ? foc : null,
-    }), null) : null;
+    const sc = AN ? sur('SiteAnimations.creer', () => AN.creer(module, sec, Object.assign({}, reglages, {
+      reduit: REDUIT, focus: foc.length === 2 && foc.every((x) => isFinite(x)) ? foc : null,
+    })), null) : null;
     if (!sc) { sec.classList.add('lumiere-echec'); continue; }          // l'image reste seule
     lumieres.push(sc);
-    sc.init().then(() => planifier(), (e) => avertir('visuel « lumière » indisponible, image seule (' + (sec.id || '?') + ')', e));
+    sc.init().then(() => planifier(), (e) => avertir('image animée indisponible, image seule (' + (sec.id || '?') + ')', e));
   }
-  if (!LM && $('[data-lumiere]')) avertir('lumiere.js absent : visuels en image seule');
+  if (!AN && $('[data-animation]')) avertir('animations.js absent : images animées en image seule');
 
   /* ---------- aimantation des sections ---------- */
   // Une zone par section de la page, pied compris. auto : défilement automatique en cours ;
@@ -615,7 +784,7 @@
     for (const r of revelations) r.el.style.transform = '';
     for (const r of revelations) r.haut = r.el.getBoundingClientRect().top + sy;
     for (const z of zones) { z.haut = z.el.getBoundingClientRect().top + sy; z.h = z.el.offsetHeight; }
-    if (scene) { scene.haut = scene.el.getBoundingClientRect().top + sy; scene.h = scene.el.offsetHeight; }
+    for (const S of scenes) { S.haut = S.el.getBoundingClientRect().top + sy; S.h = S.el.offsetHeight; }
   }
   function relayout() {
     sur('mise en page', mesurer);
@@ -670,7 +839,8 @@
     if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || estSaisie(e.target)) return;
     if (e.key === 'p' || e.key === 'P') { e.preventDefault(); basculerPanneau(); }
     else if (e.key === 'Escape') {
-      if (voletPlaylist && !voletPlaylist.hidden) { fermerPlaylist(); if (boutonPlaylist) boutonPlaylist.focus(); }
+      const ouverte = playlistOuverte();
+      if (ouverte) { fermerPlaylist(); ouverte.bouton.focus(); }
       else if (panneau && panneau.ouvert) panneau.fermer();
     }
   });
@@ -700,8 +870,8 @@
       if (!gel.auto && T && T.piste) return [{ piste: T.piste, t: gel.t, poids: 1 }];
       return [{ piste: null, t: gel.t, poids: 1 }];
     }
-    // la vidéo du visuel 3, quand elle joue : sa bande-son conduit la nuée, le reste s'efface d'autant
-    const wv = scene && scene.piste && scene.x > 0.001 ? lisse(scene.x) : 0;
+    // la vidéo d'un bloc visuel, quand elle joue : sa bande-son conduit la nuée, le reste s'efface d'autant
+    const wv = scene && scene.v && scene.piste && scene.x > 0.001 ? lisse(scene.x) : 0;
     const part = 1 - wv;
     const me = lisse(m);
     const xs = sortant ? lisse(sortant.x) : 0;
@@ -742,11 +912,21 @@
       racineDoc.classList.toggle('barre-visible', barre > 0.5);
       racineDoc.classList.toggle('barre-pleine', barre > 0.98);
       racineDoc.classList.toggle('barre-nulle', barre < 0.02);
-      if (barre <= 0.5 && voletPlaylist && !voletPlaylist.hidden) fermerPlaylist();
+      // un volet ne reste pas ouvert quand son lecteur s'efface : celui de la barre en haut de page, celui de l'ouverture au défilement
+      const ouverte = playlistOuverte();
+      if (ouverte && (ouverte.barre ? barre <= 0.5 : barre > 0.5)) fermerPlaylist();
     }
     if (hint) {
-      const o = (1 - anac(y / (0.3 * L.vh))).toFixed(3);
-      if (o !== hintVu) { hintVu = o; hint.style.opacity = o; hint.style.visibility = Number(o) < 0.02 ? 'hidden' : ''; }
+      // bouton Scroll : il mène à la section suivante, et s'efface quand il n'y en a plus
+      const fin = y >= Math.max(0, racineDoc.scrollHeight - L.vh) - 2;
+      let suivante = '';
+      if (!fin) for (const z of zones) { if (z.haut > y + 2) { suivante = z.el.id || ''; break; } }
+      if (suivante !== hintVu) {
+        hintVu = suivante;
+        if (suivante) hint.setAttribute('href', '#' + suivante);
+        hint.classList.toggle('hint--fin', !suivante);
+        if (suivante) hint.removeAttribute('tabindex'); else hint.setAttribute('tabindex', '-1');
+      }
     }
     majRevelations(y, false, dt);
     sur('aimantation', () => majAimant(y, now));
@@ -762,8 +942,9 @@
       sortant.x -= dt / FONDU_TITRE;
       if (sortant.x <= 0 || m <= 0) sortant = null;
     }
-    if (scene) sur('vidéo', () => majScene(dt, y));
-    const relais = !!scene && (scene.relais || (scene.actif && scene.son));   // la vidéo porte le son à la place de la musique
+    for (const S of scenes) sur('vidéo', () => majScene(S, dt, y));
+    if (scene && !scene.actif && scene.x <= 0 && !scene.relais) scene = null;      // plus personne n'a la main
+    const relais = scenes.some((S) => S.relais || (S.actif && S.son));             // une vidéo porte le son à la place de la musique
     if (ecoute && !musique && !relais) {   // lecture qui ne démarre pas ou s'arrête d'elle-même : on rend la main
       attenteLecture += dt;
       if (attenteLecture > 8) { ecoute = false; majLecteur(); }
@@ -828,13 +1009,19 @@
       'figures ' + fig,
       'opacité globale ' + Math.round(dern.opacite * 100) + ' %  v ' + f(dern.v, 0) + ' px/s  barre ' + f(dern.barre) + (nueeOk() ? '' : '  nuée inactive') +
         (figureForcee() ? '  figure ' + figureForcee() : '') + (attenteGeste ? '  lecture auto en attente d\'un geste' : ''),
-      'vidéo ' + (scene ? (scene.actif ? 'active' : 'hors champ') + '  part ' + f(lisse(scene.x)) + (scene.son ? '  son' : '  muette') + (scene.relais ? '  relais de la musique' : '') : '—') +
+      'vidéo ' + ((scene || scenes[0]) ? ((scene || scenes[0]).actif ? 'active' : 'hors champ') + '  part ' + f(lisse((scene || scenes[0]).x)) + ((scene || scenes[0]).son ? '  son' : '  muette') + ((scene || scenes[0]).relais ? '  relais de la musique' : '') : '—') +
         '   aimant ' + (aimantActif() ? (aimant.auto ? 'trajet → ' + Math.round(aimant.auto.cible) : aimant.trajet ? 'suspendu (trajet programmé)' : 'prêt') : 'coupé') +
         '   lumière ' + (lumieres.length ? lumieres.map((s) => f(s.p < 0 ? 0 : s.p)).join(' ') : '—'),
     ].join('\n');
   }
 
   /* ---------- API de test ---------- */
+  function etatScene(S) {
+    if (!S) return null;
+    const v = S.v;
+    return { id: S.el.id, actif: S.actif, vue: S.vue, x: S.x, son: S.son, relais: S.relais, sonore: S.sonore, youtube: S.youtube, n: S.liste.length, i: S.i,
+      pauseVoulue: S.pauseVoulue, muette: v ? v.muted : null, enPause: v ? v.paused : null, t: v ? v.currentTime : 0, volume: v ? v.volume : 0, src: v ? v.getAttribute('src') : null, piste: !!S.piste };
+  }
   function etat() {
     const st = nuee ? sur('nuee.stats', () => nuee.stats(), null) : null;
     const T = titres[courant];
@@ -848,7 +1035,8 @@
       v: dern.v, scrollY: window.scrollY,
       nuee: st, nueeOk: nueeOk(),
       animation: G().animation !== false, reduit: REDUIT, lenis: !!lenis, tactile: TACTILE,
-      video: scene ? { actif: scene.actif, vue: scene.vue, x: scene.x, son: scene.son, relais: scene.relais, muette: scene.v.muted, enPause: scene.v.paused, t: scene.v.currentTime, volume: scene.v.volume, piste: !!scene.piste } : null,
+      video: etatScene(scene || scenes[0] || null),
+      videos: scenes.map(etatScene),
       volumeMusique: audio ? audio.volume : null,
       aimant: { actif: aimantActif(), auto: aimant.auto ? aimant.auto.cible : null, trajet: aimant.trajet ? aimant.trajet.cible : null, dir: aimant.dir, n: aimant.n, zones: zones.map((z) => ({ id: z.el.id, haut: Math.round(z.haut), h: Math.round(z.h) })) },
       lumieres: lumieres.map((s) => ({ id: s.section.id, preset: s.nom, pret: s.pret, p: s.p, cible: s.cible, visible: s.visible, composition: s.cle })),
@@ -880,7 +1068,9 @@
     get reglages() { return panneau; },
     get lenis() { return lenis; },
     get lumieres() { return lumieres; },
-    get video() { return scene; },
+    get video() { return scene || scenes[0] || null; },
+    get videos() { return scenes; },
+    videoSuivante(id) { const S = scenes.find((x) => x.el.id === id) || scenes[0]; if (S) changerVideo(S, S.i + 1); return S ? S.i : -1; },
   };
 
   /* ---------- amorçage ---------- */
@@ -898,7 +1088,26 @@
   appliquerHud();
   appliquerAnimation();
   construireTitres();
-  if (titres.length && audio) installerTitre(0); else majLecteur();
+  // Le morceau d'ouverture : celui que Pupitre marque, quel que soit son rang ; à défaut le premier.
+  // Si l'on a quitté la page en musique dans cette session (changement de langue, autre page du
+  // site), on reprend le même titre où il en était.
+  const OUVERTURE = Math.max(0, titres.findIndex((T) => T.d && T.d.ouverture));
+  let reprise = null;
+  sur('reprise de la musique', () => {
+    const r = JSON.parse(memoire.lire(CLE_REPRISE) || 'null');
+    memoire.ecrire(CLE_REPRISE, null);
+    if (!r || !(Date.now() - r.quand < 2 * 3600 * 1000)) return;
+    const i = titres.findIndex((T) => T.d && T.d.id === r.id);
+    if (i >= 0 && isFinite(r.t) && r.t > 0) reprise = { i, t: r.t };
+  });
+  if (titres.length && audio) {
+    installerTitre(reprise ? reprise.i : OUVERTURE);
+    if (reprise && lecteur) sur('lecteur.aller (reprise)', () => lecteur.aller(reprise.t));
+  } else majLecteur();
+  addEventListener('pagehide', () => {
+    const T = titres[courant];
+    if (ecoute && T && !gel) memoire.ecrire(CLE_REPRISE, JSON.stringify({ id: T.d.id, t: horloge.t, quand: Date.now() }));
+  });
   if (!panneau && (P || RG)) avertir('panneau de réglages indisponible : valeurs par défaut');
   if (!nuee) avertir('nuée indisponible');
   else if (!nueeOk()) avertir('nuée inactive (WebGL2 refusé)');

@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="fr">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Pierre Bleuse, chef d'orchestre</title>
+  <title>Pierre Bleuse, conductor</title>
   <!-- DESCRIPTION-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
-  <meta name="description" content="Site officiel de Pierre Bleuse, chef d'orchestre : agenda des concerts, biographie, disques, presse, contacts.">
+  <meta name="description" content="Official website of conductor Pierre Bleuse: concert schedule, biography, recordings, press, contacts.">
   <!-- DESCRIPTION-STATIQUE:FIN -->
   <meta name="robots" content="noindex">
   <link rel="icon" href="data:,">
@@ -14,8 +14,15 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inria+Serif:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/etourneaux.css?v=20261115b">
-  <link rel="stylesheet" href="css/site.css?v=20261115b">
+  <link rel="stylesheet" href="css/etourneaux.css?v=20261127j">
+  <link rel="stylesheet" href="css/site.css?v=20261127j">
+  <!-- SITE-STATIQUE:DEBUT (couleur de fond et blocs masqués, générés par Pupitre, ne pas modifier à la main) -->
+  <style data-site>
+    :root { --bg: #04070d; --bg-rvb: 4 7 13; }
+    #visuel-3, [data-menu-liste] a[href="#visuel-3"] { display: none !important; }
+    [data-menu-liste] li:has(> a[href="#visuel-3"]) { display: none !important; }
+  </style>
+  <!-- SITE-STATIQUE:FIN -->
 
   <script>
     document.documentElement.classList.add('js');
@@ -25,15 +32,19 @@
       if (!window.__h4Booted) { document.documentElement.classList.add('js-timeout'); document.documentElement.style.setProperty('--barre', '1'); }
     }, 4000);
   </script>
-  <!-- Textes éditables (data/textes.js), puis langue et dictionnaire : avant tout le reste (pose <html lang>, prépare le menu) -->
-  <script src="data/textes.js?v=20261115b"></script>
-  <script src="js/contenu.js?v=20261115b"></script>
+  <!-- Réglages du site (data/site.js : langues, couleur de fond, blocs visibles), libellés de l'interface (data/libelles.js)
+       et textes éditables (data/textes.js), puis langue et dictionnaire : avant tout le reste (pose <html lang>, prépare le menu) -->
+  <script src="data/site.js?v=20261127j"></script>
+  <script src="data/libelles.js?v=20261127j"></script>
+  <script src="data/textes.js?v=20261127j"></script>
+  <script src="js/contenu.js?v=20261127j"></script>
 </head>
 <body>
 
   <!-- Barre du haut. Toujours visibles : le logo (image), les réseaux (Instagram, Facebook, YouTube) et
        les langues. Apparaissent au début du défilement (.barre__apparait) : le menu, le petit lecteur.
-       Sur téléphone, ils sont là d'emblée : le bloc de l'ouverture n'y est pas affiché. -->
+       Sur téléphone, ils sont là d'emblée : le bloc de l'ouverture n'y est pas affiché, et la liste des
+       titres ne s'ouvre que d'ici. -->
   <header class="barre" data-nav>
     <a class="logo" href="./" data-haut aria-label="Pierre Bleuse">
       <img src="assets/img/logo-pierre-bleuse-blanc.png" alt="" width="1000" height="361" decoding="async">
@@ -41,20 +52,20 @@
     <div class="barre__droite">
       <nav class="barre__menu barre__apparait" aria-label="Menu" data-t-attr="aria-label:nav.menu">
         <ul id="menu" data-menu-liste>
-          <li><a href="#agenda" data-t="nav.agenda">Agenda</a></li>
-          <li><a href="#disques" data-t="nav.disques">Discographie</a></li>
-          <li><a href="#parcours" data-t="nav.parcours">Parcours</a></li>
-          <li><a href="#presse" data-t="nav.presse">Presse</a></li>
-          <li><a href="#telechargement" data-t="nav.telechargement">Téléchargement</a></li>
+          <li><a href="#agenda" data-t="nav.agenda">Concerts</a></li>
+          <li><a href="#disques" data-t="nav.disques">Discography</a></li>
+          <li><a href="#parcours" data-t="nav.parcours">Biography</a></li>
+          <li><a href="#presse" data-t="nav.presse">Press</a></li>
+          <li><a href="#telechargement" data-t="nav.telechargement">Downloads</a></li>
           <li><a href="#contact" data-t="nav.contact">Contact</a></li>
         </ul>
       </nav>
       <!-- Petit lecteur : lecture / pause, et le pictogramme (disque et note) qui ouvre la liste des titres -->
       <div class="mini barre__apparait js-seulement" data-lecteur>
         <button type="button" class="mini__bouton" data-ecouter data-etat="arret" aria-pressed="false" aria-label="Play"><span class="ecoute__icone" aria-hidden="true"></span></button>
-        <button type="button" class="mini__playlist" data-playlist aria-expanded="false" aria-controls="playlist-volet" aria-label="Choisir la musique" data-t-attr="aria-label:lecteur.titres"><span class="ecoute__icone picto-playlist" aria-hidden="true"><svg viewBox="0 0 16 16" focusable="false"><ellipse cx="6.1" cy="12.2" rx="2.85" ry="2.05" transform="rotate(-22 6.1 12.2)"/><rect x="7.95" y="2.2" width="1.15" height="10"/><path d="M9.1 2.2c.15 2 1.5 2.75 2.55 3.6 1.1.9 1.55 2.25.95 3.85.3-1.45-.45-2.45-1.5-3.05-.65-.35-1.3-.6-2-.75z"/></svg></span></button>
-        <div class="volet" id="playlist-volet" data-playlist-volet hidden>
-          <ul class="titres" data-titres aria-label="Choisir la musique" data-t-attr="aria-label:lecteur.titres"></ul>
+        <button type="button" class="mini__playlist" data-playlist aria-expanded="false" aria-controls="playlist-volet" aria-label="Choose the music" data-t-attr="aria-label:lecteur.titres"><span class="ecoute__icone picto-playlist" aria-hidden="true"><svg viewBox="0 0 16 16" focusable="false"><ellipse cx="6.1" cy="12.2" rx="2.85" ry="2.05" transform="rotate(-22 6.1 12.2)"/><rect x="7.95" y="2.2" width="1.15" height="10"/><path d="M9.1 2.2c.15 2 1.5 2.75 2.55 3.6 1.1.9 1.55 2.25.95 3.85.3-1.45-.45-2.45-1.5-3.05-.65-.35-1.3-.6-2-.75z"/></svg></span></button>
+        <div class="volet" id="playlist-volet" data-playlist-volet data-lenis-prevent hidden>
+          <ul class="titres" data-titres aria-label="Choose the music" data-t-attr="aria-label:lecteur.titres"></ul>
         </div>
       </div>
       <ul class="rs" data-reseaux="barre">
@@ -64,8 +75,10 @@
         <li data-reseau="youtube"><a href="https://www.youtube.com/channel/UCxfxH_vfu5Dpct4smcYSUgQ" target="_blank" rel="noopener" aria-label="YouTube"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M21.6 7.2a2.5 2.5 0 0 0-1.76-1.77C18.25 5 12 5 12 5s-6.25 0-7.84.43A2.5 2.5 0 0 0 2.4 7.2 26 26 0 0 0 2 12a26 26 0 0 0 .4 4.8 2.5 2.5 0 0 0 1.76 1.77C5.75 19 12 19 12 19s6.25 0 7.84-.43a2.5 2.5 0 0 0 1.76-1.77A26 26 0 0 0 22 12a26 26 0 0 0-.4-4.8zM10 15V9l5.2 3-5.2 3z"/></svg></a></li>
         <!-- RESEAUX-BARRE-STATIQUE:FIN -->
       </ul>
-      <div class="barre__lang">
-        <a href="?lang=fr" data-langue="fr" lang="fr" hreflang="fr" class="is-on" aria-current="true">FR</a><span class="sep" aria-hidden="true">|</span><a href="?lang=en" data-langue="en" lang="en" hreflang="en">EN</a>
+      <div class="barre__lang" data-langues>
+        <!-- LANGUES-STATIQUE:DEBUT (langues du site, générées par Pupitre, ne pas modifier à la main) -->
+        <a href="?lang=fr" data-langue="fr" lang="fr" hreflang="fr">FR</a><span class="sep" aria-hidden="true">|</span><a href="?lang=en" data-langue="en" lang="en" hreflang="en" class="is-on" aria-current="true">EN</a>
+        <!-- LANGUES-STATIQUE:FIN -->
       </div>
       <!-- Fenêtres étroites : le menu se replie derrière ce bouton (js/contenu.js) -->
       <button class="barre__burger barre__apparait" type="button" data-menu aria-label="Menu" aria-expanded="false" aria-controls="menu" data-t-attr="aria-label:nav.menu">
@@ -83,59 +96,67 @@
     <!-- HERO · nuée au premier plan. La citation et le lecteur, en bas à droite, sur leur halo sombre
          (pas sur téléphone : seule la barre du haut y porte le lecteur). -->
     <section class="ouverture nuee-premier-plan" id="ouverture" data-ouverture aria-labelledby="titre-page">
-      <h1 class="sr-only" id="titre-page" data-t="meta.titre">Pierre Bleuse, chef d'orchestre</h1>
+      <h1 class="sr-only" id="titre-page" data-t="meta.titre">Pierre Bleuse, conductor</h1>
       <div class="ouverture__texte dessus" data-revele>
         <div class="ouverture__bloc">
           <!-- CITATION-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
-          <blockquote class="ouverture__citation" data-t="ouverture.citation">«&nbsp;Plus je progresse, plus je me sens libre&nbsp;»</blockquote>
+          <blockquote class="ouverture__citation" data-t="ouverture.citation">“The further I progress, the freer I feel”</blockquote>
           <!-- CITATION-STATIQUE:FIN -->
-          <!-- Lecteur : Play / Pause, puis la liste des titres (data/playlist.js), remplie par js/main.js
-               et alignée sur l'icône de lecture. Le pictogramme de la liste n'est que dans la barre du haut. -->
+          <!-- Lecteur : deux pictogrammes sous la citation. Lecture / pause (sans libellé), puis la note
+               de musique, qui ouvre dessous la liste des titres (data/playlist.js, remplie par js/main.js).
+               Le même lecteur que celui de la barre du haut : un seul son, des états accordés. -->
           <div class="lecteur js-seulement" data-lecteur>
-            <button type="button" class="ecoute__bouton" data-ecouter data-etat="arret" aria-pressed="false">
-              <span class="ecoute__icone" aria-hidden="true"></span><span class="ecoute__libelle" data-ecouter-libelle>Play</span>
-            </button>
-            <ul class="titres lecteur__titres" data-titres aria-label="Choisir la musique" data-t-attr="aria-label:lecteur.titres"></ul>
+            <button type="button" class="ecoute__bouton" data-ecouter data-etat="arret" aria-pressed="false" aria-label="Play"><span class="ecoute__icone" aria-hidden="true"></span></button>
+            <button type="button" class="ecoute__bouton" data-playlist aria-expanded="false" aria-controls="playlist-volet-ouverture" aria-label="Choose the music" data-t-attr="aria-label:lecteur.titres"><span class="ecoute__icone picto-playlist" aria-hidden="true"><svg viewBox="0 0 16 16" focusable="false"><ellipse cx="6.1" cy="12.2" rx="2.85" ry="2.05" transform="rotate(-22 6.1 12.2)"/><rect x="7.95" y="2.2" width="1.15" height="10"/><path d="M9.1 2.2c.15 2 1.5 2.75 2.55 3.6 1.1.9 1.55 2.25.95 3.85.3-1.45-.45-2.45-1.5-3.05-.65-.35-1.3-.6-2-.75z"/></svg></span></button>
+            <div class="volet volet--ouverture" id="playlist-volet-ouverture" data-playlist-volet data-lenis-prevent hidden>
+              <ul class="titres" data-titres aria-label="Choose the music" data-t-attr="aria-label:lecteur.titres"></ul>
+            </div>
           </div>
         </div>
       </div>
-      <!-- Invitation à défiler : un petit pictogramme au centre, en bas ; il mène à la section suivante -->
-      <a class="hint" href="#bio" data-hint aria-label="Faire défiler la page" data-t-attr="aria-label:ouverture.defiler">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 9.5l5.5 5.5 5.5-5.5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </a>
     </section>
 
-    <!-- BIO · pas de fond de section (fond 0 %) : la nuée vole derrière le texte, qui porte son propre
-         fond noir à 50 %, à bords vaporeux · texte : colonnes 10 à 12 -->
+    <!-- Bouton Scroll : la petite flèche et, dessous, le mot « Scroll ». Il reste à l'écran pendant
+         la descente et mène chaque fois à la section suivante (js/main.js tient son adresse à jour et
+         saute les blocs masqués) ; il s'efface sur la dernière. Sans JavaScript : il mène à l'édito. -->
+    <a class="hint" href="#bio" data-hint aria-label="Scroll down" data-t-attr="aria-label:ouverture.defiler">
+      <span class="hint__rond"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 9.5l5.5 5.5 5.5-5.5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <span class="hint__mot" aria-hidden="true" data-t="ouverture.scroll">Scroll</span>
+    </a>
+
+    <!-- ÉDITO · pas de fond de section (fond 0 %) : la nuée vole derrière le texte, qui porte son propre
+         fond à 50 %, à bords vaporeux · texte justifié : colonnes 10 à 12 -->
     <section class="section bio nuee-arriere-plan fond-0" id="bio" data-section>
       <div class="grille">
         <div class="bio__texte bloc-droite" data-revele>
           <!-- BIOGRAPHIE-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
-          <p class="texte" data-t="bio.p1">Pierre Bleuse est directeur musical de l'Ensemble intercontemporain et directeur artistique du Festival Pablo Casals de Prades. Chef principal de l'Orchestre symphonique d'Odense de 2021 à 2026, il est l'invité d'orchestres comme le Royal Concertgebouw Orchestra, le London Philharmonic Orchestra, l'Orchestre de Paris ou le Tokyo Symphony Orchestra.</p>
-          <p class="texte" data-t="bio.p2">Violoniste de formation, il dirige le grand répertoire symphonique et la musique d'aujourd'hui avec la même attention&nbsp;: faire dialoguer les œuvres plutôt que les opposer.</p>
+          <p class="texte" data-t="bio.p1">Pierre Bleuse is Music Director of the Ensemble intercontemporain and Artistic Director of the Pablo Casals Festival in Prades. Chief Conductor of the Odense Symphony Orchestra from 2021 to 2026, he is a guest of orchestras including the Royal Concertgebouw Orchestra, the London Philharmonic Orchestra, the Orchestre de Paris and the Tokyo Symphony Orchestra.</p>
+          <p class="texte" data-t="bio.p2">A violinist by training, he brings the same attention to the great symphonic repertoire and to the music of today, letting works speak to one another rather than setting them apart.</p>
           <!-- BIOGRAPHIE-STATIQUE:FIN -->
         </div>
       </div>
     </section>
 
-    <!-- VISUEL 1 · nuée en arrière-plan, visuel à 100 % · pleine largeur, pleine hauteur, sans texte
-         (data/visuels.js) · image en « lumière » : les découpes de l'hypothèse 3 (js/lumiere.js) ;
-         sans JavaScript ou sans WebGL, l'image seule -->
-    <section class="visuel visuel--image visuel--lumiere nuee-arriere-plan fond-100" id="visuel-1" data-section data-visuel="visuel-1" data-lumiere="bleuse-3">
+    <!-- VISUEL 1 · bloc visuel : pleine largeur, pleine hauteur, sans texte. Ce qu'il montre se règle
+         dans Pupitre (Blocs visuels → data/visuels.js) : une image, une image animée par un module du
+         registre (js/animations.js), une ou plusieurs vidéos. Sur un bloc visuel la nuée n'est pas
+         visible : le média couvre la section. Sans JavaScript : l'image ou la vidéo seule. -->
+    <section class="visuel nuee-arriere-plan fond-100" id="visuel-1" data-section data-visuel="visuel-1">
       <!-- VISUEL-1-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
-      <img class="visuel__media" src="assets/img/bleuse-3.jpg" alt="Pierre Bleuse dirigeant l'orchestre en concert" style="object-position: 60% 35%" decoding="async">
+      <img class="visuel__media" src="assets/img/bleuse-1.jpg" alt="" style="object-position: 52% 42%" decoding="async">
       <!-- VISUEL-1-STATIQUE:FIN -->
     </section>
 
-    <!-- AGENDA · nuée en arrière-plan, fond 80 % · quatre dates (3 colonnes chacune, « En savoir plus »),
-         tableau des dates suivantes (« Les concerts »), bouton « Tous les concerts » (colonnes 10 à 12).
-         Les concerts passés sont sur concerts.html. -->
+    <!-- AGENDA · « Les prochains concerts » · nuée en arrière-plan, fond 80 % · les quatre prochains
+         concerts publiés (3 colonnes chacun ; « En savoir plus » : l'adresse externe du concert, sinon
+         sa fiche sur concerts.html), tableau des dates suivantes (« Les concerts »), bouton « Tous les
+         concerts » (colonnes 10 à 12). Les concerts passés sont sur concerts.html. -->
     <section class="section agenda nuee-arriere-plan fond-80" id="agenda" data-section aria-labelledby="agenda-titre">
       <div class="grille grille--titre">
         <header class="section__tete bloc-plein" data-revele>
-          <h2 class="section__titre" id="agenda-titre" data-t="agenda.titre">Agenda</h2>
+          <h2 class="section__titre" id="agenda-titre" data-t="agenda.titre">Upcoming concerts</h2>
           <!-- SAISON-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
-          <p class="mention" data-t="agenda.mention">Saison 2026-2027</p>
+          <p class="mention" data-t="agenda.mention">2026/27 season</p>
           <!-- SAISON-STATIQUE:FIN -->
         </header>
       </div>
@@ -143,132 +164,133 @@
         <div class="grille">
           <!-- AGENDA-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
           <ol class="agenda__simple bloc-plein" data-revele>
-            <li class="ligne"><span class="ligne__quand">15 octobre 2026</span> <span class="ligne__ville">Malmö</span> <span class="ligne__titre">Malmö SymfoniOrkester</span></li>
-            <li class="ligne"><span class="ligne__quand">23–25 octobre 2026</span> <span class="ligne__ville">Porto</span> <span class="ligne__titre">Orquestra Sinfónica do Porto Casa da Música</span></li>
-            <li class="ligne"><span class="ligne__quand">29–30 octobre 2026</span> <span class="ligne__ville">Bucarest</span> <span class="ligne__titre">Filarmonica George Enescu</span></li>
-            <li class="ligne"><span class="ligne__quand">6 novembre 2026</span> <span class="ligne__ville">Disque</span> <span class="ligne__titre">Ravel Abroad</span></li>
-            <li class="ligne"><span class="ligne__quand">7 novembre 2026</span> <span class="ligne__ville">Bâle</span> <span class="ligne__titre">Kammerorchester Basel, Pierre-Laurent Aimard</span></li>
-            <li class="ligne"><span class="ligne__quand">14 novembre 2026</span> <span class="ligne__ville">Paris</span> <span class="ligne__titre">EIC &amp; Friends, Bertrand Chamayou</span></li>
-            <li class="ligne"><span class="ligne__quand">19 novembre 2026</span> <span class="ligne__ville">Odense</span> <span class="ligne__titre">Au revoir, Pierre</span></li>
-            <li class="ligne"><span class="ligne__quand">27–29 novembre 2026</span> <span class="ligne__ville">Madrid</span> <span class="ligne__titre">Orquesta y Coro Nacionales de España</span></li>
-            <li class="ligne"><span class="ligne__quand">3 décembre 2026</span> <span class="ligne__ville">Paris</span> <span class="ligne__titre">In Between trance</span></li>
-            <li class="ligne"><span class="ligne__quand">18 décembre 2026</span> <span class="ligne__ville">Valladolid</span> <span class="ligne__titre">Concert de Noël</span></li>
-            <li class="ligne"><span class="ligne__quand">13 janvier 2027</span> <span class="ligne__ville">Paris</span> <span class="ligne__titre">EIC 50&nbsp;: 50 regards sur la beauté</span></li>
-            <li class="ligne"><span class="ligne__quand">5 février 2027</span> <span class="ligne__ville">Paris</span> <span class="ligne__titre">Festival Présences 2027</span></li>
-            <li class="ligne"><span class="ligne__quand">13–28 mars 2027</span> <span class="ligne__ville">Amsterdam</span> <span class="ligne__titre">Red Fox</span></li>
-            <li class="ligne"><span class="ligne__quand">26 mars 2027</span> <span class="ligne__ville">Paris</span> <span class="ligne__titre">Lamentations</span></li>
-            <li class="ligne"><span class="ligne__quand">11–15 avril 2027</span> <span class="ligne__ville">Cologne, Bâle, Munich</span> <span class="ligne__titre">Kirschblüte&nbsp;: tournée avec Hayato Sumino</span></li>
-            <li class="ligne"><span class="ligne__quand">23 avril 2027</span> <span class="ligne__ville">Paris</span> <span class="ligne__titre">EIC 50&nbsp;: Dialogues des ombres</span></li>
-            <li class="ligne"><span class="ligne__quand">28–29 avril 2027</span> <span class="ligne__ville">Göteborg</span> <span class="ligne__titre">Mahler, Symphonie n°&nbsp;5</span></li>
-            <li class="ligne"><span class="ligne__quand">16 mai 2027</span> <span class="ligne__ville">Milan</span> <span class="ligne__titre">Teatro alla Scala, festival Milano Musica</span></li>
+            <li class="ligne"><span class="ligne__quand">15 October 2026</span> <span class="ligne__ville">Malmö</span> <span class="ligne__titre">Malmö SymfoniOrkester</span></li>
+            <li class="ligne"><span class="ligne__quand">23–25 October 2026</span> <span class="ligne__ville">Porto</span> <span class="ligne__titre">Orquestra Sinfónica do Porto Casa da Música</span></li>
+            <li class="ligne"><span class="ligne__quand">29–30 October 2026</span> <span class="ligne__ville">Bucharest</span> <span class="ligne__titre">Filarmonica George Enescu</span></li>
+            <li class="ligne"><span class="ligne__quand">6 November 2026</span> <span class="ligne__ville">Recording</span> <span class="ligne__titre">Ravel Abroad</span></li>
+            <li class="ligne"><span class="ligne__quand">7 November 2026</span> <span class="ligne__ville">Basel</span> <span class="ligne__titre">Kammerorchester Basel, Pierre-Laurent Aimard</span></li>
+            <li class="ligne"><span class="ligne__quand">14 November 2026</span> <span class="ligne__ville">Paris</span> <span class="ligne__titre">EIC &amp; Friends, Bertrand Chamayou</span></li>
+            <li class="ligne"><span class="ligne__quand">19 November 2026</span> <span class="ligne__ville">Odense</span> <span class="ligne__titre">Au revoir, Pierre</span></li>
+            <li class="ligne"><span class="ligne__quand">27–29 November 2026</span> <span class="ligne__ville">Madrid</span> <span class="ligne__titre">Orquesta y Coro Nacionales de España</span></li>
+            <li class="ligne"><span class="ligne__quand">3 December 2026</span> <span class="ligne__ville">Paris</span> <span class="ligne__titre">In Between trance</span></li>
+            <li class="ligne"><span class="ligne__quand">18 December 2026</span> <span class="ligne__ville">Valladolid</span> <span class="ligne__titre">Christmas Concert</span></li>
+            <li class="ligne"><span class="ligne__quand">13 January 2027</span> <span class="ligne__ville">Paris</span> <span class="ligne__titre">EIC 50&nbsp;: 50 regards sur la beauté</span></li>
+            <li class="ligne"><span class="ligne__quand">5 February 2027</span> <span class="ligne__ville">Paris</span> <span class="ligne__titre">Festival Présences 2027</span></li>
+            <li class="ligne"><span class="ligne__quand">13–28 March 2027</span> <span class="ligne__ville">Amsterdam</span> <span class="ligne__titre">Red Fox</span></li>
+            <li class="ligne"><span class="ligne__quand">26 March 2027</span> <span class="ligne__ville">Paris</span> <span class="ligne__titre">Lamentations</span></li>
+            <li class="ligne"><span class="ligne__quand">11–15 April 2027</span> <span class="ligne__ville">Cologne, Basel, Munich</span> <span class="ligne__titre">Kirschblüte: on tour with Hayato Sumino</span></li>
+            <li class="ligne"><span class="ligne__quand">23 April 2027</span> <span class="ligne__ville">Paris</span> <span class="ligne__titre">EIC 50&nbsp;: Dialogues des ombres</span></li>
+            <li class="ligne"><span class="ligne__quand">28–29 April 2027</span> <span class="ligne__ville">Gothenburg</span> <span class="ligne__titre">Mahler, Symphony No.&nbsp;5</span></li>
+            <li class="ligne"><span class="ligne__quand">16 May 2027</span> <span class="ligne__ville">Milan</span> <span class="ligne__titre">Teatro alla Scala, Milano Musica Festival</span></li>
           </ol>
           <!-- AGENDA-STATIQUE:FIN -->
         </div>
       </div>
     </section>
 
-    <!-- VISUEL 2 · nuée en arrière-plan, visuel à 100 % · image en « lumière », comme le visuel 1 -->
-    <section class="visuel visuel--image visuel--lumiere nuee-arriere-plan fond-100" id="visuel-2" data-section data-visuel="visuel-2" data-lumiere="bleuse-1">
+    <!-- VISUEL 2 · bloc visuel, comme le visuel 1. Aujourd'hui la captation, avec son : elle part quand
+         on arrive sur la section et prend le relais de la musique, jamais les deux sons ensemble ; quand
+         on quitte la section elle s'arrête, et la musique reprend si elle jouait (js/main.js). -->
+    <section class="visuel nuee-arriere-plan fond-100" id="visuel-2" data-section data-visuel="visuel-2">
       <!-- VISUEL-2-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
-      <img class="visuel__media" src="assets/img/bleuse-1.jpg" alt="" style="object-position: 52% 42%" decoding="async">
+      <video class="visuel__media" src="assets/media/captation.mp4" poster="assets/media/captation-affiche.jpg" muted loop playsinline preload="none" disablepictureinpicture aria-label="Pierre Bleuse in concert, excerpts from a filmed performance"></video>
       <!-- VISUEL-2-STATIQUE:FIN -->
     </section>
 
-    <!-- DISCOGRAPHIE · nuée en arrière-plan, fond 80 % · quatre disques par ligne (3 colonnes chacun) : data/disques.js -->
+    <!-- DISCOGRAPHIE · nuée en arrière-plan, fond 80 % · quatre albums par ligne (3 colonnes chacun) : data/disques.js.
+         Chaque vignette porte « En savoir plus », qui déplie sous sa rangée un panneau détaillé (accordéon). -->
     <section class="section disques nuee-arriere-plan fond-80" id="disques" data-section aria-labelledby="disques-titre">
       <div class="grille grille--titre">
         <header class="section__tete bloc-plein" data-revele>
-          <h2 class="section__titre" id="disques-titre" data-t="disques.titre">Discographie</h2>
+          <h2 class="section__titre" id="disques-titre" data-t="disques.titre">Discography</h2>
         </header>
       </div>
       <div class="grille fiches" data-disques data-rendu>
         <!-- DISQUES-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
-        <article class="fiche bloc-quart"><p class="fiche__dates">2026 · OUR Recordings</p><h3 class="fiche__titre"><i>Ravel Abroad</i></h3><p class="fiche__texte">Orchestre symphonique d'Odense</p></article>
+        <article class="fiche bloc-quart"><p class="fiche__dates">2026 · OUR Recordings</p><h3 class="fiche__titre"><i>Ravel Abroad</i></h3><p class="fiche__texte">Odense Symphony Orchestra</p></article>
         <article class="fiche bloc-quart"><p class="fiche__dates">2026 · Alpha Classics</p><h3 class="fiche__titre"><i>Unsuk Chin</i></h3><p class="fiche__texte">Ensemble intercontemporain</p></article>
-        <article class="fiche bloc-quart"><p class="fiche__dates">2026 · Dacapo</p><h3 class="fiche__titre"><i>Viola Concertos</i></h3><p class="fiche__texte">Rafaell Altino, Orchestre symphonique d'Odense</p></article>
-        <article class="fiche bloc-quart"><p class="fiche__dates">2024 · Alpha Classics</p><h3 class="fiche__titre"><i>Ligeti</i></h3><p class="fiche__texte">Ensemble intercontemporain</p><p class="fiche__texte">Diapason d'or de l'année, Choc de <i>Classica</i></p></article>
+        <article class="fiche bloc-quart"><p class="fiche__dates">2026 · Dacapo</p><h3 class="fiche__titre"><i>Viola Concertos</i></h3><p class="fiche__texte">Rafaell Altino, Odense Symphony Orchestra</p></article>
+        <article class="fiche bloc-quart"><p class="fiche__dates">2024 · Alpha Classics</p><h3 class="fiche__titre"><i>Ligeti</i></h3><p class="fiche__texte">Ensemble intercontemporain</p><p class="fiche__texte fiche__distinctions">Diapason d'or of the year, Choc de <i>Classica</i></p></article>
         <!-- DISQUES-STATIQUE:FIN -->
       </div>
     </section>
 
     <!-- PARCOURS · nuée en arrière-plan, fond 50 % · pas de titre affiché (il reste pour les lecteurs
-         d'écran) · fonctions puis opéra et création (colonnes 10 à 12), puis le bandeau de la carte,
-         sur fond noir à 90 % : carte du monde interactive (colonnes 1 à 9) et liste des orchestres
-         (colonnes 10 à 12) -->
+         d'écran) · trois blocs de Pupitre : les fonctions, puis les grands débuts et collaborations
+         (colonnes 10 à 12 ; l'intitulé de cette rubrique se règle dans Pupitre, et elle quitte la page
+         tant qu'aucune collaboration n'est publiée), puis le bandeau de la carte, sur fond à 90 % :
+         carte du monde interactive et liste des orchestres -->
     <section class="section parcours nuee-arriere-plan fond-50" id="parcours" data-section data-parcours aria-labelledby="parcours-titre">
-      <h2 class="sr-only" id="parcours-titre" data-t="parcours.titre">Parcours</h2>
-      <div class="grille">
+      <h2 class="sr-only" id="parcours-titre" data-t="parcours.titre">Biography</h2>
+      <div class="grille" id="parcours-fonctions">
         <div class="bloc-droite" data-revele>
-          <h3 class="mention" data-t="parcours.fonctions">Fonctions</h3>
+          <h3 class="mention" data-t="parcours.fonctions">Positions</h3>
           <ul class="liste" data-parcours-liste="fonctions" data-rendu>
             <!-- PARCOURS-FONCTIONS-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
-            <li>Directeur musical, Ensemble intercontemporain, depuis 2023</li>
-            <li>Directeur artistique, Festival Pablo Casals de Prades, depuis 2021</li>
-            <li>Chef principal, Orchestre symphonique d'Odense, 2021 à 2026</li>
+            <li class="liste__une">Music Director, Ensemble intercontemporain, since 2023</li>
+            <li>Artistic Director, Pablo Casals Festival, Prades, since 2021</li>
+            <li>Chief Conductor, Odense Symphony Orchestra, 2021 to 2026</li>
             <!-- PARCOURS-FONCTIONS-STATIQUE:FIN -->
           </ul>
         </div>
       </div>
-      <div class="grille">
+      <div class="grille" id="parcours-collaborations">
         <div class="bloc-droite" data-revele>
-          <h3 class="mention" data-t="parcours.opera">Opéra et création</h3>
-          <ul class="liste" data-parcours-liste="opera" data-rendu>
-            <!-- PARCOURS-OPERA-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
-            <li><i>Red Fox</i> de Du Yun, création mondiale, Dutch National Opera, 2027</li>
-            <li><i>Répons</i> de Pierre Boulez, ouverture du centenaire, Philharmonie de Paris, 2025</li>
-            <li>BBC Proms avec l'Ensemble intercontemporain, Royal Albert Hall, 2025</li>
-            <li><i>Orgia</i> d'Hèctor Parra, Teatro Arriaga de Bilbao, 2023, Gran Teatre del Liceu de Barcelone, 2024</li>
-            <!-- PARCOURS-OPERA-STATIQUE:FIN -->
+          <h3 class="mention" data-t="parcours.collaborations">Major debuts and collaborations</h3>
+          <ul class="liste" data-parcours-liste="collaborations" data-rendu>
+            <!-- PARCOURS-COLLABORATIONS-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
+            <!-- PARCOURS-COLLABORATIONS-STATIQUE:FIN -->
           </ul>
         </div>
       </div>
       <!-- Bandeau de la carte : fond noir sur toute la largeur, à 90 % ; la carte du monde (1 à 12),
            puis la liste des orchestres dessous, en trois colonnes égales : Amériques, Europe et
            Afrique, Asie, Russie et Océanie (zone de chaque orchestre : data/orchestres.js) -->
-      <div class="parcours__bandeau">
+      <div class="parcours__bandeau" id="parcours-monde">
       <div class="grille">
         <!-- Carte du monde : dessinée par js/sections.js (data/cartes.js, data/orchestres.js) -->
         <div class="bloc-plein parcours__cartes" data-cartes data-revele></div>
         <div class="bloc-plein parcours__liste" data-revele>
-          <h3 class="mention" data-t="parcours.invites">Orchestres invités (sélection)</h3>
+          <h3 class="mention" data-t="parcours.invites">Guest conducting (selection)</h3>
           <div class="orchestres-zones" data-orchestres data-rendu>
             <!-- ORCHESTRES-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
             <div class="orchestres-zone">
-              <h4 class="orchestres-zone__titre" data-t="parcours.zone.ameriques">Amériques</h4>
+              <h4 class="orchestres-zone__titre" data-t="parcours.zone.ameriques">Americas</h4>
               <ul class="orchestres">
                 <li>Orquestra Sinfônica do Estado de São Paulo<span class="orchestres__ville">São Paulo</span></li>
                 <li>Utah Symphony Orchestra<span class="orchestres__ville">Park City</span></li>
-                <li>Orchestre symphonique de Québec<span class="orchestres__ville">Québec</span></li>
+                <li>Orchestre symphonique de Québec<span class="orchestres__ville">Quebec City</span></li>
               </ul>
             </div>
             <div class="orchestres-zone">
-              <h4 class="orchestres-zone__titre" data-t="parcours.zone.europe-afrique">Europe et Afrique</h4>
+              <h4 class="orchestres-zone__titre" data-t="parcours.zone.europe-afrique">Europe and Africa</h4>
               <ul class="orchestres">
                 <li>Royal Concertgebouw Orchestra<span class="orchestres__ville">Amsterdam</span></li>
-                <li>London Philharmonic Orchestra<span class="orchestres__ville">Londres</span></li>
-                <li>BBC Symphony Orchestra<span class="orchestres__ville">Londres</span></li>
+                <li>London Philharmonic Orchestra<span class="orchestres__ville">London</span></li>
+                <li>BBC Symphony Orchestra<span class="orchestres__ville">London</span></li>
                 <li>City of Birmingham Symphony Orchestra<span class="orchestres__ville">Birmingham</span></li>
                 <li>Orchestre de Paris<span class="orchestres__ville">Paris</span></li>
                 <li>Orchestre national de France<span class="orchestres__ville">Paris</span></li>
-                <li>NDR Elbphilharmonie Orchester<span class="orchestres__ville">Hambourg</span></li>
-                <li>hr-Sinfonieorchester Frankfurt<span class="orchestres__ville">Francfort</span></li>
+                <li>NDR Elbphilharmonie Orchester<span class="orchestres__ville">Hamburg</span></li>
+                <li>hr-Sinfonieorchester Frankfurt<span class="orchestres__ville">Frankfurt</span></li>
                 <li>SWR Symphonieorchester<span class="orchestres__ville">Stuttgart</span></li>
                 <li>Royal Stockholm Philharmonic Orchestra<span class="orchestres__ville">Stockholm</span></li>
                 <li>Swedish Radio Symphony Orchestra<span class="orchestres__ville">Stockholm</span></li>
                 <li>Finnish Radio Symphony Orchestra<span class="orchestres__ville">Helsinki</span></li>
-                <li>Orchestre de la Suisse Romande<span class="orchestres__ville">Genève</span></li>
+                <li>Orchestre de la Suisse Romande<span class="orchestres__ville">Geneva</span></li>
+                <li>Orchestre National du Capitole de Toulouse<span class="orchestres__ville">Toulouse</span></li>
               </ul>
             </div>
             <div class="orchestres-zone">
-              <h4 class="orchestres-zone__titre" data-t="parcours.zone.asie-oceanie">Asie, Russie et Océanie</h4>
+              <h4 class="orchestres-zone__titre" data-t="parcours.zone.asie-oceanie">Asia, Russia and Oceania</h4>
               <ul class="orchestres">
-                <li>Lebanese Philharmonic Orchestra<span class="orchestres__ville">Beyrouth</span></li>
+                <li>Lebanese Philharmonic Orchestra<span class="orchestres__ville">Beirut</span></li>
                 <li>Bilkent Symphony Orchestra<span class="orchestres__ville">Ankara</span></li>
-                <li>China National Symphony Orchestra<span class="orchestres__ville">Pékin</span></li>
+                <li>China National Symphony Orchestra<span class="orchestres__ville">Beijing</span></li>
                 <li>Ensemble intercontemporain<span class="orchestres__ville">Tokyo</span></li>
-                <li>Tokyo Symphony Orchestra<span class="orchestres__ville">Kawasaki</span></li>
+                <li>Tokyo Symphony Orchestra<span class="orchestres__ville">Tokyo</span></li>
                 <li>Ensemble intercontemporain<span class="orchestres__ville">Tongyeong</span></li>
-                <li>Singapore Symphony Orchestra<span class="orchestres__ville">Singapour</span></li>
+                <li>Singapore Symphony Orchestra<span class="orchestres__ville">Singapore</span></li>
                 <li>Auckland Philharmonia<span class="orchestres__ville">Auckland</span></li>
               </ul>
             </div>
@@ -279,36 +301,36 @@
       </div>
     </section>
 
-    <!-- VISUEL 3 · la captation, avec son (data/visuels.js) · nuée en arrière-plan, vidéo à 95 % : la
-         vidéo est presque opaque, la nuée (qui suit sa bande-son) se devine à 5 % au travers · la
-         vidéo part quand on arrive sur la section et prend le relais de la musique, jamais les deux
-         sons ensemble ; quand on quitte la section, elle s'arrête et la musique reprend (js/main.js).
-         Sans JavaScript : son image d'attente. -->
-    <section class="visuel visuel--video nuee-arriere-plan fond-95" id="visuel-3" data-section data-visuel="visuel-3">
+    <!-- VISUEL 3 · bloc visuel, comme le visuel 1. Masqué pour le moment dans Pupitre : son contenu y
+         est gardé (l'ancien visuel 1), et la section quitte la page tant qu'il l'est. -->
+    <section class="visuel nuee-arriere-plan fond-100" id="visuel-3" data-section data-visuel="visuel-3">
       <!-- VISUEL-3-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
-      <video class="visuel__media" src="assets/media/captation.mp4" poster="assets/media/captation-affiche.jpg" muted loop playsinline preload="none" disablepictureinpicture aria-label="Pierre Bleuse en concert, extraits d'une captation"></video>
       <!-- VISUEL-3-STATIQUE:FIN -->
     </section>
 
-    <!-- PRESSE · nuée en arrière-plan, fond 80 % · quatre articles (3 colonnes chacun) : data/presse.js.
-         Une fiche : logo et nom du média, titre de l'article, verbatim clé, court résumé, date, auteur, lien.
-         Bouton « Tous les articles » (colonnes 10 à 12) -->
+    <!-- PRESSE · nuée en arrière-plan, fond 80 % · les articles sélectionnés dans Pupitre, dans leur rang,
+         chacun sur une, deux ou quatre colonnes : data/presse.js. Une fiche, dans l'ordre : la citation,
+         le média (logo ou nom), le chapeau ou le résumé, la date, « En savoir plus » (panneau détaillé),
+         « Lire l'article » (l'article d'origine). Bouton « Tous les articles » (colonnes 10 à 12) -->
     <section class="section presse nuee-arriere-plan fond-80" id="presse" data-section aria-labelledby="presse-titre">
       <div class="grille grille--titre">
         <header class="section__tete bloc-plein" data-revele>
-          <h2 class="section__titre" id="presse-titre" data-t="presse.titre">Presse</h2>
+          <h2 class="section__titre" id="presse-titre" data-t="presse.titre">Press</h2>
         </header>
       </div>
       <div class="grille fiches" data-presse data-rendu>
         <!-- PRESSE-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
-        <article class="fiche bloc-quart"><p class="article__media"><span class="article__nom">Fanfare</span></p><h3 class="article__titre">À propos de <i>Ravel Abroad</i></h3><blockquote class="article__verbatim" lang="en">“A simply astonishing disc.”</blockquote><p class="article__date"><span class="article__auteur">Colin Clarke</span></p></article>
-        <article class="fiche bloc-quart"><p class="article__media"><span class="article__nom">Le Monde</span></p><h3 class="article__titre">Portrait</h3><p class="article__date"><span>22 juin 2024</span><span class="article__auteur">Pierre Gervasoni</span></p><a class="lien" href="https://www.lemonde.fr/culture/article/2024/06/22/pierre-bleuse-directeur-musical-de-l-ensemble-intercontemporain-veut-faire-entendre-tout-ce-qui-se-passe-sur-la-planete_6242263_3246.html" target="_blank" rel="noopener">Lire l'article</a></article>
-        <article class="fiche bloc-quart"><p class="article__media"><span class="article__nom">The Guardian</span></p><h3 class="article__titre">Critique du disque <i>Unsuk Chin</i></h3><p class="article__date"><span>13 février 2026</span><span class="article__auteur">Fiona Maddocks</span></p><a class="lien" href="https://www.theguardian.com/music/2026/feb/13/ensemble-intercontemporain-unsuk-chin-album-review-pierre-bleuse-samuel-favre-dimitri-vassilakis-gougalon-double-concerto" target="_blank" rel="noopener">Lire l'article</a></article>
-        <article class="fiche bloc-quart"><p class="article__media"><span class="article__nom">Gramophone</span></p><h3 class="article__titre">Critique du disque <i>Ligeti</i></h3><p class="article__date"><span>juin 2024</span><span class="article__auteur">Richard Whitehouse</span></p><a class="lien" href="https://gramophone.co.uk/review/ligeti-concertos-and-chamber-music-bleuse" target="_blank" rel="noopener">Lire l'article</a></article>
+        <article class="fiche article article--l4"><blockquote class="article__verbatim" lang="fr">«&nbsp;Sous sa baguette, la partition la plus dense devient lisible comme une page d’écriture.&nbsp;»</blockquote><p class="article__media"><img class="article__logo" src="assets/presse/exemples/contrepoint.svg" alt="Contrepoint" decoding="async"></p><p class="article__resume">An interview with the music director of the Ensemble intercontemporain, between two rehearsals, on passing on today’s repertoire.</p><p class="article__date"><span>8 October 2026</span></p><p class="article__liens"><a class="lien" href="https://example.com/contrepoint/pierre-bleuse" target="_blank" rel="noopener">Read the article</a></p></article>
+        <article class="fiche article article--l2"><blockquote class="article__verbatim" lang="en">“Precise without ever being cold, this is Ligeti with a pulse.”</blockquote><p class="article__media"><img class="article__logo" src="assets/presse/exemples/the-score.svg" alt="The Score Weekly" decoding="async"></p><p class="article__resume">The reviewer praises a reading of the concertos both rigorous and lyrical, served by a recording of great transparency.</p><p class="article__date"><span>19 September 2026</span></p><p class="article__liens"><a class="lien" href="https://example.com/the-score/ligeti-review" target="_blank" rel="noopener">Read the article</a></p></article>
+        <article class="fiche article article--l2"><blockquote class="article__verbatim" lang="de">„Ein Dirigent, der zuhört, bevor er gestaltet.“</blockquote><p class="article__media"><img class="article__logo" src="assets/presse/exemples/klangbild.svg" alt="Klangbild" decoding="async"></p><p class="article__resume">A concert review with the SWR Symphonieorchester, in which the <i>Symphonie fantastique</i> regains its share of dream and unease.</p><p class="article__date"><span>2 July 2026</span></p><p class="article__liens"><a class="lien" href="https://example.com/klangbild/stuttgart" target="_blank" rel="noopener">Read the article</a></p></article>
+        <article class="fiche article article--l1"><blockquote class="article__verbatim" lang="fr">«&nbsp;Le Festival Pablo Casals a trouvé en lui un hôte autant qu’un directeur.&nbsp;»</blockquote><p class="article__media"><img class="article__logo" src="assets/presse/exemples/l-echo-lyrique.svg" alt="L’Écho lyrique" decoding="async"></p><p class="article__resume">A look back at the 2026 Pablo Casals Festival, its programme between chamber music and premieres, set in the abbey of Saint-Michel-de-Cuxa.</p><p class="article__date"><span>14 August 2026</span></p><p class="article__liens"><a class="lien" href="https://example.com/echo-lyrique/prades-2026" target="_blank" rel="noopener">Read the article</a></p></article>
+        <article class="fiche article article--l1"><blockquote class="article__verbatim" lang="fr">«&nbsp;Une architecture sonore qui tourne autour de l’auditeur, et le tient en haleine.&nbsp;»</blockquote><p class="article__media"><img class="article__logo" src="assets/presse/exemples/mesures.svg" alt="Mesures" decoding="async"></p><p class="article__resume">At the Philharmonie de Paris, the Ensemble intercontemporain revives Pierre Boulez’s emblematic work in a spatialised set-up.</p><p class="article__date"><span>27 May 2026</span></p><p class="article__liens"><a class="lien" href="https://example.com/mesures/repons" target="_blank" rel="noopener">Read the article</a></p></article>
+        <article class="fiche article article--l1"><blockquote class="article__verbatim" lang="en">“Every colour in its place, every gesture with a purpose.”</blockquote><p class="article__media"><img class="article__logo" src="assets/presse/exemples/podium-review.svg" alt="Podium Review" decoding="async"></p><p class="article__resume">The launch concert of the Unsuk Chin album, between the soloists’ virtuosity and the ensemble’s cohesion.</p><p class="article__date"><span>11 March 2026</span></p><p class="article__liens"><a class="lien" href="https://example.com/podium/unsuk-chin" target="_blank" rel="noopener">Read the article</a></p></article>
+        <article class="fiche article article--l1"><blockquote class="article__verbatim" lang="fr">«&nbsp;Un Ravel voyageur, d’une élégance qui n’exclut jamais le risque.&nbsp;»</blockquote><p class="article__media"><img class="article__logo" src="assets/presse/exemples/la-gazette-des-salles.svg" alt="La Gazette des salles" decoding="async"></p><p class="article__resume">The <i>Ravel Abroad</i> album sheds light on the echoes of America and Spain in the composer’s work.</p><p class="article__date"><span>23 January 2026</span></p><p class="article__liens"><a class="lien" href="https://example.com/gazette/ravel-abroad" target="_blank" rel="noopener">Read the article</a></p></article>
         <!-- PRESSE-STATIQUE:FIN -->
       </div>
       <div class="grille">
-        <p class="rang__suite bloc-droite" data-revele><a class="bouton" href="presse.html" data-t="presse.tous">Tous les articles</a></p>
+        <p class="rang__suite bloc-droite" data-revele><a class="bouton" href="presse.html" data-t="presse.tous">All articles</a></p>
       </div>
     </section>
 
@@ -317,39 +339,39 @@
     <section class="section telechargement nuee-arriere-plan fond-80" id="telechargement" data-section aria-labelledby="tel-titre">
       <div class="grille">
         <div class="bloc-droite">
-          <h2 class="section__titre" id="tel-titre" data-revele data-t="tel.titre">Téléchargement</h2>
+          <h2 class="section__titre" id="tel-titre" data-revele data-t="tel.titre">Downloads</h2>
           <ul class="liste" data-revele data-telechargements data-rendu>
             <!-- TELECHARGEMENTS-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
-            <li><span>Biographie, en français</span> <span class="avenir">à venir</span></li>
-            <li><span>Biographie, en anglais</span> <span class="avenir">à venir</span></li>
-            <li><span>Photographies</span> <span class="avenir">à venir</span></li>
-            <li><span>Identité visuelle</span> <span class="avenir">à venir</span></li>
+            <li><span>Biography, in French</span> <span class="avenir">coming soon</span></li>
+            <li><span>Biography, in English</span> <span class="avenir">coming soon</span></li>
+            <li><span>Photographs</span> <span class="avenir">coming soon</span></li>
+            <li><span>Visual identity</span> <span class="avenir">coming soon</span></li>
             <!-- TELECHARGEMENTS-STATIQUE:FIN -->
           </ul>
         </div>
       </div>
     </section>
 
-    <!-- RESTONS EN CONTACT · fond : visuel 4 (data/visuels.js) · inscription à la lettre et réseaux : colonnes 10 à 12 -->
-    <section class="visuel visuel--image suivre nuee-arriere-plan fond-100" id="suivre" data-section data-visuel="visuel-4" aria-labelledby="suivre-titre">
-      <!-- VISUEL-4-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
-      <img class="visuel__media" src="assets/img/bleuse-5.jpg" alt="Pierre Bleuse accroupi sur la scène, près du clavecin" style="object-position: 64% 50%" decoding="async">
-      <!-- VISUEL-4-STATIQUE:FIN -->
+    <!-- RESTONS EN CONTACT · fond : la photographie du bloc (data/visuels.js, « suivre ») · inscription à la lettre et réseaux -->
+    <section class="visuel suivre nuee-arriere-plan fond-100" id="suivre" data-section data-visuel="suivre" aria-labelledby="suivre-titre">
+      <!-- VISUEL-SUIVRE-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
+      <img class="visuel__media" src="assets/img/bleuse-5.jpg" alt="Pierre Bleuse crouching on stage, beside the harpsichord" style="object-position: 64% 28%" decoding="async">
+      <!-- VISUEL-SUIVRE-STATIQUE:FIN -->
       <div class="visuel__contenu">
         <div class="grille">
-          <div class="bloc-droite suivre__bloc" data-revele>
-            <h2 class="suivre__titre" id="suivre-titre" data-t="suivre.titre">Restons en contact</h2>
-            <h3 class="mention" data-t="lettre.titre">La lettre</h3>
+          <div class="suivre__bloc" data-revele>
+            <h2 class="suivre__titre" id="suivre-titre" data-t="suivre.titre">Stay in touch</h2>
+            <h3 class="mention" data-t="lettre.titre">Newsletter</h3>
             <!-- LETTRE-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
-            <p class="texte" data-t="lettre.texte">Les concerts du mois et les actualités, une fois par mois.</p>
+            <p class="texte" data-t="lettre.texte">The month's concerts and news, once a month.</p>
             <!-- LETTRE-STATIQUE:FIN -->
             <!-- Inscription inerte : le champ et le bouton sont désactivés, rien n'est envoyé ni conservé.
                  Les réseaux : des pictogrammes de la hauteur du bouton (Instagram, Facebook, YouTube, LinkedIn). -->
             <form class="lettre" action="#" onsubmit="return false" novalidate>
-              <label class="sr-only" for="lettre-mail" data-t="lettre.champ">Adresse e-mail</label>
-              <input class="champ" id="lettre-mail" type="email" name="email" autocomplete="email" placeholder="Adresse e-mail" data-t-attr="placeholder:lettre.champ" disabled>
+              <label class="sr-only" for="lettre-mail" data-t="lettre.champ">Email address</label>
+              <input class="champ" id="lettre-mail" type="email" name="email" autocomplete="email" placeholder="Email address" data-t-attr="placeholder:lettre.champ" disabled>
               <div class="lettre__rang">
-                <button type="submit" class="bouton" disabled data-t="lettre.bouton">S'inscrire</button>
+                <button type="submit" class="bouton" disabled data-t="lettre.bouton">Subscribe</button>
                 <ul class="reseaux" data-reseaux="tous">
                   <!-- RESEAUX-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
                   <li data-reseau="instagram"><a href="https://www.instagram.com/pierrebleuse/" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7zm5 3.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zm0 2a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zm4.75-3.3a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2z"/></svg></a></li>
@@ -359,7 +381,7 @@
                   <!-- RESEAUX-STATIQUE:FIN -->
                 </ul>
               </div>
-              <p class="lettre__note" data-t="lettre.note">Inscription bientôt ouverte</p>
+              <p class="lettre__note" data-t="lettre.note">Sign-up opening soon</p>
             </form>
           </div>
         </div>
@@ -373,7 +395,7 @@
           <h2 class="section__titre" id="contact-titre" data-revele data-t="contact.titre">Contacts</h2>
           <!-- CONTACTS-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
           <div class="contacts__groupe" data-revele>
-            <p class="mention" lang="en">General management</p>
+            <p class="mention" lang="en">Worldwide general management</p>
             <p class="contacts__agence"><a href="https://www.harrisonparrott.com/artists/pierre-bleuse" target="_blank" rel="noopener">HarrisonParrott</a></p>
             <div class="contact">
               <p class="contact__nom">François Guyard</p>
@@ -389,11 +411,11 @@
             </div>
           </div>
           <div class="contacts__groupe" data-revele>
-            <p class="mention" lang="en">Communication</p>
+            <p class="mention" lang="en">Communications</p>
             <p class="contacts__agence"><a href="https://carrel-communication.com/" target="_blank" rel="noopener">Carrel Communication</a></p>
             <div class="contact">
               <p class="contact__nom">Benjamin Teillard</p>
-              <p class="contact__role" lang="en">Responsable communication</p>
+              <p class="contact__role" lang="en">Communication management</p>
               <p><a href="tel:+33689905731">+33 6 89 90 57 31</a></p>
               <p><a href="mailto:communication@pierrebleuse.com">communication@<wbr>pierrebleuse.com</a></p>
             </div>
@@ -407,15 +429,15 @@
 
   <!-- PIED DE PAGE · fond noir à 100 %, toute la largeur (comme la barre du haut) -->
   <footer class="pied nuee-arriere-plan fond-100" id="pied" data-section>
-    <p class="pied__liens"><span>Pierre Bleuse</span> <a href="mentions-legales.html" data-t="pied.mentions">Mentions légales</a> <a href="confidentialite.html" data-t="pied.confidentialite">Confidentialité</a> <a href="credits.html" data-t="pied.credits">Crédits</a></p>
+    <p class="pied__liens"><span>Pierre Bleuse</span> <a href="mentions-legales.html" data-t="pied.mentions">Legal notice</a> <a href="confidentialite.html" data-t="pied.confidentialite">Privacy</a> <a href="credits.html" data-t="pied.credits">Credits</a></p>
     <div class="pied__credit">
       <!-- CREDIT-STATIQUE:DEBUT (repli sans JavaScript, généré par Pupitre, ne pas modifier à la main) -->
-      <p data-t="pied.credit">Site en construction · musiques&nbsp;: Tchaïkovski, Symphonie n°&nbsp;6, IV, Musopen (domaine public)&nbsp;; Berlioz, <i>Symphonie fantastique</i>, SWR Symphonieorchester (ARD Klassik)&nbsp;; <i>The Centenary of Pierre Boulez</i>, Ensemble intercontemporain &amp; Friends (ARTE Concert)</p>
+      <p data-t="pied.credit">Website in progress · music: Tchaikovsky, Symphony No.&nbsp;6, IV, Musopen (public domain); Berlioz, <i>Symphonie fantastique</i>, SWR Symphonieorchester (ARD Klassik); <i>The Centenary of Pierre Boulez</i>, Ensemble intercontemporain &amp; Friends (ARTE Concert)</p>
       <!-- CREDIT-STATIQUE:FIN -->
       <!-- Pause de l'animation (WCAG 2.2.2) et outil de mise au point de la nuée (touche P) -->
       <p class="pied__outils js-seulement">
-        <button type="button" class="pied__outil" data-pause-animation aria-pressed="false" data-t="pied.pause">Pause de l'animation</button>
-        <button type="button" class="pied__outil" data-ouvrir-reglages aria-expanded="false" aria-controls="reglages" aria-keyshortcuts="P" data-t="pied.reglages">Réglages de la nuée</button>
+        <button type="button" class="pied__outil" data-pause-animation aria-pressed="false" data-t="pied.pause">Pause the animation</button>
+        <button type="button" class="pied__outil" data-ouvrir-reglages aria-expanded="false" aria-controls="reglages" aria-keyshortcuts="P" data-t="pied.reglages">Cloud settings</button>
       </p>
     </div>
   </footer>
@@ -427,21 +449,19 @@
   <audio data-audio preload="none"></audio>
 
   <!-- Données, puis rendu synchrone, avant le moteur qui recense les [data-revele] à son chargement -->
-  <script src="data/agenda.js?v=20261115b"></script>
-  <script src="data/playlist.js?v=20261115b"></script>
-  <script src="data/visuels.js?v=20261115b"></script>
-  <script src="data/disques.js?v=20261115b"></script>
-  <script src="data/presse.js?v=20261115b"></script>
-  <!-- FAUX ARTICLES pour la maquette : à retirer avant la mise en ligne (voir le fichier) -->
-  <script src="data/presse-exemples.js?v=20261115b"></script>
-  <script src="data/orchestres.js?v=20261115b"></script>
-  <script src="data/cartes.js?v=20261115b"></script>
-  <script src="data/parcours.js?v=20261115b"></script>
-  <script src="data/telechargements.js?v=20261115b"></script>
-  <script src="data/contacts.js?v=20261115b"></script>
-  <script src="data/reseaux.js?v=20261115b"></script>
-  <script src="js/agenda.js?v=20261115b"></script>
-  <script src="js/sections.js?v=20261115b"></script>
+  <script src="data/agenda.js?v=20261127j"></script>
+  <script src="data/playlist.js?v=20261127j"></script>
+  <script src="data/visuels.js?v=20261127j"></script>
+  <script src="data/disques.js?v=20261127j"></script>
+  <script src="data/presse.js?v=20261127j"></script>
+  <script src="data/orchestres.js?v=20261127j"></script>
+  <script src="data/cartes.js?v=20261127j"></script>
+  <script src="data/parcours.js?v=20261127j"></script>
+  <script src="data/telechargements.js?v=20261127j"></script>
+  <script src="data/contacts.js?v=20261127j"></script>
+  <script src="data/reseaux.js?v=20261127j"></script>
+  <script src="js/agenda.js?v=20261127j"></script>
+  <script src="js/sections.js?v=20261127j"></script>
   <script>
     try { window.SiteContenu.appliquer(document); }
     catch (e) { document.documentElement.classList.remove('i18n-attente'); console.error(e); }
@@ -454,13 +474,14 @@
   <script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 
-  <!-- Moteur de la nuée, visuels « lumière » et lecteur de musique -->
-  <script src="js/lumiere.js?v=20261115b"></script>
-  <script src="js/parametres.js?v=20261115b"></script>
-  <script src="js/musique.js?v=20261115b"></script>
-  <script src="js/sync.js?v=20261115b"></script>
-  <script src="js/nuee.js?v=20261115b"></script>
-  <script src="js/reglages.js?v=20261115b"></script>
-  <script src="js/main.js?v=20261115b"></script>
+  <!-- Moteur de la nuée, animations des blocs visuels (registre et modules) et lecteur de musique -->
+  <script src="js/lumiere.js?v=20261127j"></script>
+  <script src="js/animations.js?v=20261127j"></script>
+  <script src="js/parametres.js?v=20261127j"></script>
+  <script src="js/musique.js?v=20261127j"></script>
+  <script src="js/sync.js?v=20261127j"></script>
+  <script src="js/nuee.js?v=20261127j"></script>
+  <script src="js/reglages.js?v=20261127j"></script>
+  <script src="js/main.js?v=20261127j"></script>
 </body>
 </html>

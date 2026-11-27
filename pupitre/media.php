@@ -9,6 +9,7 @@ require __DIR__ . '/inclus/amorce.php';
 $compte = exiger_connexion();
 if (!role_peut($compte['role'], 'medias') && !role_peut($compte['role'], 'contenus')) { http_response_code(403); exit; }
 $m = bd_ligne('SELECT * FROM medias WHERE id = ?', [recu_entier('id') ?? 0]);
+if ($m && ($m['url_externe'] ?? '') !== '') { header('Location: ' . $m['url_externe']); exit; }       // adresse externe : rien à servir d'ici
 $fichier = $m ? media_fichier($m) : '';
 if ($fichier === '') { http_response_code(404); exit('Fichier introuvable.'); }
 

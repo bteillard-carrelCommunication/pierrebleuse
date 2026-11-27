@@ -3,11 +3,12 @@
 
     python3 pupitre/tests/parcours.py [dossier des captures]
 
-À lancer sur une base qui sort de la reprise (php pupitre/sql/depart.php). L'essai :
+À lancer sur la base locale, migrations passées (php pupitre/sql/migrer.php). L'essai :
   1. crée trois comptes d'essai (pilote, éditeur, artiste), retirés à la fin ;
-  2. ouvre chaque écran en pilote : aucune erreur PHP, aucune erreur de console ;
-  3. fait le parcours complet : modification de la citation et d'un disque, ajout d'un concert
-     annoncé, publication, vérification sur le site, retour à la publication précédente ;
+  2. ouvre chaque écran en pilote (site, carrière, communication, administration) : aucune erreur
+     PHP, aucune erreur de console ;
+  3. fait le parcours complet : modification de la citation (bloc « Hero ») et d'un album, ajout
+     d'un concert annoncé, publication, vérification sur le site, retour à la publication précédente ;
   4. vérifie les droits : l'éditeur ne publie pas et n'ouvre pas les réglages, l'artiste ne
      modifie rien et ne voit que sa vue, où il laisse une note ;
   5. vérifie la vue de l'artiste à 390 px : pas de débordement, utilisable au clavier ;
@@ -29,6 +30,9 @@ P = SITE + 'pupitre/'
 CAPTURES = sys.argv[1] if len(sys.argv) > 1 else os.path.join(RACINE, 'docs', 'pupitre', 'captures')
 MDP = secrets.token_urlsafe(18)
 echecs = []
+
+
+SANS_TRANSITION = '*,*::before,*::after{transition:none!important}'      # voir « Captures », plus bas
 
 
 def php(*args, env=None):
@@ -116,10 +120,17 @@ def main():
             verifier(c.js('document.querySelector(".marque__nom").textContent') == 'Pupitre' and c.js('(document.querySelector(".marque__sous-titre")||{}).textContent') == 'Pierre Bleuse',
                      'titre « Pupitre », sous-titre lu dans les réglages')
             ecrans = [('bord', {}), ('agenda', {}), ('agenda', {'periode': 'tout', 'statut': 'publiee'}), ('concert', {'id': 'nouveau'}), ('annuaire', {}),
-                      ('annuaire', {'categorie': 'salle'}), ('fiche', {'id': 'nouvelle'}), ('imports', {}), ('textes', {}), ('contenu', {'type': 'parcours'}),
-                      ('orchestres', {}), ('contenu', {'type': 'disques'}), ('contenu', {'type': 'presse'}), ('visuels', {}), ('musiques', {}),
+                      ('annuaire', {'categorie': 'salle'}), ('fiche', {'id': 'nouvelle'}), ('imports', {}),
+                      ('blocs', {}), ('bloc', {'cle': 'general'}), ('bloc', {'cle': 'ouverture'}), ('bloc', {'cle': 'bio'}), ('bloc', {'cle': 'agenda'}), ('bloc', {'cle': 'disques'}),
+                      ('bloc', {'cle': 'parcours-fonctions'}), ('bloc', {'cle': 'parcours-collaborations'}), ('bloc', {'cle': 'parcours-monde'}), ('bloc', {'cle': 'presse'}),
+                      ('bloc', {'cle': 'telechargement'}), ('bloc', {'cle': 'suivre'}), ('bloc', {'cle': 'contact'}), ('bloc', {'cle': 'pied'}), ('visuels', {}),
+                      ('orchestres', {}), ('orchestres', {'nouvelle': '1'}), ('disques', {}), ('disque', {'id': 1}), ('disque', {'id': 'nouveau'}), ('distinctions', {}), ('parcours', {}),
+                      ('presse', {}), ('article', {'id': 1}), ('article', {'id': 'nouveau'}), ('musiques', {}),
                       ('contenu', {'type': 'telechargements'}), ('contenu', {'type': 'contacts'}), ('medias', {}), ('media', {'id': 1}), ('site', {}),
-                      ('journal', {}), ('comptes', {}), ('reglages', {}), ('artiste', {}), ('avenir', {'quoi': 'publications'})]
+                      ('apparence', {}), ('langues', {}), ('langues', {'onglet': 'traductions'}), ('langues', {'onglet': 'libelles'}), ('base', {}),
+                      ('journal', {}), ('comptes', {}), ('reglages', {}), ('artiste', {}), ('carte', {}), ('carte', {'nouvelle': '1'}),
+                      ('editorial', {}), ('social', {}), ('newsletter', {}), ('communication', {'id': 'nouvelle'}), ('communication', {'id': 'nouvelle', 'famille': 'lettre'}),
+                      ('notifications', {}), ('recherche', {'q': 'paris'}), ('interface', {}), ('avenir', {'quoi': 'publications'})]
             for page, params in ecrans:
                 aller(c, page, **params)
                 page_saine(c, 'écran ' + page + (' ' + json.dumps(params, ensure_ascii=False) if params else ''))
@@ -130,9 +141,12 @@ def main():
             page_saine(c, 'fiche d\'annuaire')
 
             print('Captures')
-            # pour une capture de la page entière : rien de collé au bord de la fenêtre
-            a_plat = ('(function(){var s=document.createElement("style"); s.textContent=".tete,.actions--bas{position:static!important}'
-                      ' .menu{position:absolute!important;top:3.5rem!important;bottom:auto!important;min-height:calc(100% - 3.5rem)} body{position:relative}";'
+            # Pour une capture de la page entière : rien de collé au bord de la fenêtre (la barre du haut et la barre
+            # d'actions reprennent leur place dans la page, le menu latéral court sur toute sa hauteur), et aucune
+            # transition : pour photographier au-delà de la fenêtre, Chrome la réduit un instant à 1 px puis lui rend
+            # sa taille, et la photographie saisirait le menu au milieu de sa transition de largeur.
+            a_plat = ('(function(){var s=document.createElement("style"); s.textContent="' + SANS_TRANSITION +
+                      ' .tete,.actions--bas{position:static!important} .lateral{position:absolute!important} body{position:relative}";'
                       ' document.head.appendChild(s);})()')
             aller(c, 'bord')
             c.js(a_plat)
@@ -142,17 +156,17 @@ def main():
             c.capture(os.path.join(CAPTURES, 'fiche-concert.png'), pleine=True)
 
             print('Parcours complet')
-            aller(c, 'textes')
+            aller(c, 'bloc', cle='ouverture')
             citation = c.js('document.querySelector(\'[name="citation_fr"]\').value')
             remplir(c, {'citation_fr': '« Citation d\'essai de Pupitre »'})
-            envoyer(c, 'form.carte button[type="submit"]')
-            verifier('enregistr' in message(c).lower(), 'la citation est modifiée')
+            envoyer(c, 'form.carte .actions--bas button[type="submit"]')
+            verifier('enregistr' in message(c).lower(), 'la citation est modifiée (bloc « Hero »)')
 
-            aller(c, 'contenu', type='disques')
-            lien_avant = c.js('document.querySelector(\'[name="lignes[1][lien]"]\').value')
-            remplir(c, {'lignes[1][lien]': 'https://exemple.test/disque-essai'})
-            envoyer(c, 'form.carte button[type="submit"]')
-            verifier('Enregistré' in message(c), 'un disque est modifié (lien « En savoir plus »)')
+            aller(c, 'disque', id=1)
+            annee_avant = c.js('document.querySelector(\'[name="annee"]\').value')
+            remplir(c, {'annee': '1987'})
+            envoyer(c, 'form .actions--bas button[type="submit"]')
+            verifier('nregistr' in message(c), 'un album est modifié (son année)')
 
             aller(c, 'concert', id='nouveau')
             remplir(c, {'titre_fr': 'Concert d\'essai de Pupitre', 'ensemble_fr': 'Ensemble intercontemporain', 'salle_fr': 'Salle d\'essai',
@@ -188,7 +202,7 @@ def main():
             c.ouvrir(SITE + '?lang=fr&muet=1&aimant=0&date=2026-11-12', 2.5)
             verifier('Citation d\'essai de Pupitre' in c.js('document.querySelector(".ouverture__citation").textContent'), 'la nouvelle citation est sur le site')
             verifier(c.js('JSON.stringify(SiteContenu.ecarts)') == '[]' and not c.erreurs, 'SiteContenu.ecarts vide, console sans erreur')
-            verifier('exemple.test/disque-essai' in c.js('document.querySelector("[data-disques]").innerHTML'), 'le lien du disque est sur le site')
+            verifier('1987' in c.js('document.querySelector("[data-disques]").textContent'), 'l\'année de l\'album est sur le site')
             c.erreurs.clear()
             c.ouvrir(SITE + 'concerts.html?lang=fr&date=2026-11-12', 1.2)
             verifier('Concert d\'essai de Pupitre' in c.js('document.body.innerText') and '30 juin 2027' in c.js('document.body.innerText').lower(), 'le concert annoncé est dans concerts.html')
@@ -208,12 +222,12 @@ def main():
             verifier('data/textes.js' in c.js('document.body.innerText'), 'les écarts réapparaissent : Pupitre n\'a pas changé')
 
             print('Remise en état des contenus')
-            aller(c, 'textes')
+            aller(c, 'bloc', cle='ouverture')
             remplir(c, {'citation_fr': citation})
-            envoyer(c, 'form.carte button[type="submit"]')
-            aller(c, 'contenu', type='disques')
-            remplir(c, {'lignes[1][lien]': lien_avant})
-            envoyer(c, 'form.carte button[type="submit"]')
+            envoyer(c, 'form.carte .actions--bas button[type="submit"]')
+            aller(c, 'disque', id=1)
+            remplir(c, {'annee': annee_avant})
+            envoyer(c, 'form .actions--bas button[type="submit"]')
             aller(c, 'concert', id=concert)
             envoyer(c, 'button[data-confirmer^="Supprimer ce concert"]')
             aller(c, 'site')
@@ -269,7 +283,9 @@ def main():
                      'prochain concert, cette semaine, la saison par mois, date de mise à jour du site')
             verifier(c.js('document.querySelectorAll(".mois-artiste .statut").length') >= 20, 'chaque date de la saison porte son statut')
             c.capture(os.path.join(CAPTURES, 'vue-artiste-390.png'))
+            c.js('(function(){var s=document.createElement("style"); s.id="essai-fige"; s.textContent="' + SANS_TRANSITION + '"; document.head.appendChild(s);})()')
             c.capture(os.path.join(CAPTURES, 'vue-artiste-390-pleine.png'), pleine=True)
+            c.js('(function(){var s=document.getElementById("essai-fige"); if (s) s.remove();})()')
             # au clavier : la tabulation atteint « Laisser une note », Entrée l'ouvre, on écrit, on envoie
             atteint = False
             for _ in range(12):
@@ -291,7 +307,7 @@ def main():
             aller(c, 'agenda')
             verifier('Accès refusé' in c.js('document.body.innerText'), 'l\'artiste n\'ouvre pas l\'agenda')
             statut = c.js('fetch(%s, {method:"POST", credentials:"same-origin", headers:{"Content-Type":"application/x-www-form-urlencoded"},'
-                          ' body:"citation_fr=x&csrf=" + encodeURIComponent(document.querySelector(\'meta[name="csrf"]\').content)}).then(function(r){return r.status})' % json.dumps(P + 'index.php?page=textes'))
+                          ' body:"action=contenus&citation_fr=x&csrf=" + encodeURIComponent(document.querySelector(\'meta[name="csrf"]\').content)}).then(function(r){return r.status})' % json.dumps(P + 'index.php?page=bloc&cle=ouverture'))
             verifier(statut == 403, 'une modification envoyée par l\'artiste est refusée par le serveur (403)')
             statut = c.js('fetch(%s, {credentials:"same-origin"}).then(function(r){return r.status})' % json.dumps(P + 'media.php?id=1'))
             verifier(statut == 403, 'l\'artiste n\'a pas accès aux fichiers de la médiathèque (403)')
@@ -307,6 +323,8 @@ def main():
             deconnecter(c)
     finally:
         php('retirer')
+        if echecs:
+            print('  (en cas d\'arrêt en cours de route : vérifier dans Pupitre la citation du bloc « Hero », l\'année du premier album et l\'absence du « Concert d\'essai de Pupitre »)')
     print('%d échec(s)' % len(echecs) if echecs else 'parcours : tout est conforme')
     return 1 if echecs else 0
 

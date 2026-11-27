@@ -6,7 +6,8 @@
  *
  * Relit les fichiers de data/ du site, régénère chaque zone (inclus/site/repli.php) et la
  * replace dans chaque page : la page ne doit pas changer d'un octet. Si ce contrôle passe, une
- * publication sans modification ne touche pas au HTML.
+ * publication sans modification ne touche pas au HTML. Les zones sont rendues dans la langue par
+ * défaut du site, lue dans data/site.js, avec les libellés de data/libelles.js.
  */
 
 if (PHP_SAPI !== 'cli') { http_response_code(403); exit; }

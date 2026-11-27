@@ -173,6 +173,25 @@ function adresse_valide(string $u): bool
     return $u === '' || (bool) preg_match('#^https?://[^\s<>"]+$#i', $u);
 }
 
+// ---------- Couleurs ----------
+
+/** Couleur « #rrggbb » lue dans une saisie (« #abc », « ABCDEF », « #aabbcc ») ; '' si elle est illisible. */
+function couleur_lire(string $s): string
+{
+    $s = strtolower(ltrim(trim($s), '#'));
+    if (preg_match('/^[0-9a-f]{3}$/', $s)) $s = $s[0] . $s[0] . $s[1] . $s[1] . $s[2] . $s[2];
+    return preg_match('/^[0-9a-f]{6}$/', $s) ? '#' . $s : '';
+}
+
+/** « r g b » d'une couleur « #rrggbb » : pour la variable CSS qui porte les fonds translucides. */
+function couleur_rvb(string $hex): string
+{
+    $hex = couleur_lire($hex) ?: '#000000';
+    return hexdec(substr($hex, 1, 2)) . ' ' . hexdec(substr($hex, 3, 2)) . ' ' . hexdec(substr($hex, 5, 2));
+}
+
+// ---------- Divers ----------
+
 /** Taille lisible : « 1,4 Mo ». */
 function taille_lisible(int $octets): string
 {

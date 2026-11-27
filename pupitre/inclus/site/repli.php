@@ -16,15 +16,20 @@ defined('PUPITRE') or exit;
 
 const INSECABLE = "\u{00A0}";
 
-/** Libellés d'interface du site repris dans les zones de repli (js/contenu.js). */
+/**
+ * Libellés d'interface du site repris dans les zones de repli : nom court => [clé du libellé dans
+ * data/libelles.js, texte de secours en français et en anglais si ce fichier ne le porte pas].
+ */
 const LIBELLES_SITE = [
-    'disque' => ['fr' => 'Disque', 'en' => 'Recording'],
-    'lire' => ['fr' => 'Lire l\'article', 'en' => 'Read the article'],
-    'a_venir' => ['fr' => 'à venir', 'en' => 'coming soon'],
-    'vide' => ['fr' => 'Les prochaines dates seront annoncées ici.', 'en' => 'Upcoming dates will be announced here.'],
-    'ameriques' => ['fr' => 'Amériques', 'en' => 'Americas'],
-    'europe-afrique' => ['fr' => 'Europe et Afrique', 'en' => 'Europe and Africa'],
-    'asie-oceanie' => ['fr' => 'Asie, Russie et Océanie', 'en' => 'Asia, Russia and Oceania'],
+    'disque' => ['agenda.disque', 'fr' => 'Disque', 'en' => 'Recording'],
+    'lire' => ['presse.lire', 'fr' => 'Lire l\'article', 'en' => 'Read the article'],
+    'parcours.depuis' => ['parcours.depuis', 'fr' => 'depuis {annee}', 'en' => 'since {annee}'],
+    'parcours.periode' => ['parcours.periode', 'fr' => '{debut} à {fin}', 'en' => '{debut} to {fin}'],
+    'a_venir' => ['commun.aVenir', 'fr' => 'à venir', 'en' => 'coming soon'],
+    'vide' => ['agenda.vide', 'fr' => 'Les prochaines dates seront annoncées ici.', 'en' => 'Upcoming dates will be announced here.'],
+    'ameriques' => ['parcours.zone.ameriques', 'fr' => 'Amériques', 'en' => 'Americas'],
+    'europe-afrique' => ['parcours.zone.europe-afrique', 'fr' => 'Europe et Afrique', 'en' => 'Europe and Africa'],
+    'asie-oceanie' => ['parcours.zone.asie-oceanie', 'fr' => 'Asie, Russie et Océanie', 'en' => 'Asia, Russia and Oceania'],
 ];
 
 const MOIS_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -40,11 +45,25 @@ const PICTOGRAMMES = [
 
 // ---------- Textes : les règles de js/contenu.js ----------
 
-/** Champ écrit en chaîne ou en { fr, en } : la version demandée, sinon le français. */
+/**
+ * Contexte du rendu en cours, tiré des données que l'on rend et d'elles seules : les libellés
+ * d'interface (data/libelles.js) et la langue de référence (data/site.js). repli_zones() le pose.
+ * Ce fichier ne lit donc jamais la base : il se contrôle sans elle (tests/repli.php).
+ */
+function repli_contexte(?array $donnees = null): array
+{
+    static $c = ['libelles' => [], 'reference' => 'fr', 'langue' => null];
+    if ($donnees !== null) {
+        $c = ['libelles' => (array) ($donnees['LIBELLES'] ?? []), 'reference' => (string) ($donnees['SITE']['langues']['reference'] ?? 'fr'), 'langue' => $donnees['@langue'] ?? null];
+    }
+    return $c;
+}
+
+/** Champ écrit en chaîne ou en { fr, en, … } : la version demandée, sinon celle de la langue de référence. */
 function site_choisir($champ, string $langue = 'fr'): string
 {
     if ($champ === null) return '';
-    if (is_array($champ)) return (string) (($champ[$langue] ?? '') !== '' ? $champ[$langue] : ($champ['fr'] ?? ''));
+    if (is_array($champ)) return (string) (($champ[$langue] ?? '') !== '' ? $champ[$langue] : ($champ[repli_contexte()['reference']] ?? ($champ['fr'] ?? '')));
     return (string) $champ;
 }
 
@@ -71,9 +90,12 @@ function site_attribut(string $s): string
     return str_replace(['&', '<', '>', '"'], ['&amp;', '&lt;', '&gt;', '&quot;'], $s);
 }
 
+/** Libellé d'interface : celui des données (nom court ci-dessus, ou clé complète), sinon le texte de secours. */
 function site_libelle(string $cle, string $langue): string
 {
-    return LIBELLES_SITE[$cle][$langue] ?? LIBELLES_SITE[$cle]['fr'];
+    $t = site_choisir(repli_contexte()['libelles'][LIBELLES_SITE[$cle][0] ?? $cle] ?? null, $langue);
+    if ($t !== '') return $t;
+    return LIBELLES_SITE[$cle][$langue] ?? (LIBELLES_SITE[$cle]['fr'] ?? '');
 }
 
 /** Lien sortant, comme SiteContenu.lienSortant. */
@@ -89,7 +111,15 @@ function site_jour(int $j, string $langue): string
 
 function site_mois(int $m, string $langue): string
 {
-    return $langue === 'en' ? MOIS_EN[$m - 1] : MOIS_FR[$m - 1];
+    if ($langue === 'fr') return MOIS_FR[$m - 1];
+    if ($langue === 'en') return MOIS_EN[$m - 1];
+    // autre langue : le nom du mois selon ses usages (extension intl), sinon l'anglais
+    if (class_exists('IntlDateFormatter')) {
+        $f = new IntlDateFormatter($langue, IntlDateFormatter::NONE, IntlDateFormatter::NONE, 'UTC', null, 'LLLL');
+        $nom = $f->format(gmmktime(12, 0, 0, $m, 15, 2026));
+        if (is_string($nom) && $nom !== '') return $nom;
+    }
+    return MOIS_EN[$m - 1];
 }
 
 /** « 14 novembre 2026 », « 27–29 novembre 2026 », « 30 avril – 2 mai 2027 ». */
@@ -130,8 +160,14 @@ function repli_biographie(array $paragraphes, string $langue): array
     return $l;
 }
 
-function repli_visuel(?array $v, string $langue): array
+/**
+ * Média de repli d'un bloc à médias : le premier élément que le bloc montre (data/visuels.js),
+ * sans animation. Une image, la vidéo avec son image d'attente (rien n'est chargé d'avance), ou une
+ * boîte vide pour YouTube.
+ */
+function repli_visuel(?array $bloc, string $langue): array
 {
+    $v = $bloc['elements'][0] ?? null;
     if (!$v) return [];
     $alt = site_attribut(site_choisir($v['alt'] ?? '', $langue));
     $position = !empty($v['position']) ? ' style="object-position: ' . site_attribut($v['position']) . '"' : '';
@@ -144,10 +180,13 @@ function repli_visuel(?array $v, string $langue): array
             . ' muted loop playsinline preload="none" disablepictureinpicture'
             . ($alt !== '' ? ' aria-label="' . $alt . '"' : ' aria-hidden="true"') . '></video>'];
     }
-    if (($v['type'] ?? '') === 'couleur') {
-        return ['<div class="visuel__media" style="background-color: ' . site_attribut($v['couleur'] ?? '#000') . '"></div>'];
-    }
     return ['<div class="visuel__media"></div>'];           // YouTube : rien n'est chargé sans l'accord du visiteur
+}
+
+/** Repère de la zone de repli d'un bloc à médias : VISUEL-1 pour « visuel-1 », VISUEL-SUIVRE pour « suivre ». */
+function zone_visuel(string $bloc): string
+{
+    return strtoupper(str_starts_with($bloc, 'visuel-') ? $bloc : 'visuel-' . $bloc);
 }
 
 /** Liste simple de tous les événements : date ou plage, ville(s), titre. */
@@ -181,8 +220,11 @@ function repli_agenda(array $agenda, string $langue): array
     return $l;
 }
 
-/** $complet (aperçu de Pupitre) : avec le mot de l'artiste et les liens, comme le rend le site. */
-function repli_disques(array $disques, string $langue, bool $complet = false): array
+/**
+ * Vignettes des albums, premier niveau : année et label, titre, descriptif, distinctions mises en
+ * avant. Le panneau détaillé (« En savoir plus ») demande JavaScript : il n'est pas dans le repli.
+ */
+function repli_disques(array $disques, string $langue): array
 {
     $l = [];
     foreach ($disques as $d) {
@@ -196,45 +238,99 @@ function repli_disques(array $disques, string $langue, bool $complet = false): a
             $t = site_choisir($ligne, $langue);
             if ($t !== '') $s .= '<p class="fiche__texte">' . site_html($t) . '</p>';
         }
-        if ($complet) {
-            $mot = site_choisir($d['mot'] ?? '', $langue);
-            if ($mot !== '') $s .= '<p class="fiche__mot">' . site_html($mot) . '</p>';
-            foreach (['commander' => ['fr' => 'Commander', 'en' => 'Order'], 'streaming' => ['fr' => 'Écouter', 'en' => 'Listen']] as $k => $nom) {
-                $liens = array_filter($d[$k] ?? [], fn($x) => !empty($x['url']));
-                if (!$liens) continue;
-                $s .= '<p class="fiche__label">' . $nom[$langue] . '</p><ul class="fiche__liens">';
-                foreach ($liens as $x) $s .= '<li>' . site_lien($x['url'], site_html($x['nom'] ?: $x['url']), 'lien') . '</li>';
-                $s .= '</ul>';
-            }
-            if (!empty($d['lien'])) $s .= site_lien($d['lien'], $langue === 'en' ? 'Find out more' : 'En savoir plus', 'lien');
-        }
+        $unes = array_filter($d['distinctions'] ?? [], fn($x) => !empty($x['une']));
+        if ($unes) $s .= '<p class="fiche__texte fiche__distinctions">' . site_html(implode(', ', array_map(fn($x) => site_choisir($x['intitule'] ?? '', $langue), $unes))) . '</p>';
         $l[] = $s . '</article>';
     }
     return $l;
 }
 
-/** Les quatre premiers articles sont sur l'accueil ; $complet (aperçu de Pupitre) : tous. */
-function repli_presse(array $articles, string $langue, bool $complet = false): array
+/** Citation principale d'un article : la première marquée, sinon la première. */
+function article_citation(array $a): ?array
+{
+    foreach ($a['citations'] ?? [] as $c) if (!empty($c['principale'])) return $c;
+    return ($a['citations'] ?? [])[0] ?? null;
+}
+
+/** Articles de l'accueil : ceux qui sont sélectionnés, dans leur rang. */
+function articles_accueil(array $articles): array
+{
+    $l = array_values(array_filter($articles, fn($a) => !empty($a['accueil'])));
+    usort($l, fn($x, $y) => [(int) ($x['rang'] ?? 0), (string) $x['id']] <=> [(int) ($y['rang'] ?? 0), (string) $y['id']]);
+    return $l;
+}
+
+/**
+ * Articles de l'accueil, dans l'ordre demandé : la citation, le média (son logo, ou son nom), le
+ * chapeau ou le résumé, la date, le lien vers l'article. Le panneau « En savoir plus » demande
+ * JavaScript : il n'est pas dans le repli.
+ */
+function repli_presse(array $articles, string $langue): array
 {
     $l = [];
-    foreach ($complet ? $articles : array_slice($articles, 0, 4) as $a) {
-        $s = '<article class="fiche bloc-quart"><p class="article__media">'
-            . (!empty($a['logo']) ? '<img class="article__logo" src="' . site_attribut($a['logo']) . '" alt="" decoding="async">' : '')
-            . '<span class="article__nom">' . site_html((string) ($a['media'] ?? '')) . '</span></p>';
-        $titre = site_choisir($a['titre'] ?? '', $langue);
-        if ($titre !== '') $s .= '<h3 class="article__titre">' . site_html($titre) . '</h3>';
-        if (!empty($a['verbatim'])) {
-            $s .= '<blockquote class="article__verbatim" lang="' . site_attribut(($a['langue'] ?? '') ?: $langue) . '">' . site_html($a['verbatim']) . '</blockquote>';
-        }
-        $resume = site_choisir($a['resume'] ?? '', $langue);
-        if ($resume !== '') $s .= '<p class="article__resume">' . site_html($resume) . '</p>';
+    foreach (articles_accueil($articles) as $a) {
+        $largeur = in_array((int) ($a['largeur'] ?? 1), [1, 2, 4], true) ? (int) $a['largeur'] : 1;
+        $s = '<article class="fiche article article--l' . $largeur . '">';
+        $c = article_citation($a);
+        if ($c) $s .= '<blockquote class="article__verbatim" lang="' . site_attribut(($c['langue'] ?? '') ?: $langue) . '">' . site_html($c['texte']) . '</blockquote>';
+        $nom = site_attribut((string) ($a['media'] ?? ''));
+        $s .= '<p class="article__media">' . (!empty($a['logo'])
+            ? '<img class="article__logo" src="' . site_attribut($a['logo']) . '" alt="' . $nom . '" decoding="async">'
+            : '<span class="article__nom' . (!empty($a['typo']) ? ' article__nom--' . site_attribut($a['typo']) : '') . '">' . site_html((string) ($a['media'] ?? '')) . '</span>') . '</p>';
+        $texte = site_choisir($a['chapeau'] ?? '', $langue) ?: site_choisir($a['resume'] ?? '', $langue);
+        if ($texte === '' && !$c) $texte = site_choisir($a['titre'] ?? '', $langue);            // ni citation ni résumé : le titre tient lieu de texte
+        if ($texte !== '') $s .= '<p class="article__resume">' . site_html($texte) . '</p>';
         $date = site_date_article((string) ($a['date'] ?? ''), $langue);
-        if ($date !== '' || !empty($a['auteur'])) {
-            $s .= '<p class="article__date">' . ($date !== '' ? '<span>' . site_html($date) . '</span>' : '')
-                . (!empty($a['auteur']) ? '<span class="article__auteur">' . site_html($a['auteur']) . '</span>' : '') . '</p>';
-        }
-        if (!empty($a['lien'])) $s .= site_lien($a['lien'], site_html(site_libelle('lire', $langue)), 'lien');
+        if ($date !== '') $s .= '<p class="article__date"><span>' . site_html($date) . '</span></p>';
+        if (!empty($a['lien'])) $s .= '<p class="article__liens">' . site_lien($a['lien'], site_html(site_libelle('lire', $langue)), 'lien') . '</p>';
         $l[] = $s . '</article>';
+    }
+    return $l;
+}
+
+/** Période d'une fonction : « depuis 2023 », « 2021 à 2026 », ou rien. */
+function fonction_periode(array $f, string $langue): string
+{
+    $debut = (string) ($f['debut'] ?? '');
+    $fin = (string) ($f['fin'] ?? '');
+    if ($debut !== '' && $fin !== '') return strtr(site_libelle('parcours.periode', $langue) ?: '{debut} – {fin}', ['{debut}' => $debut, '{fin}' => $fin]);
+    if ($debut !== '' && !empty($f['actuelle'])) return strtr(site_libelle('parcours.depuis', $langue) ?: '{annee}', ['{annee}' => $debut]);
+    return $debut !== '' ? $debut : $fin;
+}
+
+/** Une fonction, sur une ligne : intitulé, institution, période. */
+function fonction_ligne(array $f, string $langue): string
+{
+    return implode(', ', array_filter([site_choisir($f['intitule'] ?? '', $langue), site_choisir($f['institution'] ?? '', $langue), fonction_periode($f, $langue)], 'strlen'));
+}
+
+/** Une collaboration, sur une ligne : intitulé, orchestre s'il n'y figure pas, année. */
+function collaboration_ligne(array $c, string $langue): string
+{
+    $intitule = site_choisir($c['intitule'] ?? '', $langue);
+    $orchestre = (string) ($c['orchestre'] ?? '');
+    return implode(', ', array_filter([$intitule, ($orchestre !== '' && !str_contains($intitule, $orchestre)) ? $orchestre : '', (string) ($c['annee'] ?? '')], 'strlen'));
+}
+
+function repli_fonctions(array $fonctions, string $langue): array
+{
+    $l = [];
+    foreach ($fonctions as $f) {
+        $t = fonction_ligne($f, $langue);
+        if ($t !== '') $l[] = '<li' . (!empty($f['une']) ? ' class="liste__une"' : '') . '>' . site_html($t) . '</li>';
+    }
+    return $l;
+}
+
+function repli_collaborations(array $collaborations, string $langue): array
+{
+    $l = [];
+    foreach ($collaborations as $c) {
+        $t = collaboration_ligne($c, $langue);
+        if ($t === '') continue;
+        $h = site_html($t);
+        if (!empty($c['concert'])) $h = '<a href="concerts.html#c-' . site_attribut(rawurlencode((string) $c['concert'])) . '">' . $h . '</a>';
+        $l[] = '<li' . (!empty($c['une']) ? ' class="liste__une"' : '') . '>' . $h . '</li>';
     }
     return $l;
 }
@@ -285,9 +381,15 @@ function repli_telechargements(array $liste, string $langue): array
     $l = [];
     foreach ($liste as $t) {
         $libelle = site_html(site_choisir($t['libelle'] ?? '', $langue));
-        $l[] = !empty($t['fichier'])
-            ? '<li><a href="' . site_attribut($t['fichier']) . '" download>' . $libelle . '</a></li>'
-            : '<li><span>' . $libelle . '</span> <span class="avenir">' . site_html(site_libelle('a_venir', $langue)) . '</span></li>';
+        $fichier = (string) ($t['fichier'] ?? '');
+        $hreflang = !empty($t['langue']) ? ' hreflang="' . site_attribut((string) $t['langue']) . '"' : '';
+        // description, crédits, conditions d'utilisation : une ligne discrète, seulement s'il y a quelque chose à dire
+        $info = implode(' · ', array_map('site_html', array_values(array_filter([site_choisir($t['description'] ?? '', $langue), (string) ($t['credit'] ?? ''), site_choisir($t['conditions'] ?? '', $langue)], 'strlen'))));
+        $suite = $info !== '' ? ' <small class="tel__info">' . $info . '</small>' : '';
+        $li = $info !== '' ? '<li class="tel--detail">' : '<li>';
+        if ($fichier === '') $l[] = $li . '<span>' . $libelle . '</span> <span class="avenir">' . site_html(site_libelle('a_venir', $langue)) . '</span>' . $suite . '</li>';
+        elseif (preg_match('#^https?://#i', $fichier)) $l[] = $li . '<a href="' . site_attribut($fichier) . '"' . $hreflang . ' target="_blank" rel="noopener">' . $libelle . '</a>' . $suite . '</li>';
+        else $l[] = $li . '<a href="' . site_attribut($fichier) . '"' . $hreflang . ' download>' . $libelle . '</a>' . $suite . '</li>';
     }
     return $l;
 }
@@ -342,16 +444,53 @@ function repli_contacts(array $groupes, string $langue): array
 }
 
 /**
+ * Réglages généraux, dans le <head> de chaque page : la couleur de fond (variables CSS --bg et
+ * --bg-rvb) et les blocs masqués, qui n'occupent ainsi aucune place dès le premier affichage, avec
+ * ou sans JavaScript. Leur entrée de menu disparaît avec eux.
+ */
+function repli_site(array $site): array
+{
+    $fond = couleur_lire((string) ($site['fond'] ?? '')) ?: '#000000';
+    $regles = [':root { --bg: ' . $fond . '; --bg-rvb: ' . couleur_rvb($fond) . '; }'];
+    $masques = array_keys(array_filter($site['blocs'] ?? [], fn($visible) => $visible === false));
+    foreach ($masques as $cle) {
+        if (!preg_match('/^[a-z0-9-]+$/', $cle)) continue;
+        $regles[] = '#' . $cle . ', [data-menu-liste] a[href="#' . $cle . '"] { display: none !important; }';
+        $regles[] = '[data-menu-liste] li:has(> a[href="#' . $cle . '"]) { display: none !important; }';
+    }
+    return array_merge(['<style data-site>'], array_map(fn($r) => '  ' . $r, $regles), ['</style>']);
+}
+
+/** Bascule de langue de la barre du haut : un lien par langue du site, la langue de la page marquée. */
+function repli_langues(array $site, string $langue): array
+{
+    $liens = [];
+    foreach ($site['langues']['liste'] ?? [] as $l) {
+        $code = site_attribut((string) $l['code']);
+        $liens[] = '<a href="?lang=' . $code . '" data-langue="' . $code . '" lang="' . $code . '" hreflang="' . $code . '"'
+            . ($l['code'] === $langue ? ' class="is-on" aria-current="true"' : '') . '>' . strtoupper($code) . '</a>';
+    }
+    return $liens ? [implode('<span class="sep" aria-hidden="true">|</span>', $liens)] : [];
+}
+
+/**
  * Toutes les zones de repli : nom du repère => lignes de HTML.
  * $exports : les données du site par variable (site_exports(), ou les fichiers relus).
+ * $langue : la langue du HTML de repli ; sans elle, la langue par défaut du site.
  */
-function repli_zones(array $exports, string $langue = 'fr'): array
+function repli_zones(array $exports, ?string $langue = null): array
 {
     $d = json_decode(json_encode($exports), true);          // objets et tableaux : tout en tableaux
+    $site = $d['SITE'] ?? [];
+    $langue = $langue ?? (string) ($site['langues']['defaut'] ?? 'fr');
+    // la langue du HTML statique n'est posée que si le site publie ses libellés (data/libelles.js) : sans eux, les pages restent telles quelles
+    repli_contexte($d + ['@langue' => !empty($d['LIBELLES']) ? $langue : null]);
     $t = $d['TEXTES'] ?? [];
     $v = $d['VISUELS'] ?? [];
     $description = site_choisir($t['description'] ?? '', $langue);
     $z = [
+        'SITE' => $site ? repli_site($site) : [],
+        'LANGUES' => $site ? repli_langues($site, $langue) : [],
         'DESCRIPTION' => $description !== '' ? ['<meta name="description" content="' . site_attribut($description) . '">'] : [],
         'CITATION' => repli_texte('blockquote', 'ouverture__citation', 'ouverture.citation', $t['citation'] ?? '', $langue),
         'BIOGRAPHIE' => repli_biographie($t['biographie'] ?? [], $langue),
@@ -361,16 +500,18 @@ function repli_zones(array $exports, string $langue = 'fr'): array
         'AGENDA' => repli_agenda($d['AGENDA_DONNEES'] ?? [], $langue),
         'DISQUES' => repli_disques($d['DISQUES'] ?? [], $langue),
         'PRESSE' => repli_presse($d['PRESSE'] ?? [], $langue),
-        'PARCOURS-FONCTIONS' => repli_liste($d['PARCOURS']['fonctions'] ?? [], $langue),
-        'PARCOURS-OPERA' => repli_liste($d['PARCOURS']['opera'] ?? [], $langue),
+        'PARCOURS-FONCTIONS' => repli_fonctions($d['PARCOURS']['fonctions'] ?? [], $langue),
+        'PARCOURS-COLLABORATIONS' => repli_collaborations($d['PARCOURS']['collaborations'] ?? [], $langue),
         'ORCHESTRES' => repli_orchestres($d['ORCHESTRES'] ?? [], $langue),
         'TELECHARGEMENTS' => repli_telechargements($d['TELECHARGEMENTS'] ?? [], $langue),
         'RESEAUX-BARRE' => repli_reseaux($d['RESEAUX'] ?? [], true),
         'RESEAUX' => repli_reseaux($d['RESEAUX'] ?? [], false),
         'CONTACTS' => repli_contacts($d['CONTACTS'] ?? [], $langue),
     ];
+    // un bloc masqué, ou sans média, ne charge rien : sa zone de repli est vide
+    foreach (array_keys($site['blocs'] ?? []) as $cle) $z[zone_visuel($cle)] = [];
     foreach ($v as $cle => $visuel) {
-        $z[strtoupper($cle)] = repli_visuel($visuel, $langue);
+        if (($site['blocs'][$cle] ?? true) !== false) $z[zone_visuel($cle)] = repli_visuel($visuel, $langue);
     }
     return $z;
 }
@@ -398,6 +539,62 @@ function repli_appliquer(string $page, array $zones, array &$trouves = []): stri
         foreach ($lignes as $l) $corps .= "\n" . $retrait . $l;
         $page = substr($page, 0, $k) . $corps . "\n" . $retrait . substr($page, $j);
         $trouves[] = $nom;
+    }
+    $langue = repli_contexte()['langue'];
+    return $langue ? repli_statique($page, $langue) : $page;
+}
+
+/**
+ * Écrit le HTML statique d'une page dans la langue par défaut du site : c'est ce que lisent un
+ * visiteur sans JavaScript et un moteur de recherche. Sont réécrits : <html lang>, le <title>, le
+ * contenu des éléments à libellé (data-t="clé"), leurs attributs (data-t-attr="attribut:clé"), et,
+ * sur les pages rédigées en entier dans plusieurs langues, le bloc affiché (data-langue-bloc).
+ * Les textes éditables (citation, édito…) sont déjà écrits dans cette langue par leurs zones.
+ * js/contenu.js compare ensuite ce HTML au dictionnaire (SiteContenu.ecarts, qui doit rester vide).
+ */
+function repli_statique(string $page, string $langue): string
+{
+    $libelles = repli_contexte()['libelles'];
+    $connu = fn(string $cle): bool => isset($libelles[$cle]);
+    $brut = fn(string $cle): string => str_replace(INSECABLE, '&nbsp;', site_attribut(site_typo(site_libelle($cle, $langue))));
+    if (!preg_match('/^[a-z]{2,3}$/', $langue)) return $page;
+
+    $page = preg_replace('/(<html\b[^>]*?\blang=")[^"]*(")/', '${1}' . $langue . '${2}', $page, 1);
+
+    // contenu des éléments à libellé : aucun n'en contient un autre de même balise
+    $page = preg_replace_callback('/(<([a-z][a-z0-9]*)\b[^>]*?\bdata-t="([^"]+)"[^>]*>)(.*?)(<\/\2>)/su', function (array $m) use ($connu, $langue) {
+        return $connu($m[3]) ? $m[1] . site_html(site_libelle($m[3], $langue)) . $m[5] : $m[0];
+    }, $page) ?? $page;
+
+    // attributs à libellé : aria-label, placeholder, alt…
+    $page = preg_replace_callback('/<[a-z][a-z0-9]*\b[^>]*?\bdata-t-attr="([^"]+)"[^>]*>/su', function (array $m) use ($connu, $brut) {
+        $balise = $m[0];
+        foreach (explode(';', $m[1]) as $paire) {
+            if (!str_contains($paire, ':')) continue;
+            [$attr, $cle] = array_map('trim', explode(':', $paire, 2));
+            if (!preg_match('/^[a-z][a-z-]*$/', $attr) || !$connu($cle)) continue;
+            $valeur = $attr . '="' . $brut($cle) . '"';
+            $n = 0;
+            $balise = preg_replace('/(?<=\s)' . preg_quote($attr, '/') . '="[^"]*"/', $valeur, $balise, 1, $n);
+            if (!$n) $balise = preg_replace('/\bdata-t-attr=/', $valeur . ' data-t-attr=', $balise, 1);
+        }
+        return $balise;
+    }, $page) ?? $page;
+
+    // titre de la page : la clé de <html data-titre>, sinon le titre du site
+    if (preg_match('/<title>([^<]*)<\/title>/', $page, $t)) {
+        $suite = ($i = mb_strrpos($t[1], ' · ')) !== false ? mb_substr($t[1], $i) : '';
+        $cle = preg_match('/<html\b[^>]*\bdata-titre="([^"]+)"/', $page, $h) ? $h[1] : '';
+        $titre = ($cle !== '' && $connu($cle)) ? $brut($cle) . ($suite !== '' ? $suite : ' · ' . $brut('meta.titre')) : ($connu('meta.titre') ? $brut('meta.titre') : '');
+        if ($titre !== '') $page = str_replace($t[0], '<title>' . $titre . '</title>', $page);
+    }
+
+    // pages rédigées dans plusieurs langues : seul le bloc de la langue du HTML est affiché (à défaut, rien ne change)
+    if (preg_match_all('/<[a-z][a-z0-9]*\b[^>]*\bdata-langue-bloc="([a-z]{2,3})"[^>]*>/', $page, $blocs) && in_array($langue, $blocs[1], true)) {
+        foreach ($blocs[0] as $i => $balise) {
+            $sans = preg_replace('/\s+hidden(?=[\s>])/', '', $balise);
+            $page = str_replace($balise, $blocs[1][$i] === $langue ? $sans : substr($sans, 0, -1) . ' hidden>', $page);
+        }
     }
     return $page;
 }

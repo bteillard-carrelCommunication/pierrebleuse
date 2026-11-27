@@ -1,6 +1,7 @@
 <?php
 /**
- * Réglages (pilote) : nom et sous-titre, langues, fuseau, saison, racine du site, maisons.
+ * Réglages (pilote) : nom et sous-titre, fuseau, saison, racine du site, maisons. Les langues ont
+ * leur écran (Langues et traductions), la couleur de fond aussi (Apparence).
  * Rien de propre à l'artiste n'est écrit dans le code : tout est ici.
  */
 
@@ -22,7 +23,6 @@ if (est_post() && recu('action') === 'reglages') {
     $nouveaux = [
         'artiste_nom' => recu('artiste_nom'),
         'sous_titre' => recu('sous_titre'),
-        'langues' => implode(',', array_filter(array_map('trim', explode(',', mb_strtolower(recu('langues')))), fn($l) => preg_match('/^[a-z]{2}$/', $l))),
         'fuseau' => recu('fuseau'),
         'site_racine' => recu('site_racine'),
         'site_adresse' => recu('site_adresse'),
@@ -30,7 +30,6 @@ if (est_post() && recu('action') === 'reglages') {
         'saison_fin' => recu('saison_fin'),
     ];
     if ($nouveaux['artiste_nom'] === '') $erreurs[] = 'Le nom de l\'artiste est obligatoire.';
-    if ($nouveaux['langues'] === '') $erreurs[] = 'Indiquez au moins une langue (fr).';
     if (!in_array($nouveaux['fuseau'], timezone_identifiers_list(), true)) $erreurs[] = 'Fuseau inconnu.';
     if (!adresse_valide($nouveaux['site_adresse'])) $erreurs[] = 'L\'adresse du site doit être complète (https://…).';
     foreach (['saison_debut', 'saison_fin'] as $k) {
@@ -76,7 +75,6 @@ $analyse = analyse_possible();
         <?= champ('sous_titre', 'Sous-titre de Pupitre', est_post() ? recu('sous_titre') : $r['sous_titre'], ['aide' => 'Affiché sous « Pupitre ». Vide : le nom de l\'artiste.']) ?>
       </div>
       <div class="colonnes">
-        <?= champ('langues', 'Langues des contenus', recu('langues') ?: $r['langues'], ['aide' => 'Codes séparés par des virgules. La première est la langue de référence.']) ?>
         <?= champ_choix('fuseau', 'Fuseau de l\'artiste', array_combine(timezone_identifiers_list(), timezone_identifiers_list()), recu('fuseau') ?: $r['fuseau'], ['aide' => 'Sert à l\'heure de l\'artiste du tableau de bord et à dater le journal.']) ?>
       </div>
       <div class="colonnes">
@@ -92,7 +90,7 @@ $analyse = analyse_possible();
       <?= champ_csrf() ?><input type="hidden" name="action" value="maisons">
       <h2>Maisons</h2>
       <p class="intro">Les maisons de l'artiste (ensembles, festivals, « chef invité ») : elles classent les concerts de l'agenda.</p>
-      <?= liste_formulaire($maisons_liste, bd_lignes('SELECT * FROM maisons ORDER BY ordre, id')) ?>
+      <?= liste_formulaire($maisons_liste, ($erreurs && recu('action') === 'maisons') ? array_values(array_filter($_POST['lignes'] ?? [], 'is_array')) : bd_lignes('SELECT * FROM maisons ORDER BY ordre, id'), 'lignes', $erreurs && recu('action') === 'maisons') ?>
       <div class="actions"><button type="submit" class="bouton bouton--plein">Enregistrer les maisons</button></div>
     </form>
   </div>

@@ -3,7 +3,7 @@
  * Départ : crée la base si elle manque, applique le schéma, reprend les données du site.
  *
  *     php pupitre/sql/depart.php              tout : base, schéma, reprise (refuse si l'agenda existe déjà)
- *     php pupitre/sql/depart.php --schema     le schéma seulement (rejouable, ne détruit rien)
+ *     php pupitre/sql/depart.php --schema     le schéma et les migrations seulement (rejouable, ne détruit rien)
  *     php pupitre/sql/depart.php --forcer     vide les contenus et les reprend ; les comptes et le journal restent
  *     php pupitre/sql/depart.php --pilote     crée le compte pilote s'il manque et donne un lien pour choisir son mot de passe
  *
@@ -15,6 +15,12 @@
  * Le compte pilote est créé avec l'adresse lue dans PILOTE_EMAIL.
  *
  * Rien n'est inventé : un champ absent du site reste vide.
+ *
+ * Depuis le 27/11/2026 la base évolue par des migrations (sql/migrations/, php pupitre/sql/migrer.php).
+ * Le schéma de départ (schema.sql) reste celui de la version 1 : les migrations passent juste après
+ * lui, et après la reprise quand il y en a une. La reprise ne sait lire qu'un site d'avant cette
+ * date : ensuite, les contenus (blocs, traductions, relations) ne vivent plus que dans la base, et
+ * une installation neuve se fait en restaurant une sauvegarde (php pupitre/sql/restaurer.php).
  */
 
 if (PHP_SAPI !== 'cli') { http_response_code(403); exit('Ligne de commande seulement.'); }
@@ -64,12 +70,20 @@ if (bd_valeur("SELECT COUNT(*) FROM information_schema.columns WHERE table_schem
     bd()->exec('ALTER TABLE annuaire DROP COLUMN dans_parcours, DROP COLUMN parcours_zone, DROP COLUMN parcours_ordre');
     $dire('Mise à niveau : le parcours des orchestres a sa table.');
 }
+if ($schema_seul || $pilote_seul || bd_valeur('SELECT COUNT(*) FROM concerts') || bd_valeur('SELECT COUNT(*) FROM textes')) {
+    // base déjà remplie, ou pas de reprise demandée : les migrations passent tout de suite (avec sauvegarde s'il y a des contenus)
+    if (!$forcer || $schema_seul || $pilote_seul) migrer($dire, (bool) bd_valeur('SELECT COUNT(*) FROM concerts'));
+}
 if ($schema_seul) exit(0);
 
 // ---------- 3. La reprise ----------
 if (!$pilote_seul) {
 $racine = site_racine();
 if ($racine === '' || !is_dir($racine . '/data')) { fwrite(STDERR, "Racine du site introuvable : on y attend un dossier data/.\n"); exit(1); }
+if (is_file($racine . '/data/site.js') && !bd_valeur('SELECT COUNT(*) FROM concerts') && !bd_valeur('SELECT COUNT(*) FROM textes')) {
+    fwrite(STDERR, "Ce site est alimenté par un Pupitre d'après le 27/11/2026 : ses fichiers ne disent plus tout (blocs, traductions, relations).\nPour installer une base, restaurez une sauvegarde : php pupitre/sql/restaurer.php <fichier.sql>\n");
+    exit(1);
+}
 
 $tables_de_contenu = ['concerts', 'representations', 'programme', 'participants', 'participants_fiches', 'notes_artiste', 'maisons',
     'annuaire', 'annuaire_comptes', 'annuaire_contacts', 'medias', 'textes', 'parcours_lignes', 'disques', 'articles', 'visuels',
@@ -80,6 +94,13 @@ if (bd_valeur('SELECT COUNT(*) FROM concerts') || bd_valeur('SELECT COUNT(*) FRO
         fwrite(STDERR, "La base contient déjà des contenus. Pour tout reprendre depuis le site : php pupitre/sql/depart.php --forcer\n(les comptes et le journal sont gardés ; les contenus saisis dans Pupitre sont perdus).\n");
         exit(1);
     }
+    if (is_file($racine . '/data/site.js')) {
+        fwrite(STDERR, "Refusé : ce site est alimenté par un Pupitre d'après le 27/11/2026. Ses fichiers ne disent plus tout ce que porte la base\n(blocs, traductions, relations) : tout reprendre depuis eux perdrait des contenus. Pour revenir en arrière, restaurez une sauvegarde.\n");
+        exit(1);
+    }
+    $dire('Sauvegarde de la base : ' . basename(base_sauvegarder('avant-reprise-forcee')));
+    // on repart de la version 1 : les tables des migrations sont retirées, elles repasseront après la reprise
+    while (migrations_passees()) migration_defaire();
     foreach ($tables_de_contenu as $t) bd()->exec('TRUNCATE TABLE ' . bd_nom($t));
     $dire('Contenus vidés (--forcer).');
 }
@@ -315,6 +336,7 @@ bd_transaction(function () use ($lire, $racine, $media_du_site, $fiche, $est_ens
     journaliser('creation', 'reprise', null, 'Reprise des données du site', null, $compte);
 });
 foreach ($compte as $quoi => $n) $dire(sprintf('  %-22s %d', $quoi, $n));
+migrer($dire, false);
 }
 
 // ---------- 4. Le compte pilote ----------

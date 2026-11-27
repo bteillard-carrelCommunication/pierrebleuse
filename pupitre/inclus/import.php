@@ -21,7 +21,8 @@ const NATURES_IMPORT = [
     'nouvelle' => 'Nouvelle date',
     'modifiee' => 'Date modifiée',
     'programme' => 'Programme changé',
-    'disparue' => 'Date disparue',
+    'disparue' => 'Date absente de l\'extrait',
+    'annulee' => 'Annulation annoncée',
     'douteuse' => 'Cas douteux',
     'inchangee' => 'Inchangée',
 ];
@@ -57,6 +58,8 @@ function schema_extrait(): array
                 'salle' => $texte,
                 'ville' => $texte,
                 'pays' => $texte,
+                'annulee' => ['type' => 'boolean', 'description' => 'Vrai seulement si le document dit en toutes lettres que cette représentation est annulée'],
+                'motif' => $texte + ['description' => 'Ce que le document dit de l\'annulation, recopié ; null sinon'],
             ])],
             'programme' => ['type' => 'array', 'items' => $objet(['compositeur' => $texte, 'oeuvre' => $texte, 'mention' => $texte])],
             'solistes' => ['type' => 'array', 'items' => $objet(['nom' => ['type' => 'string'], 'role' => $texte])],
@@ -255,7 +258,8 @@ function import_controler_reponse(string $texte): array
             if (!date_valide($date)) { $erreurs[] = "$ou, représentation " . ($j + 1) . ' : date illisible (AAAA-MM-JJ attendu)'; continue; }
             $heure = heure_lire($chaine($r['heure'] ?? ''));
             if ($heure === null) { $erreurs[] = "$ou, représentation " . ($j + 1) . ' : heure illisible (HH:MM attendu)'; continue; }
-            $reps[] = ['date' => $date, 'heure' => $heure, 'salle' => $chaine($r['salle'] ?? ''), 'ville' => $chaine($r['ville'] ?? ''), 'pays' => $chaine($r['pays'] ?? '')];
+            $reps[] = ['date' => $date, 'heure' => $heure, 'salle' => $chaine($r['salle'] ?? ''), 'ville' => $chaine($r['ville'] ?? ''), 'pays' => $chaine($r['pays'] ?? ''),
+                'annulee' => ($r['annulee'] ?? false) === true, 'motif' => mb_substr($chaine($r['motif'] ?? ''), 0, 300)];
         }
         if (!$reps) continue;                                  // un engagement sans date lisible n'entre pas dans l'agenda
         $programme = [];
@@ -336,6 +340,7 @@ function import_comparer(int $import_id, array $donnees): array
     $vues = [];                   // date + ensemble déjà vus dans l'extrait : doublons
     $programmes = [];             // concerts dont le programme a déjà été comparé
     $dates = [];
+    $annulations_sans_objet = 0;  // annulations annoncées pour des dates que l'agenda ne porte pas
 
     foreach ($donnees['engagements'] as $i => $e) {
         foreach ($e['representations'] as $r) {
@@ -358,6 +363,16 @@ function import_comparer(int $import_id, array $donnees): array
                 }
             }
             $ligne = ['engagement' => $i, 'propose' => $p, 'controles' => $controles, 'avant' => null, 'candidats' => null, 'concert_id' => null, 'representation_id' => null];
+            if (!empty($r['annulee'])) {
+                // le document annonce une annulation : la date de l'agenda est proposée à l'annulation ; une date
+                // que l'agenda ne connaît pas (ou qu'il a déjà annulée) n'y entre pas pour autant
+                if (!$trouvee) { $annulations_sans_objet++; continue; }
+                $prises[$trouvee['id']] = true;
+                $lignes[] = ['engagement' => $i, 'nature' => 'annulee', 'concert_id' => (int) $trouvee['concert_id'], 'representation_id' => (int) $trouvee['id'],
+                    'propose' => ['titre' => $trouvee['titre_fr'], 'ensemble' => $trouvee['ensemble_fr'], 'date' => $r['date'], 'heure' => $trouvee['heure'], 'motif' => $r['motif']],
+                    'avant' => ['statut' => $trouvee['statut']], 'controles' => [], 'candidats' => null];
+                continue;
+            }
             if ($trouvee) {
                 $prises[$trouvee['id']] = true;
                 $ligne['concert_id'] = (int) $trouvee['concert_id'];
@@ -432,7 +447,7 @@ function import_comparer(int $import_id, array $donnees): array
         }
     }
 
-    $bilan = ['engagements' => count($donnees['engagements']), 'representations' => count($dates), 'natures' => [], 'controles' => []];
+    $bilan = ['engagements' => count($donnees['engagements']), 'representations' => count($dates), 'natures' => [], 'controles' => [], 'annulations_sans_objet' => $annulations_sans_objet];
     bd_supprimer('import_lignes', ['import_id' => $import_id]);
     $json = fn($v) => $v === null ? null : json_encode($v, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     foreach ($lignes as $ordre => $l) {
@@ -592,6 +607,11 @@ function import_ligne_valider(int $id, string $choix = ''): ?string
 
             case 'disparue':
                 $erreur = statut_changer((int) $rep_id, 'annulee', ['raison' => 'Absente de l\'' . $extrait . '.']);
+                if ($erreur) return $erreur;
+                break;
+
+            case 'annulee':
+                $erreur = statut_changer((int) $rep_id, 'annulee', ['raison' => 'Annulation annoncée dans l\'' . $extrait . (($p['motif'] ?? '') !== '' ? ' : ' . $p['motif'] : '.')]);
                 if ($erreur) return $erreur;
                 break;
 

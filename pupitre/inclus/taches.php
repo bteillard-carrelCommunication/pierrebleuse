@@ -13,6 +13,8 @@ defined('PUPITRE') or exit;
 const TACHES = [
     'import_lecture' => 'import_tache',
     'analyse_son' => 'analyse_tache',
+    'traduction' => 'traduction_tache',
+    'article_lecture' => 'article_tache',
 ];
 
 const TACHE_DELAI = 1200;      // une tâche « en cours » depuis vingt minutes est tenue pour interrompue
@@ -121,6 +123,9 @@ function travaux_de_nuit(bool $forcer = false): bool
     alertes_recalculer();
     bd_requete('DELETE FROM tentatives_connexion WHERE cree_le < ?', [date('Y-m-d H:i:s', time() - 30 * 86400)]);
     bd_requete('DELETE FROM liens_connexion WHERE expire_le < ?', [date('Y-m-d H:i:s', time() - 86400)]);
+    foreach (glob(STOCKAGE . '/imports/article-*.json') ?: [] as $f) if (filemtime($f) < time() - 2 * 86400) @unlink($f);     // lectures d'articles : des brouillons
+    // le texte d'un article collé pour une lecture n'est pas gardé dans la file des tâches une fois la lecture finie
+    bd_requete("UPDATE taches SET charge = NULL WHERE type = 'article_lecture' AND statut IN ('terminee', 'echec') AND fin_le < ?", [date('Y-m-d H:i:s', time() - 2 * 86400)]);
     reglage_ecrire('nuit_le', date('Y-m-d'));
     return true;
 }
@@ -158,7 +163,7 @@ function analyse_possible(): string
 
 /**
  * Tâche : analyse la bande-son d'un média et range le résultat dans stockage/analyses/.
- * Charge : media_id, table (musiques ou visuels), cle (ligne à mettre à jour), nom (du fichier d'analyse).
+ * Charge : media_id, table (musiques, ou medias_usages pour une vidéo de bloc visuel), cle (ligne à mettre à jour), nom (du fichier d'analyse).
  */
 function analyse_tache(array $t): string
 {
@@ -179,7 +184,15 @@ function analyse_tache(array $t): string
     }
     $piste = 'data/' . $nom . '.json';
     if (($t['charge']['table'] ?? '') === 'musiques') bd_modifier('musiques', ['piste' => $piste], ['id' => (int) $t['charge']['cle']]);
-    if (($t['charge']['table'] ?? '') === 'visuels') bd_modifier('visuels', ['piste' => $piste], ['cle' => (string) $t['charge']['cle']]);
+    if (($t['charge']['table'] ?? '') === 'medias_usages') {
+        // élément d'un bloc visuel : l'analyse se range dans ses réglages
+        $e = bd_ligne('SELECT * FROM medias_usages WHERE id = ?', [(int) $t['charge']['cle']]);
+        if ($e) {
+            $p = json_decode((string) $e['parametres'], true) ?: [];
+            $p['piste'] = $piste;
+            bd_modifier('medias_usages', ['parametres' => json_encode($p, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)], ['id' => $e['id']]);
+        }
+    }
     journaliser('modification', 'contenu', null, 'Analyse de bande-son : ' . $nom, ['piste' => ''], ['piste' => $piste]);
     return 'Analyse terminée : ' . $piste;
 }

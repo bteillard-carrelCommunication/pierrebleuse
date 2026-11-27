@@ -6,7 +6,9 @@ window.TELECHARGEMENTS = [
       "fr": "Biographie, en français",
       "en": "Biography, in French"
     },
-    "fichier": ""
+    "fichier": "",
+    "type": "biographie",
+    "langue": "fr"
   },
   {
     "id": "bio-en",
@@ -14,7 +16,9 @@ window.TELECHARGEMENTS = [
       "fr": "Biographie, en anglais",
       "en": "Biography, in English"
     },
-    "fichier": ""
+    "fichier": "",
+    "type": "biographie",
+    "langue": "en"
   },
   {
     "id": "photos",
@@ -22,7 +26,8 @@ window.TELECHARGEMENTS = [
       "fr": "Photographies",
       "en": "Photographs"
     },
-    "fichier": ""
+    "fichier": "",
+    "type": "photographie"
   },
   {
     "id": "identite",
@@ -30,6 +35,7 @@ window.TELECHARGEMENTS = [
       "fr": "Identité visuelle",
       "en": "Visual identity"
     },
-    "fichier": ""
+    "fichier": "",
+    "type": "document"
   }
 ];

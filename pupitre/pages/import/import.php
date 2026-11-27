@@ -19,6 +19,11 @@ $titre = 'Extrait' . ($imp['date_extrait'] ? ' du ' . date_fr($imp['date_extrait
 if (est_post()) {
     $action = recu('action');
     $une = recu('une');
+    if ($action === 'traduire' && ia_configuree() && langues_autres()) {
+        $tache = tache_creer('traduction', ['langues' => langues_autres(), 'objets' => ['concerts', 'representations', 'programme', 'participants']]);
+        if (!taches_lancer_en_fond()) message('alerte', 'Les propositions attendent le prochain passage des tâches de fond (cron).');
+        rediriger(url('langues', ['onglet' => 'traductions', 'langue' => langues_autres()[0], 'statut' => 'proposee', 'tache' => $tache]));
+    }
     if ($action === 'lancer') {
         message(taches_lancer_en_fond() ? 'ok' : 'alerte', 'Lecture lancée.');
     } elseif ($action === 'relire' && in_array($imp['statut'], ['echec', 'depose'], true)) {
@@ -66,8 +71,12 @@ $en_attente = array_filter($lignes, fn($l) => $l['decision'] === 'en_attente');
 $inchangees = array_filter($lignes, fn($l) => $l['nature'] === 'inchangee');
 $par_nature = [];
 foreach ($lignes as $l) if ($l['nature'] !== 'inchangee') $par_nature[$l['nature']][] = $l;
-$ordre_natures = ['douteuse', 'nouvelle', 'modifiee', 'programme', 'disparue'];
-$intertitres = ['douteuse' => 'Cas douteux', 'nouvelle' => 'Nouvelles dates', 'modifiee' => 'Dates modifiées', 'programme' => 'Programmes changés', 'disparue' => 'Dates disparues'];
+$ordre_natures = ['douteuse', 'annulee', 'nouvelle', 'modifiee', 'programme', 'disparue'];
+$intertitres = ['douteuse' => 'Cas douteux', 'annulee' => 'Annulations annoncées par le document', 'nouvelle' => 'Nouvelles dates', 'modifiee' => 'Dates modifiées', 'programme' => 'Programmes changés', 'disparue' => 'Dates de l\'agenda absentes de l\'extrait'];
+$aides_natures = [
+    'annulee' => 'Le document dit en toutes lettres que ces dates sont annulées. Valider marque la date « annulée » dans l\'agenda ; refuser la laisse telle quelle.',
+    'disparue' => 'Ces dates sont dans l\'agenda mais pas dans le document. Rien ne les annule ni ne les dépublie d\'office : un extrait peut être partiel. Refusez la ligne pour garder la date ; ne validez (la date passe alors « annulée ») que si l\'agence confirme.',
+];
 $decisions = ['validee' => ['validée', 'puce--ok'], 'refusee' => ['refusée', '']];
 $champs_fr = ['heure' => 'heure', 'salle' => 'salle', 'ville' => 'ville', 'pays' => 'pays', 'date' => 'date'];
 $programme = fn(array $p) => implode(' · ', array_map(fn($x) => trim(($x['compositeur'] ?? $x['compositeur_fr'] ?? '') . ', ' . ($x['oeuvre'] ?? $x['oeuvre_fr'] ?? ''), ', '), $p));
@@ -97,6 +106,7 @@ $programme = fn(array $p) => implode(' · ', array_map(fn($x) => trim(($x['compo
   <p><?= e(pluriel((int) ($bilan['engagements'] ?? 0), 'engagement', 'engagements')) ?>, <?= e(pluriel((int) ($bilan['representations'] ?? 0), 'représentation', 'représentations')) ?>.
     <?php foreach ($ordre_natures as $n): if (!empty($bilan['natures'][$n])): ?> <span class="puce <?= $n === 'douteuse' ? 'puce--alerte' : 'puce--accent' ?>"><?= (int) $bilan['natures'][$n] ?> · <?= e(mb_strtolower(NATURES_IMPORT[$n])) ?></span><?php endif; endforeach; ?>
     <?php if (!empty($bilan['natures']['inchangee'])): ?> <span class="puce"><?= (int) $bilan['natures']['inchangee'] ?> · inchangée(s)</span><?php endif; ?></p>
+  <?php if (!empty($bilan['annulations_sans_objet'])): ?><p class="aide"><?= e(pluriel((int) $bilan['annulations_sans_objet'], 'annulation annoncée concerne une date', 'annulations annoncées concernent des dates')) ?> que l'agenda ne porte pas (ou a déjà annulée) : rien à faire.</p><?php endif; ?>
   <h3 style="margin-top:.8rem">Contrôle</h3>
   <?php if (empty($bilan['controles'])): ?><p><span class="puce puce--ok">rien à signaler</span></p><?php else: ?>
   <p class="manques"><?php foreach (CONTROLES_IMPORT as $k => $libelle): if (!empty($bilan['controles'][$k])): ?><span class="puce puce--alerte"><?= (int) $bilan['controles'][$k] ?> · <?= e($libelle) ?></span><?php endif; endforeach; ?></p>
@@ -113,6 +123,7 @@ $programme = fn(array $p) => implode(' · ', array_map(fn($x) => trim(($x['compo
 <?php foreach ($ordre_natures as $nature): if (empty($par_nature[$nature])) continue; ?>
 <section class="mois mois--import">
   <h2><?= e($intertitres[$nature]) ?> <span class="discret">(<?= count($par_nature[$nature]) ?>)</span></h2>
+  <?php if (isset($aides_natures[$nature])): ?><p class="aide aide--haut"><?= e($aides_natures[$nature]) ?></p><?php endif; ?>
   <div class="defile"><table class="tableau">
     <thead><tr><th><span class="sr">Cocher</span></th><th>Date</th><th>Engagement</th><th>Lieu</th><th>Contrôle</th><th>Décision</th></tr></thead>
     <tbody>
@@ -133,7 +144,9 @@ $programme = fn(array $p) => implode(' · ', array_map(fn($x) => trim(($x['compo
           <?php if ($nature === 'modifiee'): ?>
             <div class="journal__diff"><?php foreach ($p['champs'] ?? [] as $k): ?><div><span class="discret"><?= e($champs_fr[$k] ?? $k) ?> :</span> <span class="avant"><?= e(($l['avant'][$k] ?? '') !== '' && $l['avant'][$k] !== null ? ($k === 'heure' ? heure_fr($l['avant'][$k]) : $l['avant'][$k]) : '(vide)') ?></span> <span class="apres"><?= e($k === 'heure' ? heure_fr($p[$k]) : $p[$k]) ?></span></div><?php endforeach; ?></div>
           <?php elseif ($nature === 'disparue'): ?>
-            <span class="discret">Dans l'agenda (<?= e(mb_strtolower(STATUTS[$l['avant']['statut'] ?? 'connue'] ?? '')) ?>), absente de l'extrait. Valider l'annule.</span>
+            <span class="discret">Dans l'agenda (<?= e(mb_strtolower(STATUTS[$l['avant']['statut'] ?? 'connue'] ?? '')) ?>), absente de l'extrait. Refuser la garde ; valider l'annule.</span>
+          <?php elseif ($nature === 'annulee'): ?>
+            <span class="discret">Dans l'agenda (<?= e(mb_strtolower(STATUTS[$l['avant']['statut'] ?? 'connue'] ?? '')) ?>).</span><?php if (($p['motif'] ?? '') !== ''): ?><br>Le document dit : « <?= e($p['motif']) ?> »<?php endif; ?>
           <?php else: ?>
             <?= e(implode(', ', array_filter([$p['ville'] ?? '', $p['pays'] ?? ''], 'strlen'))) ?><?= ($p['salle'] ?? '') !== '' ? '<br><span class="discret">' . e($p['salle']) . '</span>' : '' ?>
           <?php endif; ?>
@@ -186,6 +199,15 @@ $programme = fn(array $p) => implode(' · ', array_map(fn($x) => trim(($x['compo
 </div>
 <?php endif; ?>
 </form>
+
+<?php $validees = array_filter($lignes, fn($l) => $l['decision'] === 'validee' && in_array($l['nature'], ['nouvelle', 'modifiee', 'programme', 'douteuse'], true)); ?>
+<?php if ($validees && langues_autres() && ia_configuree()): ?>
+<form method="post" class="carte ia-carte">
+  <?= champ_csrf() ?><input type="hidden" name="action" value="traduire">
+  <p><strong>Traductions.</strong> Les concerts entrés par cet extrait sont rédigés en <?= e(mb_strtolower(langue_nom(langue_reference()))) ?>. L'IA peut proposer leurs traductions (titres, lieux, programmes, rôles) : elles attendront votre validation dans « Langues et traductions », et rien ne paraîtra d'ici là.</p>
+  <button type="submit" class="bouton">Proposer les traductions des concerts</button>
+</form>
+<?php endif; ?>
 
 <?php if ($inchangees): ?>
 <details class="carte"><summary><?= e(pluriel(count($inchangees), 'date inchangée', 'dates inchangées')) ?> : l'extrait et l'agenda sont d'accord</summary>

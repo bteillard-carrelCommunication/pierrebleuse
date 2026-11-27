@@ -8,14 +8,22 @@
       SiteAgenda.dateReference(), calculer(donnees, { date }), formats de
       dates et d'heures.
    2. Rendu de l'accueil : SiteAgenda.rendreAccueil() remplit [data-agenda] :
-      les quatre prochaines dates en fiches (chacune avec « En savoir plus »),
-      les suivantes en tableau (« Les concerts »), le bouton « Tous les
-      concerts ». Les concerts passés ne sont plus sur l'accueil : ils sont
-      sur concerts.html. Rendu synchrone, avant les scripts du moteur, pour
-      que les [data-revele] soient recensés par main.js.
+      les quatre prochains concerts publiés, dans l'ordre des dates, en fiches,
+      les suivants en tableau (« Les concerts »), le bouton « Tous les
+      concerts ». « En savoir plus » mène à l'adresse externe du concert
+      (billetterie ou page de l'organisateur) quand Pupitre en donne une ;
+      sinon à la fiche du concert, sur concerts.html : jamais de lien mort. Le
+      titre de la fiche mène toujours à cette fiche interne. Les concerts
+      passés ne sont pas sur l'accueil : ils sont sur concerts.html. Rendu
+      synchrone, avant les scripts du moteur, pour que les [data-revele]
+      soient recensés par main.js.
    3. Rendu de concerts.html : SiteAgenda.rendrePage() remplit [data-concerts]
-      (tous les concerts, à venir puis passés, en tableaux ; chaque ligne porte
-      l'ancre c-<id> que visent les « En savoir plus » sans adresse connue).
+      (tous les concerts, à venir puis passés, en tableaux, la distinction se
+      calculant sur la date du jour). Chaque ligne porte l'ancre c-<id> et se
+      déplie en fiche du concert : dates, lieu, programme, participants,
+      présentation, lien externe, et la revue de presse du concert quand des
+      articles publiés lui sont associés. L'adresse concerts.html#c-<id>
+      ouvre la fiche d'elle-même.
 
    « Temps fort » : le drapeau tempsFort reste dans les données et dans l'état
    calculé (ev.tempsFort, classe fiche--fort, attribut data-temps-fort), mais
@@ -236,13 +244,18 @@
     return avec ? avec.lien : '';
   }
 
-  /* « En savoir plus » d'une fiche : la billetterie ou la salle quand l'adresse est connue ;
-     sinon la ligne de l'événement dans le tableau de concerts.html (une tournée y renvoie
-     toujours : ses dates portent déjà chacune leur lien). */
+  /* Adresse de la fiche interne d'un concert : sa ligne dans le tableau de concerts.html, qui se
+     déplie à l'arrivée. */
+  function adresseFiche(ev) {
+    return 'concerts.html#c-' + encodeURIComponent(ev.id);
+  }
+  /* « En savoir plus » d'une fiche : l'adresse externe du concert (billetterie, sinon page de
+     l'organisateur) quand Pupitre en donne une ; sinon la fiche interne du concert (une tournée
+     y renvoie toujours : ses dates portent déjà chacune leur lien). Jamais de lien inactif. */
   function lienPlus(ev) {
     var url = ev.lien || (ev.type === 'tournee' ? '' : lienDe(ev));
     if (url) return sortant(url, h(C.t('agenda.plus')), 'lien');
-    return '<a class="lien" href="concerts.html#c-' + C.echapper(ev.id) + '">' + h(C.t('agenda.plus')) + '</a>';
+    return '<a class="lien" href="' + C.echapper(adresseFiche(ev)) + '">' + h(C.t('agenda.plus')) + '</a>';
   }
 
   /* Fiche détaillée (À l'affiche) : trois colonnes de la matrice. Dans l'ordre (13/11/2026) :
@@ -250,7 +263,8 @@
   function fiche(ev) {
     var tournee = (ev.type === 'tournee');
     var s = '<article class="fiche bloc-quart' + (ev.tempsFort ? ' fiche--fort' : '') + '" data-revele>';
-    s += '<h4 class="fiche__titre">' + h(ev.titre) + '</h4>';
+    /* le titre mène à la fiche interne du concert, que « En savoir plus » mène ailleurs ou non */
+    s += '<h4 class="fiche__titre"><a class="fiche__vers" href="' + C.echapper(adresseFiche(ev)) + '" title="' + C.echapper(C.brut(C.t('concerts.detail'))) + '">' + h(ev.titre) + '</a></h4>';
     var e = etiquettes(ev);
     if (e) s += '<p class="fiche__etiquettes">' + e + '</p>';
 
@@ -319,9 +333,13 @@
     ev.jours.forEach(function (d) { if (d.salle && vus.indexOf(d.salle) < 0) vus.push(d.salle); });
     return '<td class="tableau__lieu">' + vus.map(h).join('<br>') + '</td>';
   }
-  /* orchestre + infos : titre, ensemble, programme sur une ligne */
-  function celluleInfos(ev) {
-    var s = '<td><span class="tableau__titre">' + titreLie(ev, ev.type === 'disque') + '</span>';
+  /* orchestre + infos : titre, ensemble, programme sur une ligne. $fiche (page des concerts) : le
+     titre est un bouton qui déplie la fiche du concert, sous la ligne. */
+  function celluleInfos(ev, fiche) {
+    var titre = fiche
+      ? '<button type="button" class="tableau__ouvrir" data-fiche="' + C.echapper(ev.id) + '" aria-expanded="false" aria-controls="f-' + C.echapper(ev.id) + '" title="' + C.echapper(C.brut(C.t('concerts.detail'))) + '">' + h(ev.titre) + '</button>'
+      : titreLie(ev, ev.type === 'disque');
+    var s = '<td><span class="tableau__titre">' + titre + '</span>';
     if (ev.ensemble && ev.titre.toLowerCase().indexOf(ev.ensemble.toLowerCase()) < 0) {
       s += '<span class="tableau__ensemble">' + h(ev.ensemble) + '</span>';
     }
@@ -333,10 +351,16 @@
     else if (ev.mentions) s += '<span class="tableau__programme">' + h(ev.mentions) + '</span>';
     return s + '</td>';
   }
-  /* « En savoir plus » : vers la billetterie ou la salle, quand l'adresse est connue */
-  function celluleAction(ev) {
-    var url = ev.type === 'disque' ? '' : lienDe(ev);
-    return '<td class="tableau__action">' + (url ? sortant(url, h(C.t('agenda.plus')), 'lien') : '') + '</td>';
+  /* « En savoir plus » : vers la billetterie ou la salle, quand l'adresse est connue. $fiche (page
+     des concerts) : pour un disque, vers sa page ; pour un concert passé qui a des articles publiés,
+     « Revue de presse de ce concert », qui déplie sa fiche à cet endroit. */
+  function celluleAction(ev, fiche) {
+    var url = ev.type === 'disque' ? (fiche ? ev.lien : '') : lienDe(ev);
+    var s = url ? sortant(url, h(C.t('agenda.plus')), 'lien') : '';
+    if (fiche && ev.passe && articlesDe(ev).length) {
+      s += '<button type="button" class="lien tableau__presse" data-fiche="' + C.echapper(ev.id) + '" data-fiche-vers="presse">' + h(C.t('concerts.presse')) + '</button>';
+    }
+    return '<td class="tableau__action">' + s + '</td>';
   }
   function enTete(cles) {
     return '<thead><tr>' + cles.map(function (c) {
@@ -483,9 +507,79 @@
       enTete(['agenda.col.date', 'agenda.col.lieu', 'agenda.col.salle', 'agenda.col.infos', 'agenda.col.lien']) + '<tbody>';
     evenements.forEach(function (ev) {
       s += '<tr id="c-' + C.echapper(ev.id) + '"' + (ev.tempsFort ? ' data-temps-fort' : '') + '><td class="tableau__date">' + h(ecrirePlage(ev.premiere, ev.derniere, OPT.annee)) + '</td>' +
-        celluleLieu(ev) + celluleSalle(ev) + celluleInfos(ev) + celluleAction(ev) + '</tr>';
+        celluleLieu(ev) + celluleSalle(ev) + celluleInfos(ev, true) + celluleAction(ev, true) + '</tr>' +
+        '<tr class="tableau__fiche" id="f-' + C.echapper(ev.id) + '" hidden><td colspan="5"></td></tr>';
     });
     return s + '</tbody></table>';
+  }
+
+  /* ---------- 3. Fiche interne d'un concert ------------------------------- */
+  /* Articles de presse publiés associés à un concert : data/presse.js les porte (window.PRESSE,
+     chaque article nomme ses concerts). Rien si le fichier n'est pas chargé. */
+  function articlesDe(ev) {
+    var P = Array.isArray(window.PRESSE) ? window.PRESSE : [];
+    return P.filter(function (a) { return Array.isArray(a.concerts) && a.concerts.indexOf(ev.id) >= 0; });
+  }
+  /* Le contenu de la fiche : tout ce que Pupitre sait du concert et qui est publié. */
+  function ficheConcert(ev) {
+    var src = ev.source;
+    var tournee = (ev.type === 'tournee');
+    var s = '<div class="concert-fiche"><div class="concert-fiche__colonne">';
+    s += '<ul class="fiche__dates">';
+    ev.jours.forEach(function (d) {
+      s += '<li' + (d.passee ? ' class="est-passee"' : '') + '><span class="fiche__jour">' + h(ecrire(d.date, OPT.longue)) + '</span>';
+      if (d.heures.length) s += ' <span class="fiche__heure">' + d.heures.map(ecrireHeure).join(', ') + '</span>';
+      if (tournee || ev.jours.length > 1) {
+        var ou = lieu(d) + (d.salle ? ' · ' + d.salle : '');
+        if (tournee && ou) s += '<span class="fiche__etape">' + h(ou) + '</span>';
+        if (d.lien && !d.passee && d.lien !== ev.lien) s += lienInfos(d.lien);
+      }
+      s += '</li>';
+    });
+    s += '</ul>';
+    if (!tournee && ev.type !== 'disque' && ev.jours[0]) {
+      s += '<p class="fiche__lieu">' + h(lieu(ev.jours[0])) + (ev.jours[0].salle ? '<br>' + h(ev.jours[0].salle) : '') + '</p>';
+    }
+    if (ev.ensemble) s += '<p class="fiche__ensemble">' + h(ev.ensemble) + '</p>';
+    var url = lienDe(ev);
+    if (url && !ev.passe) s += '<p class="concert-fiche__lien">' + sortant(url, h(C.t('agenda.lien')), 'lien') + '</p>';
+    s += '</div><div class="concert-fiche__colonne">';
+    var prog = src.programme || [];
+    if (prog.length) {
+      s += '<p class="fiche__label">' + h(C.t('agenda.programme')) + '</p><ul class="fiche__liste">';
+      prog.forEach(function (p) {
+        var m = C.choisir(p.mention);
+        s += '<li>' + h(C.choisir(p.compositeur)) + ', ' + h(C.choisir(p.oeuvre)) + (m ? ', <span class="fiche__creation">' + h(m) + '</span>' : '') + '</li>';
+      });
+      s += '</ul>';
+    }
+    var avec = src.avec || [];
+    if (avec.length) {
+      s += '<p class="fiche__label">' + h(C.t('agenda.avec')) + '</p><ul class="fiche__liste">';
+      avec.forEach(function (a) { var r = C.choisir(a.role); s += '<li>' + h(a.nom) + (r ? ', ' + h(r) : '') + '</li>'; });
+      s += '</ul>';
+    }
+    if (ev.mentions) s += '<p class="fiche__note">' + h(ev.mentions) + '</p>';
+    s += '</div><div class="concert-fiche__colonne concert-fiche__colonne--large">';
+    var description = C.choisir(src.description);
+    if (description) {
+      s += '<p class="fiche__label">' + h(C.t('concerts.description')) + '</p>' +
+        description.split(/\n\s*\n/).map(function (p) { return '<p class="concert-fiche__texte">' + h(p.trim()).replace(/\n/g, '<br>') + '</p>'; }).join('');
+    }
+    /* revue de presse du concert : les articles publiés qui lui sont associés */
+    var articles = articlesDe(ev);
+    if (articles.length) {
+      s += '<div class="concert-fiche__presse" data-fiche-partie="presse"><p class="fiche__label">' + h(C.t('concerts.presse')) + '</p><ul class="concert-fiche__articles">';
+      articles.forEach(function (a) {
+        var citation = (a.citations && a.citations[0]) ? C.choisir(a.citations[0].texte) : (a.verbatim || '');
+        s += '<li><a class="concert-fiche__article" href="presse.html#a-' + encodeURIComponent(a.id) + '">' +
+          '<span class="concert-fiche__media">' + h(a.media || '') + '</span>' +
+          (citation ? '<span class="concert-fiche__citation">' + h(citation) + '</span>' : (C.choisir(a.titre) ? '<span class="concert-fiche__titre">' + h(C.choisir(a.titre)) + '</span>' : '')) +
+          '</a></li>';
+      });
+      s += '</ul></div>';
+    }
+    return s + '</div></div>';
   }
   function rendrePage(options) {
     var donnees = window.AGENDA_DONNEES;
@@ -496,11 +590,52 @@
     var resultats = zone.querySelector('[data-resultats]');
     var compte = zone.querySelector('[data-compte]');
     var formulaire = zone.querySelector('[data-filtres]');
+    var parId = {};
+    etat.aVenir.concat(etat.passes).forEach(function (ev) { parId[ev.id] = ev; });
+    var ouvertes = {};                 /* fiches dépliées : elles le restent quand on filtre ou qu'on trie */
+    function ligneFiche(id) { return document.getElementById('f-' + id); }
+    /* Déplie ou replie la fiche d'un concert. vers : 'presse' pour amener sa revue de presse à l'écran. */
+    function ouvrir(id, oui, vers) {
+      var ligne = ligneFiche(id);
+      var ev = parId[id];
+      if (!ligne || !ev) return;
+      if (oui && !ligne.firstChild.firstChild) ligne.firstChild.innerHTML = ficheConcert(ev);
+      ligne.hidden = !oui;
+      if (oui) ouvertes[id] = true; else delete ouvertes[id];
+      var bouton = resultats.querySelector('.tableau__ouvrir[data-fiche="' + (window.CSS && CSS.escape ? CSS.escape(id) : id) + '"]');
+      if (bouton) bouton.setAttribute('aria-expanded', oui ? 'true' : 'false');
+      var rang = document.getElementById('c-' + id);
+      if (rang) rang.classList.toggle('est-ouverte', oui);
+      if (oui && vers) {
+        var partie = ligne.querySelector('[data-fiche-partie="' + vers + '"]');
+        if (partie && partie.scrollIntoView) partie.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      }
+    }
     function afficher() {
       var t = tableaux(etat);
       resultats.innerHTML = t.html;
       compte.textContent = C.brut(C.t(t.compte > 1 ? 'concerts.compte.n' : 'concerts.compte.un', { n: t.compte }));
+      Object.keys(ouvertes).forEach(function (id) { ouvrir(id, true); });
     }
+    resultats.addEventListener('click', function (e) {
+      var b = e.target && e.target.closest ? e.target.closest('[data-fiche]') : null;
+      if (!b) return;
+      var id = b.getAttribute('data-fiche');
+      var vers = b.getAttribute('data-fiche-vers');
+      ouvrir(id, vers ? true : !ouvertes[id], vers);
+    });
+    /* concerts.html#c-<id> : la fiche de ce concert s'ouvre, sa ligne vient à l'écran */
+    function ouvrirAncre() {
+      var m = /^#c-(.+)$/.exec(window.location.hash || '');
+      if (!m) return;
+      var id = decodeURIComponent(m[1]);
+      if (!parId[id]) return;
+      if (!document.getElementById('c-' + id)) { formulaire.reset(); Object.keys(filtres).forEach(function (k) { filtres[k] = k === 'tri' ? 'date' : ''; }); afficher(); }
+      ouvrir(id, true);
+      var rang = document.getElementById('c-' + id);
+      if (rang && rang.scrollIntoView) window.setTimeout(function () { rang.scrollIntoView({ block: 'start' }); }, 60);
+    }
+    window.addEventListener('hashchange', ouvrirAncre);
     function lire() {
       Array.prototype.forEach.call(formulaire.querySelectorAll('[data-filtre]'), function (c) { filtres[c.getAttribute('data-filtre')] = c.value; });
       afficher();
@@ -510,6 +645,7 @@
     formulaire.addEventListener('submit', function (e) { e.preventDefault(); });
     formulaire.addEventListener('reset', function () { window.setTimeout(lire, 0); });
     afficher();
+    ouvrirAncre();
     return etat;
   }
 

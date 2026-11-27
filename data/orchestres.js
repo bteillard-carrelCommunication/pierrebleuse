@@ -148,9 +148,9 @@ window.ORCHESTRES = [
   },
   {
     "nom": "Tokyo Symphony Orchestra",
-    "ville": "Kawasaki",
-    "lat": 35.53,
-    "lon": 139.7
+    "ville": "Tokyo",
+    "lat": 35.68,
+    "lon": 139.69
   },
   {
     "nom": "Ensemble intercontemporain",
@@ -172,5 +172,11 @@ window.ORCHESTRES = [
     "ville": "Auckland",
     "lat": -36.85,
     "lon": 174.76
+  },
+  {
+    "nom": "Orchestre National du Capitole de Toulouse",
+    "ville": "Toulouse",
+    "lat": 43.6,
+    "lon": 1.44
   }
 ];

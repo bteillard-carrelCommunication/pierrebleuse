@@ -15,14 +15,21 @@ defined('PUPITRE') or exit;
 
 class ErreurPublication extends RuntimeException {}
 
-/** Forme canonique d'une donnée du site : { fr: X, en: X } vaut X, l'ordre des clés ne compte pas. */
+/**
+ * Forme canonique d'une donnée du site : { fr: X, en: X } vaut X (une traduction identique au texte
+ * de référence ne dit rien de plus), l'ordre des clés ne compte pas.
+ */
 function donnee_canon($v)
 {
     if (!is_array($v)) return $v;
-    if (!array_is_list($v) && !array_diff(array_keys($v), ['fr', 'en'])) {
-        $fr = (string) ($v['fr'] ?? '');
-        $en = (string) ($v['en'] ?? '');
-        if ($en === '' || $en === $fr) return $fr;
+    $codes = array_keys(langues_toutes());
+    $reference = langue_reference();
+    if ($v && !array_is_list($v) && isset($v[$reference]) && !array_diff(array_keys($v), $codes) && !array_filter($v, 'is_array')) {
+        $texte = (string) $v[$reference];
+        foreach ($v as $langue => $t) {
+            if ($langue !== $reference && ((string) $t === '' || (string) $t === $texte)) unset($v[$langue]);
+        }
+        if (count($v) === 1) return $texte;
     }
     $v = array_map('donnee_canon', $v);
     if (!array_is_list($v)) ksort($v);
@@ -57,24 +64,29 @@ function fichiers_equivalents(string $chemin, ?string $avant, string $apres): bo
 function publication_medias(string $racine): array
 {
     $ids = array_merge(
-        bd_colonne('SELECT media_id FROM visuels WHERE media_id IS NOT NULL'),
-        bd_colonne('SELECT affiche_id FROM visuels WHERE affiche_id IS NOT NULL'),
-        bd_colonne('SELECT media_id FROM musiques WHERE media_id IS NOT NULL'),
+        bd_colonne('SELECT media_id FROM medias_usages WHERE publie = 1'),
+        bd_colonne('SELECT affiche_id FROM medias_usages WHERE publie = 1 AND affiche_id IS NOT NULL'),
+        bd_colonne('SELECT media_id FROM musiques WHERE media_id IS NOT NULL AND publie = 1'),
         bd_colonne('SELECT media_id FROM telechargements WHERE media_id IS NOT NULL'),
-        bd_colonne('SELECT a.logo_id FROM articles p JOIN annuaire a ON a.id = p.media_id WHERE a.logo_id IS NOT NULL')
+        bd_colonne('SELECT a.logo_id FROM articles p JOIN annuaire a ON a.id = p.media_id WHERE a.logo_id IS NOT NULL AND p.publie = 1'),
+        bd_colonne('SELECT logo_id FROM distinctions WHERE logo_id IS NOT NULL AND publie = 1')
     );
     $copies = [];
     $medias = medias_par_id();
     foreach (array_unique(array_map('intval', $ids)) as $id) {
         $m = $medias[$id] ?? null;
-        if (!$m || empty($m['fichier'])) continue;
+        if (!$m || empty($m['fichier']) || !media_publiable($m)) continue;       // une adresse externe n'a pas de fichier à copier
         $source = STOCKAGE . '/medias/' . basename($m['fichier']);
         $cible = media_chemin_site($m);
         if (!is_file($source) || $cible === '') continue;
         if (!is_file($racine . '/' . $cible) || filesize($racine . '/' . $cible) !== filesize($source)) $copies[$source] = $cible;
     }
     // analyses de bandes-son faites par Pupitre : rangées dans stockage/analyses/, attendues dans data/
-    $pistes = array_merge(bd_colonne("SELECT piste FROM musiques WHERE piste <> ''"), bd_colonne("SELECT piste FROM visuels WHERE piste <> ''"));
+    $pistes = bd_colonne("SELECT piste FROM musiques WHERE piste <> ''");
+    foreach (bd_colonne("SELECT parametres FROM medias_usages WHERE objet = 'blocs' AND parametres LIKE '%piste%'") as $json) {
+        $piste = (string) (json_decode((string) $json, true)['piste'] ?? '');
+        if ($piste !== '') $pistes[] = $piste;
+    }
     foreach (array_unique($pistes) as $piste) {
         $source = STOCKAGE . '/analyses/' . basename($piste);
         if (preg_match('#^data/[\w.-]+\.json$#', $piste) && is_file($source)
@@ -190,7 +202,7 @@ function ecrire_lot(string $racine, array $fichiers, string $sauvegarde): array
 /**
  * Publie. Rend un résumé : ['fichiers' => n, 'medias' => n, 'representations' => n, 'version' => …].
  */
-function publier(): array
+function publier(bool $version_seule = false): array
 {
     $etat = publication_etat();
     $racine = $etat['racine'];
@@ -198,7 +210,9 @@ function publier(): array
     foreach ($etat['fichiers'] as $chemin => $f) {
         if ($f['etat'] !== 'identique') $a_ecrire[$chemin] = $f['apres'];
     }
-    if (!$a_ecrire && !$etat['medias']) throw new ErreurPublication('Le site est déjà à jour : rien à publier.');
+    // $version_seule : aucun contenu n'a changé, mais une feuille de style ou un script du site a été modifié à la
+    // main ; les pages reçoivent un nouveau numéro de version pour que les navigateurs rechargent ces fichiers
+    if (!$a_ecrire && !$etat['medias'] && !$version_seule) throw new ErreurPublication('Le site est déjà à jour : rien à publier.');
 
     // le numéro de version des scripts et des feuilles de style, dans toutes les pages
     $pages = site_pages($racine);

@@ -18,6 +18,9 @@ if (est_post()) {
                 . ($r['medias'] ? ', ' . pluriel($r['medias'], 'média copié', 'médias copiés') : '')
                 . ($r['representations'] ? ', ' . pluriel($r['representations'], 'représentation passée à « publiée »', 'représentations passées à « publiée »') : '')
                 . '. Version des scripts : ' . $r['version'] . '. La mise en ligne (envoi vers le serveur) reste à faire à la main.');
+        } elseif (recu('action') === 'version') {
+            $r = publier(true);
+            message('ok', 'Version des scripts et des feuilles de style renouvelée : ' . $r['version'] . '. Les navigateurs rechargeront ces fichiers. La mise en ligne reste à faire à la main.');
         } elseif (recu('action') === 'revenir') {
             $r = publication_revenir();
             message('ok', 'Le site est revenu à son état d\'avant la publication du ' . $r['publication_defaite'] . ' : ' . pluriel($r['fichiers'], 'fichier remis', 'fichiers remis') . ' en place'
@@ -104,6 +107,11 @@ $libelles = ['modifie' => ['modifié', 'puce--alerte'], 'nouveau' => ['nouveau',
     <?php if (peut('site.publier')): ?>
       <form method="post" class="actions"><?= champ_csrf() ?><input type="hidden" name="action" value="publier">
         <button type="submit" class="bouton bouton--plein"<?= $a_publier ? '' : ' disabled' ?> data-confirmer="Publier vers le site ? Les fichiers remplacés sont sauvegardés : on peut revenir en arrière.">Publier</button></form>
+      <?php if (!$a_publier): ?>
+      <form method="post" class="actions"><?= champ_csrf() ?><input type="hidden" name="action" value="version">
+        <button type="submit" class="bouton bouton--petit" data-confirmer="Donner un nouveau numéro de version aux scripts et aux feuilles de style du site ?">Renouveler la version des fichiers</button>
+        <span class="aide">À faire après une modification à la main d'une feuille de style ou d'un script du site, quand aucun contenu n'a changé : les navigateurs rechargent alors ces fichiers.</span></form>
+      <?php endif; ?>
       <?php if ($derniere): ?>
       <form method="post" class="actions"><?= champ_csrf() ?><input type="hidden" name="action" value="revenir">
         <button type="submit" class="bouton bouton--danger" data-confirmer="Remettre le site dans son état d'avant la publication du <?= e(horodatage_fr($derniere['cree_le'])) ?> ?">Revenir à la publication précédente</button></form>

@@ -48,17 +48,25 @@ try {
     echo "Ce qu'une publication écrirait\n";
     $exports = site_exports();
     $tout = implode("\n", site_fichiers($exports));
-    $zones = repli_zones($exports);
-    foreach (site_pages(site_racine()) as $page) $tout .= "\n" . repli_appliquer(file_get_contents(site_racine() . '/' . $page), $zones);
+    // le HTML de repli, dans chacune des deux langues d'origine du site : il est publié dans la langue de la première visite
+    $replis = [];
+    foreach (['fr', 'en'] as $langue) {
+        $zones = repli_zones($exports, $langue);
+        $replis[$langue] = '';
+        foreach (site_pages(site_racine()) as $page) $replis[$langue] .= "\n" . repli_appliquer(file_get_contents(site_racine() . '/' . $page), $zones);
+        $tout .= $replis[$langue];
+    }
     foreach (['connue', 'embargo', 'annulee'] as $statut) {
         $verifier(!str_contains($tout, $dates[$statut]), 'la date « ' . STATUTS[$statut] . ' » (' . $dates[$statut] . ') ne sort dans aucun fichier');
     }
     foreach (['annoncee', 'publiee'] as $statut) {
         $verifier(str_contains($tout, $dates[$statut]), 'la date « ' . STATUTS[$statut] . ' » (' . $dates[$statut] . ') sort dans l\'agenda');
     }
-    $verifier(!str_contains($tout, '4 mars 2091') && !str_contains($tout, '1er mars 2091') && !str_contains($tout, '1er–5 mars 2091'),
-        'le repli sans JavaScript ne cite pas les dates non annoncées');
-    $verifier(str_contains($tout, '3–5 mars 2091'), 'le repli sans JavaScript donne la plage des seules dates annoncées (3–5 mars 2091)');
+    $verifier(!str_contains($replis['fr'], '4 mars 2091') && !str_contains($replis['fr'], '1er mars 2091') && !str_contains($replis['fr'], '1er–5 mars 2091')
+        && !str_contains($replis['en'], '4 March 2091') && !str_contains($replis['en'], '1 March 2091') && !str_contains($replis['en'], '1–5 March 2091'),
+        'le repli sans JavaScript ne cite pas les dates non annoncées, en français comme en anglais');
+    $verifier(str_contains($replis['fr'], '3–5 mars 2091'), 'le repli en français donne la plage des seules dates annoncées (3–5 mars 2091)');
+    $verifier(str_contains($replis['en'], '3–5 March 2091'), 'le repli en anglais, langue de la première visite, aussi (3–5 March 2091)');
 
     // sur toute la base : chaque date de l'agenda exporté est une représentation annoncée ou publiée
     $sorties = [];

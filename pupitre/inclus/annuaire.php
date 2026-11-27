@@ -113,12 +113,13 @@ function fiche_concerts(int $id): array
                    (SELECT MIN(r.date) FROM representations r WHERE r.concert_id = c.id) AS premiere
             FROM concerts c JOIN (
                 SELECT id AS concert_id, 'ensemble' AS lien FROM concerts WHERE ensemble_id = ?
+                UNION SELECT concert_id, 'ensemble' FROM concerts_orchestres WHERE fiche_id = ?
                 UNION SELECT id, 'salle' FROM concerts WHERE salle_id = ?
                 UNION SELECT p.concert_id, 'participant' FROM participants p JOIN participants_fiches pf ON pf.participant_id = p.id WHERE pf.fiche_id = ?
                 UNION SELECT concert_id, 'compositeur' FROM programme WHERE compositeur_id = ?
             ) x ON x.concert_id = c.id
             ORDER BY premiere DESC, c.id";
-    return bd_lignes($sql, [$id, $id, $id, $id]);
+    return bd_lignes($sql, [$id, $id, $id, $id, $id]);
 }
 
 /** Où une fiche est utilisée hors de l'agenda (disques, presse) : pour refuser une suppression. */
@@ -126,7 +127,7 @@ function fiche_usages(int $id): array
 {
     $u = [];
     foreach (fiche_concerts($id) as $c) $u[] = 'concert « ' . $c['titre_fr'] . ' » (' . $c['lien'] . ')';
-    foreach (bd_colonne('SELECT ville_fr FROM parcours_orchestres WHERE fiche_id = ?', [$id]) as $v) $u[] = 'parcours du site (' . $v . ')';
+    foreach (bd_colonne('SELECT ville_fr FROM parcours_orchestres WHERE fiche_id = ?', [$id]) as $v) $u[] = 'carte du monde (' . $v . ')';
     foreach (bd_colonne('SELECT titre FROM disques WHERE maison_id = ?', [$id]) as $t) $u[] = 'disque « ' . $t . ' »';
     foreach (bd_colonne('SELECT titre_fr FROM articles WHERE media_id = ?', [$id]) as $t) $u[] = 'article « ' . $t . ' »';
     return $u;

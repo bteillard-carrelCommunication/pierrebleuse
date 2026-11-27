@@ -9,14 +9,14 @@ window.DISQUES = [
       "fr": "Orchestre symphonique d'Odense",
       "en": "Odense Symphony Orchestra"
     },
-    "mot": "",
+    "ecouter": [],
     "commander": [
       {
+        "plateforme": "",
         "nom": "OUR Recordings",
         "url": "https://www.ourrecordings.com/albums/ravel-abroad"
       }
-    ],
-    "streaming": []
+    ]
   },
   {
     "id": "unsuk-chin",
@@ -24,9 +24,8 @@ window.DISQUES = [
     "annee": 2026,
     "maison": "Alpha Classics",
     "descriptif": "Ensemble intercontemporain",
-    "mot": "",
-    "commander": [],
-    "streaming": []
+    "ecouter": [],
+    "commander": []
   },
   {
     "id": "viola-concertos",
@@ -37,24 +36,31 @@ window.DISQUES = [
       "fr": "Rafaell Altino, Orchestre symphonique d'Odense",
       "en": "Rafaell Altino, Odense Symphony Orchestra"
     },
-    "mot": "",
-    "commander": [],
-    "streaming": []
+    "ecouter": [],
+    "commander": []
   },
   {
     "id": "ligeti",
     "titre": "*Ligeti*",
     "annee": 2024,
     "maison": "Alpha Classics",
-    "descriptif": [
-      "Ensemble intercontemporain",
+    "descriptif": "Ensemble intercontemporain",
+    "distinctions": [
       {
-        "fr": "Diapason d'or de l'année, Choc de *Classica*",
-        "en": "Diapason d'or of the year, Choc de *Classica*"
+        "intitule": {
+          "fr": "Diapason d'or de l'année",
+          "en": "Diapason d'or of the year"
+        },
+        "organisme": "Diapason",
+        "une": true
+      },
+      {
+        "intitule": "Choc de *Classica*",
+        "organisme": "Classica",
+        "une": true
       }
     ],
-    "mot": "",
-    "commander": [],
-    "streaming": []
+    "ecouter": [],
+    "commander": []
   }
 ];

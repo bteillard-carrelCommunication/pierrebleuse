@@ -41,7 +41,7 @@ $appels = peut('reglages') ? bd_lignes('SELECT * FROM appels_ia ORDER BY id DESC
 <div class="defile"><table class="tableau tableau--serre">
   <thead><tr><th>Quand</th><th>Objet</th><th>Modèle</th><th>Jetons lus</th><th>Jetons écrits</th><th>Durée</th><th>Résultat</th></tr></thead>
   <tbody><?php foreach ($appels as $a): ?>
-    <tr><td class="nombre"><?= e(horodatage_fr($a['cree_le'])) ?></td><td><?= e($a['objet']) ?></td><td><?= e($a['modele']) ?></td>
+    <tr><td class="nombre"><?= e(horodatage_fr($a['cree_le'])) ?></td><td><?= e($a['objet']) ?></td><td class="insecable"><?= e($a['modele']) ?></td>
       <td class="nombre"><?= (int) $a['jetons_entree'] ?></td><td class="nombre"><?= (int) $a['jetons_sortie'] ?></td>
       <td class="nombre"><?= e(str_replace('.', ',', (string) round($a['duree_ms'] / 1000, 1))) ?> s</td>
       <td><span class="puce <?= $a['resultat'] === 'ok' ? 'puce--ok' : 'puce--erreur' ?>"><?= e($a['resultat']) ?></span> <span class="discret"><?= e($a['erreur']) ?></span></td></tr>
