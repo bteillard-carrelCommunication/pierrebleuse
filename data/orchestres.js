@@ -9,8 +9,8 @@ window.ORCHESTRES = [
   {
     "nom": "London Philharmonic Orchestra",
     "ville": {
-      "fr": "Londres",
-      "en": "London"
+      "en": "London",
+      "fr": "Londres"
     },
     "lat": 51.51,
     "lon": -0.13
@@ -18,8 +18,8 @@ window.ORCHESTRES = [
   {
     "nom": "BBC Symphony Orchestra",
     "ville": {
-      "fr": "Londres",
-      "en": "London"
+      "en": "London",
+      "fr": "Londres"
     },
     "lat": 51.51,
     "lon": -0.13
@@ -45,8 +45,8 @@ window.ORCHESTRES = [
   {
     "nom": "NDR Elbphilharmonie Orchester",
     "ville": {
-      "fr": "Hambourg",
-      "en": "Hamburg"
+      "en": "Hamburg",
+      "fr": "Hambourg"
     },
     "lat": 53.55,
     "lon": 9.99
@@ -54,8 +54,8 @@ window.ORCHESTRES = [
   {
     "nom": "hr-Sinfonieorchester Frankfurt",
     "ville": {
-      "fr": "Francfort",
-      "en": "Frankfurt"
+      "en": "Frankfurt",
+      "fr": "Francfort"
     },
     "lat": 50.11,
     "lon": 8.68
@@ -87,8 +87,8 @@ window.ORCHESTRES = [
   {
     "nom": "Orchestre de la Suisse Romande",
     "ville": {
-      "fr": "Genève",
-      "en": "Geneva"
+      "en": "Geneva",
+      "fr": "Genève"
     },
     "lat": 46.2,
     "lon": 6.14
@@ -108,8 +108,8 @@ window.ORCHESTRES = [
   {
     "nom": "Orchestre symphonique de Québec",
     "ville": {
-      "fr": "Québec",
-      "en": "Quebec City"
+      "en": "Quebec City",
+      "fr": "Québec"
     },
     "lat": 46.81,
     "lon": -71.21
@@ -117,8 +117,8 @@ window.ORCHESTRES = [
   {
     "nom": "Lebanese Philharmonic Orchestra",
     "ville": {
-      "fr": "Beyrouth",
-      "en": "Beirut"
+      "en": "Beirut",
+      "fr": "Beyrouth"
     },
     "lat": 33.89,
     "lon": 35.5,
@@ -134,8 +134,8 @@ window.ORCHESTRES = [
   {
     "nom": "China National Symphony Orchestra",
     "ville": {
-      "fr": "Pékin",
-      "en": "Beijing"
+      "en": "Beijing",
+      "fr": "Pékin"
     },
     "lat": 39.9,
     "lon": 116.41
@@ -161,8 +161,8 @@ window.ORCHESTRES = [
   {
     "nom": "Singapore Symphony Orchestra",
     "ville": {
-      "fr": "Singapour",
-      "en": "Singapore"
+      "en": "Singapore",
+      "fr": "Singapour"
     },
     "lat": 1.35,
     "lon": 103.82

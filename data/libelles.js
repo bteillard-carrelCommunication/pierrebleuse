@@ -1,485 +1,485 @@
 /* Généré par Pupitre, ne pas modifier à la main. */
 window.LIBELLES = {
   "meta.titre": {
-    "fr": "Pierre Bleuse, chef d'orchestre",
-    "en": "Pierre Bleuse, conductor"
+    "en": "Pierre Bleuse, conductor",
+    "fr": "Pierre Bleuse, chef d'orchestre"
   },
   "nav.menu": "Menu",
   "nav.agenda": {
-    "fr": "Agenda",
-    "en": "Concerts"
+    "en": "Concerts",
+    "fr": "Agenda"
   },
   "nav.disques": {
-    "fr": "Discographie",
-    "en": "Discography"
+    "en": "Discography",
+    "fr": "Discographie"
   },
   "nav.parcours": {
-    "fr": "Parcours",
-    "en": "Biography"
+    "en": "Biography",
+    "fr": "Parcours"
   },
   "nav.presse": {
-    "fr": "Presse",
-    "en": "Press"
+    "en": "Press",
+    "fr": "Presse"
   },
   "nav.telechargement": {
-    "fr": "Téléchargement",
-    "en": "Downloads"
+    "en": "Downloads",
+    "fr": "Téléchargement"
   },
   "nav.contact": "Contact",
   "ouverture.defiler": {
-    "fr": "Faire défiler la page",
-    "en": "Scroll down"
+    "en": "Scroll down",
+    "fr": "Faire défiler la page"
   },
   "lecteur.play": "Play",
   "lecteur.pause": "Pause",
   "lecteur.titres": {
-    "fr": "Choisir la musique",
-    "en": "Choose the music"
+    "en": "Choose the music",
+    "fr": "Choisir la musique"
   },
   "agenda.titre": {
-    "fr": "Les prochains concerts",
-    "en": "Upcoming concerts"
+    "en": "Upcoming concerts",
+    "fr": "Les prochains concerts"
   },
   "agenda.affiche": {
-    "fr": "À l'affiche",
-    "en": "Coming up"
+    "en": "Coming up",
+    "fr": "À l'affiche"
   },
   "agenda.saison": {
-    "fr": "Les concerts",
-    "en": "The concerts"
+    "en": "The concerts",
+    "fr": "Les concerts"
   },
   "agenda.tempsFort": {
-    "fr": "Temps fort",
-    "en": "Highlight"
+    "en": "Highlight",
+    "fr": "Temps fort"
   },
   "agenda.serie": {
-    "fr": "{n} représentations, prochaine le {date}",
-    "en": "{n} performances, next on {date}"
+    "en": "{n} performances, next on {date}",
+    "fr": "{n} représentations, prochaine le {date}"
   },
   "agenda.tournee": {
-    "fr": "Tournée, {n} villes",
-    "en": "On tour, {n} cities"
+    "en": "On tour, {n} cities",
+    "fr": "Tournée, {n} villes"
   },
   "agenda.programme": "Programme",
   "agenda.avec": {
-    "fr": "Avec",
-    "en": "With"
+    "en": "With",
+    "fr": "Avec"
   },
   "agenda.lien": {
-    "fr": "Informations et billetterie",
-    "en": "Details and tickets"
+    "en": "Details and tickets",
+    "fr": "Informations et billetterie"
   },
   "agenda.plus": {
-    "fr": "En savoir plus",
-    "en": "Find out more"
+    "en": "Find out more",
+    "fr": "En savoir plus"
   },
   "agenda.disque": {
-    "fr": "Disque",
-    "en": "Recording"
+    "en": "Recording",
+    "fr": "Disque"
   },
   "agenda.vide": {
-    "fr": "Les prochaines dates seront annoncées ici.",
-    "en": "Upcoming dates will be announced here."
+    "en": "Upcoming dates will be announced here.",
+    "fr": "Les prochaines dates seront annoncées ici."
   },
   "agenda.tous": {
-    "fr": "Tous les concerts",
-    "en": "All concerts"
+    "en": "All concerts",
+    "fr": "Tous les concerts"
   },
   "agenda.col.mois": {
-    "fr": "Mois",
-    "en": "Month"
+    "en": "Month",
+    "fr": "Mois"
   },
   "agenda.col.date": "Date",
   "agenda.col.lieu": {
-    "fr": "Pays, ville",
-    "en": "Country, city"
+    "en": "Country, city",
+    "fr": "Pays, ville"
   },
   "agenda.col.salle": {
-    "fr": "Salle",
-    "en": "Venue"
+    "en": "Venue",
+    "fr": "Salle"
   },
   "agenda.col.infos": {
-    "fr": "Orchestre, programme",
-    "en": "Orchestra, programme"
+    "en": "Orchestra, programme",
+    "fr": "Orchestre, programme"
   },
   "agenda.col.lien": {
-    "fr": "Lien",
-    "en": "Link"
+    "en": "Link",
+    "fr": "Lien"
   },
   "concerts.avenir": {
-    "fr": "À venir",
-    "en": "Upcoming"
+    "en": "Upcoming",
+    "fr": "À venir"
   },
   "concerts.passes": {
-    "fr": "Concerts passés",
-    "en": "Past concerts"
+    "en": "Past concerts",
+    "fr": "Concerts passés"
   },
   "concerts.chercher": {
-    "fr": "Chercher",
-    "en": "Search"
+    "en": "Search",
+    "fr": "Chercher"
   },
   "concerts.chercher.indice": {
-    "fr": "titre, ville, salle, œuvre, soliste…",
-    "en": "title, city, venue, work, soloist…"
+    "en": "title, city, venue, work, soloist…",
+    "fr": "titre, ville, salle, œuvre, soliste…"
   },
   "concerts.pays": {
-    "fr": "Pays",
-    "en": "Country"
+    "en": "Country",
+    "fr": "Pays"
   },
   "concerts.ville": {
-    "fr": "Ville",
-    "en": "City"
+    "en": "City",
+    "fr": "Ville"
   },
   "concerts.orchestre": {
-    "fr": "Orchestre",
-    "en": "Orchestra"
+    "en": "Orchestra",
+    "fr": "Orchestre"
   },
   "concerts.tous": {
-    "fr": "Tous",
-    "en": "All"
+    "en": "All",
+    "fr": "Tous"
   },
   "concerts.toutes": {
-    "fr": "Toutes",
-    "en": "All"
+    "en": "All",
+    "fr": "Toutes"
   },
   "concerts.trier": {
-    "fr": "Trier par",
-    "en": "Sort by"
+    "en": "Sort by",
+    "fr": "Trier par"
   },
   "concerts.tri.date": "Date",
   "concerts.tri.inverse": {
-    "fr": "Date, ordre inverse",
-    "en": "Date, reversed"
+    "en": "Date, reversed",
+    "fr": "Date, ordre inverse"
   },
   "concerts.tri.lieu": {
-    "fr": "Pays, ville",
-    "en": "Country, city"
+    "en": "Country, city",
+    "fr": "Pays, ville"
   },
   "concerts.tri.salle": {
-    "fr": "Salle",
-    "en": "Venue"
+    "en": "Venue",
+    "fr": "Salle"
   },
   "concerts.tri.ensemble": {
-    "fr": "Orchestre",
-    "en": "Orchestra"
+    "en": "Orchestra",
+    "fr": "Orchestre"
   },
   "concerts.tri.titre": {
-    "fr": "Titre",
-    "en": "Title"
+    "en": "Title",
+    "fr": "Titre"
   },
   "concerts.effacer": {
-    "fr": "Tout afficher",
-    "en": "Show all"
+    "en": "Show all",
+    "fr": "Tout afficher"
   },
   "concerts.compte.un": "{n} concert",
   "concerts.compte.n": "{n} concerts",
   "concerts.aucun": {
-    "fr": "Aucun concert ne correspond à cette recherche.",
-    "en": "No concert matches this search."
+    "en": "No concert matches this search.",
+    "fr": "Aucun concert ne correspond à cette recherche."
   },
   "disques.titre": {
-    "fr": "Discographie",
-    "en": "Discography"
+    "en": "Discography",
+    "fr": "Discographie"
   },
   "disques.mot": {
-    "fr": "Le mot de Pierre Bleuse",
-    "en": "A word from Pierre Bleuse"
+    "en": "A word from Pierre Bleuse",
+    "fr": "Le mot de Pierre Bleuse"
   },
   "disques.commander": {
-    "fr": "Commander",
-    "en": "Order"
+    "en": "Order",
+    "fr": "Commander"
   },
   "disques.streaming": {
-    "fr": "Écouter",
-    "en": "Listen"
+    "en": "Listen",
+    "fr": "Écouter"
   },
   "parcours.titre": {
-    "fr": "Parcours",
-    "en": "Biography"
+    "en": "Biography",
+    "fr": "Parcours"
   },
   "parcours.fonctions": {
-    "fr": "Fonctions",
-    "en": "Positions"
+    "en": "Positions",
+    "fr": "Fonctions"
   },
   "parcours.opera": {
-    "fr": "Opéra et création",
-    "en": "Opera and new music"
+    "en": "Opera and new music",
+    "fr": "Opéra et création"
   },
   "parcours.invites": {
-    "fr": "Orchestres invités (sélection)",
-    "en": "Guest conducting (selection)"
+    "en": "Guest conducting (selection)",
+    "fr": "Orchestres invités (sélection)"
   },
   "parcours.zone.ameriques": {
-    "fr": "Amériques",
-    "en": "Americas"
+    "en": "Americas",
+    "fr": "Amériques"
   },
   "parcours.zone.europe-afrique": {
-    "fr": "Europe et Afrique",
-    "en": "Europe and Africa"
+    "en": "Europe and Africa",
+    "fr": "Europe et Afrique"
   },
   "parcours.zone.asie-oceanie": {
-    "fr": "Asie, Russie et Océanie",
-    "en": "Asia, Russia and Oceania"
+    "en": "Asia, Russia and Oceania",
+    "fr": "Asie, Russie et Océanie"
   },
   "parcours.carte.monde": {
-    "fr": "Carte du monde des orchestres invités",
-    "en": "World map of guest orchestras"
+    "en": "World map of guest orchestras",
+    "fr": "Carte du monde des orchestres invités"
   },
   "commun.aVenir": {
-    "fr": "à venir",
-    "en": "coming soon"
+    "en": "coming soon",
+    "fr": "à venir"
   },
   "presse.titre": {
-    "fr": "Presse",
-    "en": "Press"
+    "en": "Press",
+    "fr": "Presse"
   },
   "presse.lire": {
-    "fr": "Lire l'article",
-    "en": "Read the article"
+    "en": "Read the article",
+    "fr": "Lire l'article"
   },
   "presse.tous": {
-    "fr": "Tous les articles",
-    "en": "All articles"
+    "en": "All articles",
+    "fr": "Tous les articles"
   },
   "presse.col.media": {
-    "fr": "Média",
-    "en": "Publication"
+    "en": "Publication",
+    "fr": "Média"
   },
   "presse.col.article": "Article",
   "presse.col.auteur": {
-    "fr": "Auteur",
-    "en": "Author"
+    "en": "Author",
+    "fr": "Auteur"
   },
   "presse.col.extrait": {
-    "fr": "Extrait",
-    "en": "Quote"
+    "en": "Quote",
+    "fr": "Extrait"
   },
   "tel.titre": {
-    "fr": "Téléchargement",
-    "en": "Downloads"
+    "en": "Downloads",
+    "fr": "Téléchargement"
   },
   "suivre.titre": {
-    "fr": "Restons en contact",
-    "en": "Stay in touch"
+    "en": "Stay in touch",
+    "fr": "Restons en contact"
   },
   "lettre.titre": {
-    "fr": "La lettre",
-    "en": "Newsletter"
+    "en": "Newsletter",
+    "fr": "La lettre"
   },
   "lettre.champ": {
-    "fr": "Adresse e-mail",
-    "en": "Email address"
+    "en": "Email address",
+    "fr": "Adresse e-mail"
   },
   "lettre.bouton": {
-    "fr": "S'inscrire",
-    "en": "Subscribe"
+    "en": "Subscribe",
+    "fr": "S'inscrire"
   },
   "lettre.note": {
-    "fr": "Inscription bientôt ouverte",
-    "en": "Sign-up opening soon"
+    "en": "Sign-up opening soon",
+    "fr": "Inscription bientôt ouverte"
   },
   "contact.titre": "Contacts",
   "pied.mentions": {
-    "fr": "Mentions légales",
-    "en": "Legal notice"
+    "en": "Legal notice",
+    "fr": "Mentions légales"
   },
   "pied.confidentialite": {
-    "fr": "Confidentialité",
-    "en": "Privacy"
+    "en": "Privacy",
+    "fr": "Confidentialité"
   },
   "pied.credits": {
-    "fr": "Crédits",
-    "en": "Credits"
+    "en": "Credits",
+    "fr": "Crédits"
   },
   "pied.reglages": {
-    "fr": "Réglages de la nuée",
-    "en": "Cloud settings"
+    "en": "Cloud settings",
+    "fr": "Réglages de la nuée"
   },
   "pied.pause": {
-    "fr": "Pause de l'animation",
-    "en": "Pause the animation"
+    "en": "Pause the animation",
+    "fr": "Pause de l'animation"
   },
   "pied.reprise": {
-    "fr": "Reprendre l'animation",
-    "en": "Resume the animation"
+    "en": "Resume the animation",
+    "fr": "Reprendre l'animation"
   },
   "page.retour": {
-    "fr": "Retour à l'accueil",
-    "en": "Back to home"
+    "en": "Back to home",
+    "fr": "Retour à l'accueil"
   },
   "page.haut": {
-    "fr": "Haut de page",
-    "en": "Back to top"
+    "en": "Back to top",
+    "fr": "Haut de page"
   },
   "legal.mentions": {
-    "fr": "Mentions légales",
-    "en": "Legal notice"
+    "en": "Legal notice",
+    "fr": "Mentions légales"
   },
   "legal.confidentialite": {
-    "fr": "Politique de confidentialité",
-    "en": "Privacy policy"
+    "en": "Privacy policy",
+    "fr": "Politique de confidentialité"
   },
   "legal.credits": {
-    "fr": "Crédits",
-    "en": "Credits"
+    "en": "Credits",
+    "fr": "Crédits"
   },
   "yt.texte": {
-    "fr": "Cette vidéo est hébergée par YouTube. La charger dépose des cookies de YouTube (Google) sur votre appareil. Rien n'est chargé avant votre accord.",
-    "en": "This video is hosted by YouTube. Loading it places YouTube (Google) cookies on your device. Nothing is loaded without your consent."
+    "en": "This video is hosted by YouTube. Loading it places YouTube (Google) cookies on your device. Nothing is loaded without your consent.",
+    "fr": "Cette vidéo est hébergée par YouTube. La charger dépose des cookies de YouTube (Google) sur votre appareil. Rien n'est chargé avant votre accord."
   },
   "yt.bouton": {
-    "fr": "Charger la vidéo",
-    "en": "Load the video"
+    "en": "Load the video",
+    "fr": "Charger la vidéo"
   },
   "ouverture.scroll": "Scroll",
   "video.lire": {
-    "fr": "Lire la vidéo",
-    "en": "Play the video"
+    "en": "Play the video",
+    "fr": "Lire la vidéo"
   },
   "video.pause": {
-    "fr": "Mettre la vidéo en pause",
-    "en": "Pause the video"
+    "en": "Pause the video",
+    "fr": "Mettre la vidéo en pause"
   },
   "video.suivante": {
-    "fr": "Vidéo suivante",
-    "en": "Next video"
+    "en": "Next video",
+    "fr": "Vidéo suivante"
   },
   "video.precedente": {
-    "fr": "Vidéo précédente",
-    "en": "Previous video"
+    "en": "Previous video",
+    "fr": "Vidéo précédente"
   },
   "video.position": {
-    "fr": "Vidéo {n} sur {total}",
-    "en": "Video {n} of {total}"
+    "en": "Video {n} of {total}",
+    "fr": "Vidéo {n} sur {total}"
   },
   "concerts.detail": {
-    "fr": "Détail du concert",
-    "en": "Concert details"
+    "en": "Concert details",
+    "fr": "Détail du concert"
   },
   "concerts.fermer": {
-    "fr": "Refermer",
-    "en": "Close"
+    "en": "Close",
+    "fr": "Refermer"
   },
   "concerts.presse": {
-    "fr": "Revue de presse de ce concert",
-    "en": "Press reviews"
+    "en": "Press reviews",
+    "fr": "Revue de presse de ce concert"
   },
   "concerts.description": {
-    "fr": "Présentation",
-    "en": "About"
+    "en": "About",
+    "fr": "Présentation"
   },
   "presse.plus": {
-    "fr": "En savoir plus",
-    "en": "Read more"
+    "en": "Read more",
+    "fr": "En savoir plus"
   },
   "presse.traduction": {
-    "fr": "Traduction",
-    "en": "Translation"
+    "en": "Translation",
+    "fr": "Traduction"
   },
   "presse.concerts": {
-    "fr": "Concerts associés",
-    "en": "Related concerts"
+    "en": "Related concerts",
+    "fr": "Concerts associés"
   },
   "presse.albums": {
-    "fr": "Albums associés",
-    "en": "Related albums"
+    "en": "Related albums",
+    "fr": "Albums associés"
   },
   "presse.citations": {
-    "fr": "Autres citations",
-    "en": "More quotes"
+    "en": "More quotes",
+    "fr": "Autres citations"
   },
   "presse.auteur": {
-    "fr": "Par {auteur}",
-    "en": "By {auteur}"
+    "en": "By {auteur}",
+    "fr": "Par {auteur}"
   },
   "panneau.fermer": {
-    "fr": "Refermer",
-    "en": "Close"
+    "en": "Close",
+    "fr": "Refermer"
   },
   "presse.type.critique_concert": {
-    "fr": "Critique de concert",
-    "en": "Concert review"
+    "en": "Concert review",
+    "fr": "Critique de concert"
   },
   "presse.type.critique_album": {
-    "fr": "Critique d'album",
-    "en": "Album review"
+    "en": "Album review",
+    "fr": "Critique d'album"
   },
   "presse.type.portrait": {
-    "fr": "Portrait",
-    "en": "Profile"
+    "en": "Profile",
+    "fr": "Portrait"
   },
   "presse.type.interview": "Interview",
   "presse.type.actualite": {
-    "fr": "Actualité",
-    "en": "News"
+    "en": "News",
+    "fr": "Actualité"
   },
   "presse.type.autre": "Publication",
   "parcours.collaborations": {
-    "fr": "Grands débuts et collaborations",
-    "en": "Major debuts and collaborations"
+    "en": "Major debuts and collaborations",
+    "fr": "Grands débuts et collaborations"
   },
   "parcours.depuis": {
-    "fr": "depuis {annee}",
-    "en": "since {annee}"
+    "en": "since {annee}",
+    "fr": "depuis {annee}"
   },
   "parcours.periode": {
-    "fr": "{debut} à {fin}",
-    "en": "{debut} to {fin}"
+    "en": "{debut} to {fin}",
+    "fr": "{debut} à {fin}"
   },
   "disques.plus": {
-    "fr": "En savoir plus",
-    "en": "Find out more"
+    "en": "Find out more",
+    "fr": "En savoir plus"
   },
   "disques.presentation": {
-    "fr": "Présentation",
-    "en": "About the recording"
+    "en": "About the recording",
+    "fr": "Présentation"
   },
   "disques.contexte": {
-    "fr": "Contexte artistique",
-    "en": "Artistic context"
+    "en": "Artistic context",
+    "fr": "Contexte artistique"
   },
   "disques.oeuvres": {
-    "fr": "Œuvres",
-    "en": "Works"
+    "en": "Works",
+    "fr": "Œuvres"
   },
   "disques.compositeurs": {
-    "fr": "Compositeurs",
-    "en": "Composers"
+    "en": "Composers",
+    "fr": "Compositeurs"
   },
   "disques.interpretes": {
-    "fr": "Interprètes",
-    "en": "Performers"
+    "en": "Performers",
+    "fr": "Interprètes"
   },
   "disques.infos": {
-    "fr": "À propos des œuvres",
-    "en": "About the works"
+    "en": "About the works",
+    "fr": "À propos des œuvres"
   },
   "disques.distinctions": {
-    "fr": "Distinctions",
-    "en": "Awards"
+    "en": "Awards",
+    "fr": "Distinctions"
   },
   "disques.critiques": {
-    "fr": "La critique",
-    "en": "Reviews"
+    "en": "Reviews",
+    "fr": "La critique"
   },
   "disques.page": {
-    "fr": "Page de l'album",
-    "en": "Album page"
+    "en": "Album page",
+    "fr": "Page de l'album"
   },
   "disques.sortie": {
-    "fr": "Sortie",
-    "en": "Released"
+    "en": "Released",
+    "fr": "Sortie"
   },
   "disques.image": {
-    "fr": "Image {n} sur {total}",
-    "en": "Image {n} of {total}"
+    "en": "Image {n} of {total}",
+    "fr": "Image {n} sur {total}"
   },
   "disques.image.suivante": {
-    "fr": "Image suivante",
-    "en": "Next image"
+    "en": "Next image",
+    "fr": "Image suivante"
   },
   "disques.image.precedente": {
-    "fr": "Image précédente",
-    "en": "Previous image"
+    "en": "Previous image",
+    "fr": "Image précédente"
   }
 };

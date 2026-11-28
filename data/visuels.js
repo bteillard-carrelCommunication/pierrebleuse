@@ -24,8 +24,8 @@ window.VISUELS = {
         "son": true,
         "piste": "data/captation.json",
         "alt": {
-          "fr": "Pierre Bleuse en concert, extraits d'une captation",
-          "en": "Pierre Bleuse in concert, excerpts from a filmed performance"
+          "en": "Pierre Bleuse in concert, excerpts from a filmed performance",
+          "fr": "Pierre Bleuse en concert, extraits d'une captation"
         }
       }
     ]
@@ -37,8 +37,8 @@ window.VISUELS = {
         "src": "assets/img/bleuse-5.jpg",
         "position": "64% 28%",
         "alt": {
-          "fr": "Pierre Bleuse accroupi sur la scène, près du clavecin",
-          "en": "Pierre Bleuse crouching on stage, beside the harpsichord"
+          "en": "Pierre Bleuse crouching on stage, beside the harpsichord",
+          "fr": "Pierre Bleuse accroupi sur la scène, près du clavecin"
         }
       }
     ]

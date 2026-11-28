@@ -197,6 +197,14 @@ function couleur_fond(): string
     return couleur_lire(reglage('fond')) ?: '#000000';
 }
 
+/** La couleur de fond que le site affiche aujourd'hui : celle de son fichier css/reglages.css. '' si le fichier n'y est pas. */
+function couleur_fond_publiee(): string
+{
+    $f = site_racine() . '/' . REGLAGES_CSS;
+    if (site_racine() === '' || !is_file($f)) return '';
+    return preg_match('/--bg:\s*(#[0-9a-fA-F]{3,6})\b/', (string) file_get_contents($f), $m) ? couleur_lire($m[1]) : '';
+}
+
 /** Couleurs proposées d'un geste sur l'écran « Apparence » : la couleur d'origine et quelques bleus nuit à essayer. */
 const COULEURS_PROPOSEES = [
     '#000000' => 'Noir (couleur d\'origine)',
@@ -231,8 +239,8 @@ function libelle_site(string $cle, string $langue): string
 }
 
 /**
- * Enregistre des libellés reçus d'un formulaire : champs lib[<clé>][texte_fr], lib[<clé>][texte_en]…
- * Seules les clés de $cles sont lues. Un libellé ne peut pas être vidé dans la langue de référence.
+ * Enregistre des libellés reçus d'un formulaire, dans la langue de rédaction : champs lib[<clé>][texte_en].
+ * Seules les clés de $cles sont lues. Un libellé ne peut pas être vidé. Ses traductions ne changent pas.
  */
 function libelles_enregistrer(array $recus, array $cles): int
 {
@@ -240,11 +248,10 @@ function libelles_enregistrer(array $recus, array $cles): int
     $n = 0;
     foreach ($cles as $cle) {
         if (!isset($tous[$cle]) || !is_array($recus[$cle] ?? null)) continue;
-        $neuf = recu_bi($recus[$cle], 'texte', 2000);
+        $neuf = recu_tr($recus[$cle], 'texte', 2000);
         $reference = 'texte_' . langue_reference();
         if ($neuf[$reference] === '') $neuf[$reference] = (string) $tous[$cle][$reference];
         $avant = [$reference => (string) $tous[$cle][$reference]];
-        foreach (langues_autres() as $langue) $avant['texte_' . $langue] = (string) (traduction('libelles', $cle, 'texte', $langue)['texte'] ?? '');
         if ($avant == $neuf) continue;
         bd_modifier('libelles', $neuf, ['cle' => $cle]);
         journaliser('modification', 'libelle', null, 'Libellé « ' . $cle . ' »', $avant, $neuf);
@@ -254,12 +261,12 @@ function libelles_enregistrer(array $recus, array $cles): int
     return $n;
 }
 
-/** Crée un libellé s'il manque (migrations) : texte de référence, puis traductions [langue => texte]. */
+/** Crée un libellé s'il manque (migrations) : texte dans la langue de rédaction du moment, puis traductions [langue => texte]. */
 function libelle_creer(string $cle, string $texte, array $traductions = []): void
 {
     if (bd_valeur('SELECT COUNT(*) FROM libelles WHERE cle = ?', [$cle])) return;
     $ordre = (int) bd_valeur('SELECT COALESCE(MAX(ordre), 0) + 1 FROM libelles');
-    bd_requete('INSERT INTO libelles (cle, texte_fr, groupe, ordre) VALUES (?, ?, ?, ?)', [$cle, $texte, explode('.', $cle)[0], $ordre]);
+    bd_requete('INSERT INTO libelles (cle, ' . bd_nom(colonne_reference('libelles', 'texte')) . ', groupe, ordre) VALUES (?, ?, ?, ?)', [$cle, $texte, explode('.', $cle)[0], $ordre]);
     foreach ($traductions as $langue => $t) {
         if (trim((string) $t) === '') continue;
         bd_requete("INSERT IGNORE INTO traductions (objet, objet_id, champ, langue, texte, statut, origine, empreinte) VALUES ('libelles', ?, 'texte', ?, ?, 'validee', 'reprise', ?)", [$cle, $langue, $t, md5($texte)]);

@@ -73,7 +73,7 @@ function bd_nom(string $nom): string
 
 /**
  * INSERT : rend l'identifiant créé. Les champs traduisibles écrits dans une autre langue que la
- * langue de référence (titre_en, titre_de…) partent d'eux-mêmes dans la table des traductions
+ * langue de rédaction (titre_fr, titre_de…) partent d'eux-mêmes dans la table des traductions
  * (inclus/langues.php).
  */
 function bd_inserer(string $table, array $donnees): int

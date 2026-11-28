@@ -18,7 +18,7 @@ if (est_post()) {
     $texte = mb_substr(recu('note'), 0, 2000);
     if ($c && $texte !== '') {
         bd_inserer('notes_artiste', ['concert_id' => $c['id'], 'compte_id' => $moi['id'], 'texte' => $texte]);
-        journaliser('note', 'concert', (int) $c['id'], $c['titre_fr'] . ', note de l\'artiste', null, ['note' => $texte]);
+        journaliser('note', 'concert', (int) $c['id'], $c['titre_en'] . ', note de l\'artiste', null, ['note' => $texte]);
         message('ok', 'Votre note est transmise à l\'équipe.');
     } else {
         message('alerte', 'Écrivez votre note avant de l\'envoyer.');
@@ -59,8 +59,8 @@ $note = function (array $r, string $suffixe) use ($peut_noter, $mes_notes): stri
     <?php if (!$prochaine): ?><p class="rien">Aucun concert à venir dans l'agenda.</p><?php else: $r = $prochaine; ?>
     <div class="prochain" id="c<?= (int) $r['concert_id'] ?>">
       <p class="prochain__quand"><?= e(date_fr($r['date'], true)) ?><?= $r['heure'] ? ' · ' . e(heure_fr($r['heure'])) : '' ?></p>
-      <h3><?= e($r['titre_fr']) ?></h3>
-      <?php if ($r['ensemble_fr'] !== '' && stripos($r['titre_fr'], $r['ensemble_fr']) === false): ?><p><?= e($r['ensemble_fr']) ?></p><?php endif; ?>
+      <h3><?= e($r['titre_en']) ?></h3>
+      <?php if ($r['ensemble_en'] !== '' && stripos($r['titre_en'], $r['ensemble_en']) === false): ?><p><?= e($r['ensemble_en']) ?></p><?php endif; ?>
       <p><?= e($lieu($r)) ?></p>
       <p><?= etiquette_statut($r['statut']) ?></p>
     </div>
@@ -74,7 +74,7 @@ $note = function (array $r, string $suffixe) use ($peut_noter, $mes_notes): stri
     <?php foreach ($semaine as $r): ?>
       <div class="concert">
         <p class="concert__quand"><strong><?= e(date_fr($r['date'], true, false)) ?></strong><?= $r['heure'] ? ' ' . e(heure_fr($r['heure'])) : '' ?> <?= etiquette_statut($r['statut']) ?></p>
-        <h3><?= e($r['titre_fr']) ?></h3>
+        <h3><?= e($r['titre_en']) ?></h3>
         <p class="concert__lieu"><?= e($lieu($r)) ?></p>
       </div>
     <?php endforeach; ?>
@@ -89,8 +89,8 @@ $note = function (array $r, string $suffixe) use ($peut_noter, $mes_notes): stri
       <?php foreach ($lignes as $r): ?>
         <div class="concert" id="r<?= (int) $r['id'] ?>">
           <p class="concert__quand"><strong><?= e(date_fr($r['date'], true, false)) ?></strong><?= $r['heure'] ? ' ' . e(heure_fr($r['heure'])) : '' ?> <?= etiquette_statut($r['statut']) ?></p>
-          <h4><?= e($r['titre_fr']) ?><?= $r['type'] === 'disque' ? ' <span class="puce">disque</span>' : '' ?></h4>
-          <?php if ($r['ensemble_fr'] !== '' && stripos($r['titre_fr'], $r['ensemble_fr']) === false): ?><p class="concert__lieu"><?= e($r['ensemble_fr']) ?></p><?php endif; ?>
+          <h4><?= e($r['titre_en']) ?><?= $r['type'] === 'disque' ? ' <span class="puce">disque</span>' : '' ?></h4>
+          <?php if ($r['ensemble_en'] !== '' && stripos($r['titre_en'], $r['ensemble_en']) === false): ?><p class="concert__lieu"><?= e($r['ensemble_en']) ?></p><?php endif; ?>
           <p class="concert__lieu"><?= e($lieu($r)) ?></p>
           <?php if ($r['statut'] === 'annulee' && $r['raison'] !== ''): ?><p class="concert__lieu"><?= e($r['raison']) ?></p><?php endif; ?>
           <?= $note($r, '') ?>

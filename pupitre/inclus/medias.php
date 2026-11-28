@@ -116,7 +116,6 @@ function media_deposer(array $recu, array $meta = [], array $attendus = [])
         'taille' => (int) filesize($cible),
         'largeur' => $largeur,
         'hauteur' => $hauteur,
-        'alt_fr' => mb_substr(trim((string) ($meta['alt_fr'] ?? '')), 0, 500),
         'alt_en' => mb_substr(trim((string) ($meta['alt_en'] ?? '')), 0, 500),
         'credit' => mb_substr(trim((string) ($meta['credit'] ?? '')), 0, 255),
         'droits' => trim((string) ($meta['droits'] ?? '')),
@@ -169,7 +168,7 @@ function media_creer_externe(string $url, string $type = '', array $meta = [])
     $id = objet_enregistrer('medias', null, [
         'type' => $type, 'url_externe' => $url, 'nom_origine' => mb_substr($nom, 0, 255),
         'titre' => mb_substr(trim((string) ($meta['titre'] ?? '')), 0, 255),
-        'alt_fr' => mb_substr(trim((string) ($meta['alt_fr'] ?? '')), 0, 500),
+        'alt_en' => mb_substr(trim((string) ($meta['alt_en'] ?? '')), 0, 500),
         'credit' => mb_substr(trim((string) ($meta['credit'] ?? '')), 0, 255),
         'droits' => trim((string) ($meta['droits'] ?? '')),
         'cree_par' => $c['id'] ?? null,
@@ -223,7 +222,7 @@ function media_apercu(?array $m, string $classe = 'apercu-media'): string
     $externe = ($m['url_externe'] ?? '') !== '';
     if (!$externe && media_fichier($m) === '') return '<p class="message message--erreur">Le fichier de ce média est introuvable.</p>';
     $src = e(media_adresse($id));
-    if ($m['type'] === 'image') return '<img class="' . e($classe) . '" src="' . $src . '" alt="' . e($m['alt_fr']) . '" loading="lazy">';
+    if ($m['type'] === 'image') return '<img class="' . e($classe) . '" src="' . $src . '" alt="' . e($m['alt_en']) . '" loading="lazy">';
     if ($m['type'] === 'son') return '<audio controls preload="none" src="' . $src . '"></audio>';
     if ($m['type'] === 'video') {
         $yt = media_youtube($m);
@@ -255,15 +254,15 @@ function media_emplois(int $id): array
         [$nom, $page, $param, $fixes] = OBJETS_A_MEDIAS[$u['objet']] ?? [ucfirst($u['objet']), '', '', []];
         $libelle = $u['objet'] === 'blocs' ? (blocs_tous()[$u['objet_id']]['nom'] ?? $u['objet_id']) : '';
         if ($u['objet'] === 'disques') $libelle = (string) bd_valeur('SELECT titre FROM disques WHERE id = ?', [$u['objet_id']]);
-        if ($u['objet'] === 'articles') $libelle = (string) bd_valeur('SELECT titre_fr FROM articles WHERE id = ?', [$u['objet_id']]);
+        if ($u['objet'] === 'articles') $libelle = (string) bd_valeur('SELECT titre_en FROM articles WHERE id = ?', [$u['objet_id']]);
         $adresse = $page === '' ? '' : url($page, $fixes + ($param !== '' ? [$param => $u['objet_id']] : [])) . ($u['objet'] === 'blocs' ? '#' . $u['objet_id'] : '');
         $e[] = [$nom . ' « ' . preg_replace('/\*/', '', $libelle) . ' »' . ((int) $u['affiche_id'] === $id && (int) $u['media_id'] !== $id ? ' (image d\'attente)' : '') . ($u['publie'] ? '' : ' · non publié'), $adresse];
     }
-    foreach (bd_lignes('SELECT titre_fr FROM musiques WHERE media_id = ?', [$id]) as $t) {
-        $e[] = ['Playlist « ' . preg_replace('/\*/', '', $t['titre_fr']) . ' »', url('musiques')];
+    foreach (bd_lignes('SELECT titre_en FROM musiques WHERE media_id = ?', [$id]) as $t) {
+        $e[] = ['Playlist « ' . preg_replace('/\*/', '', $t['titre_en']) . ' »', url('musiques')];
     }
-    foreach (bd_lignes('SELECT libelle_fr FROM telechargements WHERE media_id = ?', [$id]) as $t) {
-        $e[] = ['Téléchargement « ' . $t['libelle_fr'] . ' »', url('contenu', ['type' => 'telechargements'])];
+    foreach (bd_lignes('SELECT libelle_en FROM telechargements WHERE media_id = ?', [$id]) as $t) {
+        $e[] = ['Téléchargement « ' . $t['libelle_en'] . ' »', url('contenu', ['type' => 'telechargements'])];
     }
     foreach (bd_lignes('SELECT id, nom FROM annuaire WHERE logo_id = ?', [$id]) as $f) {
         $e[] = ['Logo de « ' . $f['nom'] . ' » (annuaire, presse)', url('fiche', ['id' => $f['id']])];

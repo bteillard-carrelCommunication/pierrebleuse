@@ -167,7 +167,7 @@ bd_transaction(function () use ($lire, $racine, $media_du_site, $fiche, $est_ens
         $lieu = ['ville_fr' => $ville_fr, 'ville_en' => $ville_en, 'pays_fr' => $pays_fr, 'pays_en' => $pays_en];
         $premiere = min(array_column($e['representations'], 'date'));
         $ensemble_id = $fiche(preg_match('/ensemble/i', $ens_fr) ? 'ensemble' : 'orchestre', $e['ensemble'] ?? '', [], ['orchestre', 'ensemble']);
-        $fuseau = fuseau_deviner($pays_fr, $ville_fr, $ville_en, $premiere);
+        $fuseau = fuseau_deviner($pays_fr, $ville_fr, $premiere);
         $salle_id = $fiche('salle', $e['salle'] ?? '', $lieu + ['fuseau' => $fuseau], ['festival']);
         $lien = (string) ($e['lien'] ?? '');
         $id = bd_inserer('concerts', [
@@ -183,7 +183,7 @@ bd_transaction(function () use ($lire, $racine, $media_du_site, $fiche, $est_ens
             [$rp_fr, $rp_en] = bi_lire($r['pays'] ?? '');
             [$rs_fr, $rs_en] = bi_lire($r['salle'] ?? '');
             $rlien = (string) ($r['lien'] ?? '');
-            if ($rs_fr !== '') $fiche('salle', $r['salle'], ['ville_fr' => $rv_fr, 'ville_en' => $rv_en, 'pays_fr' => $rp_fr, 'pays_en' => $rp_en, 'fuseau' => fuseau_deviner($rp_fr, $rv_fr, $rv_en, $r['date'])], ['festival']);
+            if ($rs_fr !== '') $fiche('salle', $r['salle'], ['ville_fr' => $rv_fr, 'ville_en' => $rv_en, 'pays_fr' => $rp_fr, 'pays_en' => $rp_en, 'fuseau' => fuseau_deviner($rp_fr, $rv_fr, $r['date'])], ['festival']);
             bd_inserer('representations', [
                 'concert_id' => $id, 'date' => $r['date'], 'heure' => $r['heure'] ?? null, 'statut' => 'publiee', 'origine' => 'reprise',
                 // la page de l'organisateur, quand le site la donne, est la source de l'annonce

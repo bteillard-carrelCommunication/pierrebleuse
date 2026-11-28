@@ -24,9 +24,26 @@ et les réglages propres au serveur (écran Réglages : racine et adresse du sit
 ## Mettre à jour la base d'un autre poste de développement
 
 Le dossier `mise-a-jour-base/`, à la racine du dépôt et interdit au web, porte un script SQL tiré de
-la base de référence : toutes les tables, structure et contenu, **sauf les comptes** (`comptes`,
-`liens_connexion`, `tentatives_connexion`), qui n'ont pas leur place dans git et restent ceux du
-poste d'arrivée. Son en-tête dit ce qu'il remplace et comment l'appliquer :
+la base de référence. Il s'écrit sur le poste de référence, une fois ses migrations passées :
+
+```sh
+php pupitre/sql/mise-a-jour.php            # écrit mise-a-jour-base/pupitre-mise-a-jour-AAAAMMJJ.sql
+php pupitre/sql/mise-a-jour.php --voir     # dit ce qu'il écrirait, table par table, sans rien écrire
+```
+
+Le script part dans git : il ne porte ni compte, ni lien personnel, ni adresse de correspondant.
+
+| Tables | Sur le poste d'arrivée |
+|---|---|
+| les comptes : `comptes`, `liens_connexion`, `tentatives_connexion` | **gardées** : on y garde son compte et son mot de passe. Créées, vides, si elles manquent ; une colonne ajoutée depuis par une migration leur est posée (ainsi `comptes.preferences`) |
+| ce qui tient à un poste ou à des personnes : `taches`, `apercus`, `apercus_validations`, `depots`, `depots_fichiers`, `courriers`, `lettre_inscrits` | **vidées** : la structure arrive, pas le contenu |
+| toutes les autres | **remplacées**, structure et contenu : ce qui y a été saisi sur le poste d'arrivée est perdu |
+
+Les réglages qui ne disent que « quand ce poste a fait ceci pour la dernière fois » (travaux de nuit,
+relevés) ne voyagent pas. Le journal voyage : depuis le 28/11/2026, Pupitre n'y écrit plus l'adresse
+d'un correspondant que masquée (`c…@domaine`).
+
+Sur l'autre poste, l'en-tête du script le redit :
 
 ```sh
 git pull
@@ -34,10 +51,15 @@ php pupitre/sql/restaurer.php mise-a-jour-base/pupitre-mise-a-jour-AAAAMMJJ.sql 
 php pupitre/sql/migrer.php --etat
 ```
 
-Tout ce qui a été saisi dans Pupitre sur le poste d'arrivée est remplacé ; sa base d'avant est
-sauvegardée dans `pupitre/stockage/sauvegardes/`. L'historique des publications arrive sans ses
-fichiers de retour en arrière (`stockage/publications/`, hors git) : « Revenir à la publication
-précédente » ne vaut qu'à partir de la première publication faite sur ce poste.
+La base d'avant est d'abord sauvegardée dans `pupitre/stockage/sauvegardes/`. Sans ligne de commande,
+le fichier s'importe tel quel avec phpMyAdmin (MySQL 8). Le script peut être rejoué. Après lui,
+« Le site » doit dire « aucun écart » : la base et les fichiers du site viennent du même commit.
+L'historique des publications arrive sans ses fichiers de retour en arrière
+(`stockage/publications/`, hors git) : « Revenir à la publication précédente » ne vaut qu'à partir de
+la première publication faite sur ce poste. Les fichiers de la médiathèque (`stockage/medias/`, hors
+git) ne voyagent pas non plus : ceux qui sont publiés sont déjà dans `assets/`.
+
+Un seul script suffit : chaque nouveau script remplace le précédent, qui peut être retiré du dépôt.
 
 ## Fichiers de référence
 

@@ -13,7 +13,7 @@ defined('PUPITRE') or exit;
 $titre = 'Playlist';
 const NATURES_ENREGISTREMENT = ['studio' => 'Studio', 'live' => 'Live (concert)', 'autre' => 'Autre'];
 $orchestres = bd_colonne("SELECT nom FROM annuaire WHERE categorie IN ('orchestre', 'ensemble') ORDER BY nom");
-$liste = ['table' => 'musiques', 'cle' => 'titre_fr', 'ajout' => 'Ajouter un titre',
+$liste = ['table' => 'musiques', 'cle' => 'titre_en', 'ajout' => 'Ajouter un titre',
     'controle' => fn(array $d) => (empty($d['media_id']) && ($d['url'] ?? '') === '') ? 'Donnez un fichier son de la médiathèque, ou l\'adresse du fichier.' : '',
     'champs' => [
     ['titre', 'bi', 'Titre', 'requis' => true, 'aide' => 'Première ligne de la liste du lecteur. *…* pour l\'italique.'],
@@ -55,12 +55,12 @@ if (est_post()) {
         $id = recu_entier('ouverture');
         $t = $id ? bd_ligne('SELECT * FROM musiques WHERE id = ?', [$id]) : null;
         if ($t) {
-            $avant = bd_ligne('SELECT id, titre_fr FROM musiques WHERE ouverture = 1');
+            $avant = bd_ligne('SELECT id, titre_en FROM musiques WHERE ouverture = 1');
             if (!$avant || (int) $avant['id'] !== $id) {
                 bd_requete('UPDATE musiques SET ouverture = (id = ?)', [$id]);
-                journaliser('modification', 'contenu', $id, 'Morceau d\'ouverture du site', ['ouverture' => $avant['titre_fr'] ?? ''], ['ouverture' => $t['titre_fr']]);
+                journaliser('modification', 'contenu', $id, 'Morceau d\'ouverture du site', ['ouverture' => $avant['titre_en'] ?? ''], ['ouverture' => $t['titre_en']]);
             }
-            message('ok', 'Morceau d\'ouverture : « ' . preg_replace('/\*/', '', $t['titre_fr']) . ' ». Le site suivra à la prochaine publication.');
+            message('ok', 'Morceau d\'ouverture : « ' . preg_replace('/\*/', '', $t['titre_en']) . ' ». Le site suivra à la prochaine publication.');
         }
         rediriger(url('musiques'));
     } elseif ($action === 'analyser') {
@@ -109,7 +109,7 @@ $racine = site_racine();
     <form method="post" class="carte">
       <?= champ_csrf() ?><input type="hidden" name="action" value="ouverture">
       <h2>Morceau d'ouverture</h2>
-      <?php $choix = []; $ouverture = ''; foreach ($etat as $t) { $choix[(int) $t['id']] = preg_replace('/\*/', '', $t['titre_fr']) . ($t['publie'] ? '' : ' (non publié)'); if ($t['ouverture']) $ouverture = (int) $t['id']; } ?>
+      <?php $choix = []; $ouverture = ''; foreach ($etat as $t) { $choix[(int) $t['id']] = preg_replace('/\*/', '', $t['titre_en']) . ($t['publie'] ? '' : ' (non publié)'); if ($t['ouverture']) $ouverture = (int) $t['id']; } ?>
       <?= champ_choix('ouverture', 'Le site s\'ouvre sur', $choix, $ouverture, ['aide' => 'Indépendant de l\'ordre de la liste. Si ce titre n\'est pas publié, le site s\'ouvre sur le premier de la liste.']) ?>
       <div class="actions"><button type="submit" class="bouton">Choisir ce morceau</button></div>
     </form>
@@ -127,7 +127,7 @@ $racine = site_racine();
       <ul class="items">
       <?php foreach ($etat as $t): $m = $medias[(int) $t['media_id']] ?? null; ?>
         <li>
-          <span class="item__titre"><?= e(preg_replace('/\*/', '', $t['titre_fr'])) ?><?= $t['ouverture'] ? ' <span class="puce puce--accent">ouverture</span>' : '' ?><?= $t['publie'] ? '' : ' <span class="puce">non publié</span>' ?></span>
+          <span class="item__titre"><?= e(preg_replace('/\*/', '', $t['titre_en'])) ?><?= $t['ouverture'] ? ' <span class="puce puce--accent">ouverture</span>' : '' ?><?= $t['publie'] ? '' : ' <span class="puce">non publié</span>' ?></span>
           <?php if ($m): ?><audio controls preload="none" src="<?= e(media_adresse((int) $m['id'])) ?>"></audio><?php endif; ?>
           <?php if ($t['piste'] !== ''): ?>
             <span><span class="puce puce--ok">analysée</span> <code><?= e($t['piste']) ?></code></span>

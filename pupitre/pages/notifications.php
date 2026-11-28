@@ -19,7 +19,7 @@ $descriptions = [
     'info' => 'À savoir. Rien ne presse : un contenu à actualiser, un rappel.',
 ];
 $boutons = function (array $n): string {
-    $s = '<a class="bouton bouton--petit bouton--plein" href="' . e($n['lien']) . '">' . ($n['alerte'] ? 'Traiter' : 'Ouvrir') . '</a>';
+    $s = '<a class="bouton bouton--petit bouton--doux" href="' . e($n['lien']) . '">' . ($n['alerte'] ? 'Traiter' : 'Ouvrir') . '</a>';
     if (!$n['alerte']) return $s;
     foreach (['reporter' => 'Reporter d\'une semaine', 'ignorer' => 'Ignorer'] as $quoi => $libelle) {
         $s .= '<form method="post" action="' . e(url('bord')) . '">' . champ_csrf() . '<input type="hidden" name="action" value="alerte"><input type="hidden" name="retour" value="notifications">'

@@ -9,7 +9,7 @@
 define('PUPITRE', true);
 define('RACINE', dirname(__DIR__));                 // le dossier pupitre/
 define('STOCKAGE', RACINE . '/stockage');
-define('VERSION_PUPITRE', '1.0');
+define('VERSION_PUPITRE', '1.1');
 
 /** Lit un fichier .env : une variable par ligne, CLE=valeur, # pour un commentaire. */
 function env_lire(string $chemin): array

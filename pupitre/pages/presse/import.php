@@ -53,7 +53,7 @@ if ($lecture) {
                 $import['notes'] = array_values(array_filter((array) ($r['notes'] ?? []), 'is_string'));
                 if (!empty($r['ok'])) $import['lue'] = true; else $import['erreur'] = (string) ($r['erreur'] ?? 'La lecture n\'a pas abouti.');
                 // même après un échec, ce que la page a livré (titre, média, date…) préremplit le formulaire
-                if (!empty($r['ok']) || !empty($r['propose']['titre_fr'])) {
+                if (!empty($r['ok']) || !empty($r['propose']['titre_en'])) {
                     $propose = (array) $r['propose'];
                     $propose['concerts'] = array_values(array_unique(array_merge($propose['concerts'] ?? [], array_filter([recu_entier('concert')]))));
                     $propose['disques'] = array_values(array_unique(array_merge($propose['disques'] ?? [], array_filter([recu_entier('disque')]))));
@@ -78,7 +78,7 @@ function import_article_formulaire(?array $propose): string
     if ($i['doublons']) {
         $s .= '<p class="message message--alerte">Cet article semble déjà dans la collection : ';
         foreach (array_slice($i['doublons'], 0, 3) as $k => [$b, $raison]) {
-            $s .= ($k ? ' ; ' : '') . '<a href="' . e(url('article', ['id' => $b['id']])) . '">' . e(($b['media'] ?? '') . ' « ' . preg_replace('/\*/', '', (string) $b['titre_fr']) . ' »') . '</a> (' . e($raison) . ')';
+            $s .= ($k ? ' ; ' : '') . '<a href="' . e(url('article', ['id' => $b['id']])) . '">' . e(($b['media'] ?? '') . ' « ' . preg_replace('/\*/', '', (string) $b['titre_en']) . ' »') . '</a> (' . e($raison) . ')';
         }
         $s .= '.</p>';
     }

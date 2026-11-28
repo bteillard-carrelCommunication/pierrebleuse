@@ -72,8 +72,9 @@ function sauvegardes_liste(): array
 }
 
 /**
- * Rejoue une sauvegarde écrite par base_sauvegarder() : chaque table du fichier est supprimée puis
- * recréée avec ses données. Les tables absentes du fichier ne sont pas touchées. Rend le nombre
+ * Rejoue une sauvegarde écrite par base_sauvegarder(), ou un script de mise à jour écrit par
+ * sql/mise-a-jour.php : chaque table du fichier est supprimée puis recréée avec ses données (sauf
+ * celles que le script dit garder). Les tables absentes du fichier ne sont pas touchées. Rend le nombre
  * d'instructions jouées.
  */
 function base_restaurer(string $chemin): int
@@ -81,7 +82,8 @@ function base_restaurer(string $chemin): int
     if (!is_readable($chemin)) throw new RuntimeException('Fichier de sauvegarde illisible.');
     $sql = file_get_contents($chemin);
     // une instruction se termine par « ; » en fin de ligne, la suivante commence par un mot-clé connu
-    $instructions = preg_split('/;\n(?=(?:DROP TABLE|CREATE TABLE|INSERT INTO|SET |--|\s*$))/', $sql);
+    // (PREPARE, EXECUTE, DEALLOCATE, ALTER TABLE : le script de mise à jour d'un autre poste, sql/mise-a-jour.php, pose ainsi une colonne qui manque)
+    $instructions = preg_split('/;\n(?=(?:DROP TABLE|CREATE TABLE|INSERT INTO|SET |PREPARE |EXECUTE |DEALLOCATE |ALTER TABLE |--|\s*$))/', $sql);
     $pdo = bd();
     $n = 0;
     foreach ($instructions as $i) {

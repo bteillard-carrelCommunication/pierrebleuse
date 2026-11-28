@@ -5,12 +5,12 @@ window.PLAYLIST = [
     "src": "assets/media/pathetique-iv-extrait.m4a",
     "piste": "data/pathetique-iv-extrait.json",
     "titre": {
-      "fr": "Tchaïkovski, *Pathétique*, IV",
-      "en": "Tchaikovsky, *Pathétique*, IV"
+      "en": "Tchaikovsky, *Pathétique*, IV",
+      "fr": "Tchaïkovski, *Pathétique*, IV"
     },
     "mention": {
-      "fr": "Extrait, domaine public",
-      "en": "Excerpt, public domain"
+      "en": "Excerpt, public domain",
+      "fr": "Extrait, domaine public"
     },
     "ouverture": true
   },

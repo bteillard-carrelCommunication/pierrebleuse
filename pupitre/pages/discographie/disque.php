@@ -1,9 +1,11 @@
 <?php
 /**
- * Un album : informations générales, contenus éditoriaux (présentation, contexte, notes
- * personnelles de l'artiste, ses citations, informations sur les œuvres), distinctions, liens
- * « Écouter » et « Commander », visuels, critiques (articles de la revue de presse associés),
- * publication. Les notes et les citations de l'artiste ne reçoivent que ce qu'il a fourni ou validé.
+ * Un album : informations générales, deux textes (la présentation et la note de l'artiste),
+ * distinctions, liens « Écouter » et « Commander », visuels, critiques (articles de la revue de
+ * presse associés), publication. La note de l'artiste ne reçoit que ce qu'il a écrit ou validé.
+ *
+ * Le label (ou éditeur) et l'orchestre (ou ensemble) se choisissent parmi les fiches de l'annuaire,
+ * ou se créent d'ici : un nom nouveau ouvre sa fiche à l'enregistrement, à compléter plus tard.
  */
 
 defined('PUPITRE') or exit;
@@ -53,21 +55,39 @@ if (est_post() && recu('action') === 'enregistrer') {
         'titre' => $t('titre'),
         'annee' => ctype_digit(recu('annee')) ? (int) recu('annee') : null,
         'date_sortie' => recu('date_sortie'),
-        'maison_id' => recu_entier('maison_id'),
         'compositeurs' => implode("\n", lignes(recu('compositeurs'))),
-        'ensemble' => $t('ensemble'),
-        'ensemble_id' => recu('ensemble') !== '' ? orchestre_chercher(recu('ensemble'))['id'] : null,
+        'ensemble' => $t('ensemble', 190),
         'lien' => $t('lien', 500),
         'publie' => empty($_POST['publie']) ? 0 : 1,
-    ] + recu_bi($_POST, 'sous_titre', 255) + recu_bi($_POST, 'descriptif', 3000) + recu_bi($_POST, 'oeuvres', 5000) + recu_bi($_POST, 'interpretes', 5000)
-      + recu_bi($_POST, 'presentation', 8000) + recu_bi($_POST, 'contexte', 8000) + recu_bi($_POST, 'mot', 8000) + recu_bi($_POST, 'citations', 5000) + recu_bi($_POST, 'infos', 8000);
+    ] + recu_tr($_POST, 'sous_titre', 255) + recu_tr($_POST, 'descriptif', 3000) + recu_tr($_POST, 'oeuvres', 5000) + recu_tr($_POST, 'interpretes', 5000)
+      + recu_tr($_POST, 'presentation', 8000) + recu_tr($_POST, 'mot', 8000);
+    $maison = $t('maison', 190);
     if ($f['titre'] === '') $erreurs[] = 'Le titre est obligatoire.';
     if (!date_souple_valide($f['date_sortie'])) $erreurs[] = 'Date de sortie : AAAA, AAAA-MM ou AAAA-MM-JJ.';
     if (recu('annee') !== '' && $f['annee'] === null) $erreurs[] = 'Année : un nombre (2026).';
     if (!adresse_valide($f['lien'])) $erreurs[] = 'La page de l\'album doit être une adresse complète (https://…).';
     if ($f['annee'] === null && $f['date_sortie'] !== '') $f['annee'] = (int) annee_de($f['date_sortie']);
     if (!$erreurs) {
-        $id = bd_transaction(function () use ($id, $f, &$erreurs) {
+        $creees = [];
+        $id = bd_transaction(function () use ($id, $f, $maison, &$erreurs, &$creees) {
+            // le label et l'orchestre : la fiche de l'annuaire qui porte ce nom, sinon une fiche nouvelle, créée d'ici
+            $f['maison_id'] = null;
+            if ($maison !== '') {
+                $connue = fiche_trouver($maison, ['maison_de_disques']);
+                $f['maison_id'] = $connue ?: fiche_assurer('maison_de_disques', $maison);
+                if (!$connue) $creees[] = ['label', $maison, (int) $f['maison_id']];
+            }
+            $f['ensemble_id'] = null;
+            if ($f['ensemble'] !== '') {
+                $trouve = orchestre_chercher($f['ensemble']);
+                $f['ensemble_id'] = $trouve['id'];
+                if (!$trouve['id']) {
+                    // aucun orchestre reconnu sans ambiguïté : une fiche à ce nom, sauf si une fiche voisine le porte déjà mot pour mot
+                    $f['ensemble_id'] = fiche_assurer('orchestre', $f['ensemble'], [], ['ensemble']);
+                    $proches = array_column(array_slice($trouve['candidats'], 0, 2), 'nom');
+                    $creees[] = ['orchestre', $f['ensemble'], (int) $f['ensemble_id'], $proches];
+                }
+            }
             if ($id === null) {
                 $f['cle'] = cle_unique('disques', $f['titre']);
                 $f['ordre'] = (int) bd_valeur('SELECT COALESCE(MIN(ordre), 0) - 1 FROM disques');           // un nouvel album entre en tête : du plus récent au plus ancien
@@ -82,6 +102,10 @@ if (est_post() && recu('action') === 'enregistrer') {
         });
         if (!$erreurs) {
             message('ok', $nouveau ? 'Album créé.' : 'Album enregistré. Le site suivra à la prochaine publication.');
+            foreach ($creees as $c) {
+                message('ok', ($c[0] === 'label' ? 'Le label « ' : 'L\'orchestre « ') . $c[1] . ' » n\'était pas dans l\'annuaire : sa fiche est créée, à compléter quand vous voudrez.'
+                    . (!empty($c[3]) ? ' Fiches au nom proche : ' . implode(', ', $c[3]) . ' (à rapprocher si c\'est le même).' : ''));
+            }
             rediriger(url('disque', ['id' => $id]));
         }
         $d = disque_lire($id);
@@ -94,10 +118,10 @@ $f = $d ?? ['titre' => '', 'annee' => '', 'date_sortie' => '', 'maison_id' => nu
 if ($saisie) foreach ($_POST as $k => $v) if (is_string($v)) $f[$k] = $v;
 if ($saisie) $f['publie'] = empty($_POST['publie']) ? 0 : 1;
 $v = fn(string $k) => (string) ($f[$k] ?? '');
-$lg = fn(string $champ) => ($saisie || !$id) ? ['valeurs' => saisie_bi($_POST, $champ)] : ['objet' => ['disques', $id, $champ]];
+$lg = fn(string $champ) => $id ? ['objet' => ['disques', $id, $champ]] : [];
 $titre = $nouveau ? 'Nouvel album' : $nom;
-$maisons = [];
-foreach (bd_lignes("SELECT id, nom FROM annuaire WHERE categorie = 'maison_de_disques' ORDER BY nom") as $m) $maisons[(int) $m['id']] = $m['nom'];
+// le label affiché : celui de la saisie en cours, sinon le nom de la fiche reliée
+$maison_nom = $saisie ? recu('maison') : (string) (!empty($f['maison_id']) ? (bd_valeur('SELECT nom FROM annuaire WHERE id = ?', [(int) $f['maison_id']]) ?: '') : '');
 $plateformes = array_map(fn($p) => $p[0], PLATEFORMES);
 
 /* Un lien d'écoute ou de commande : plateforme (qui choisit le pictogramme), nom affiché, adresse. */
@@ -126,6 +150,7 @@ $liste_liens = function (string $nature, string $ajout) use ($ligne_lien, $liens
 </div>
 <?php if ($erreurs): ?><ul class="erreurs" role="alert"><?php foreach ($erreurs as $m): ?><li><?= e($m) ?></li><?php endforeach; ?></ul><?php endif; ?>
 <?= liste_choix('liste-ensembles', annuaire_noms(['orchestre', 'ensemble'])) ?>
+<?= liste_choix('liste-maisons', annuaire_noms(['maison_de_disques'])) ?>
 
 <div class="deux">
 <div>
@@ -133,26 +158,23 @@ $liste_liens = function (string $nature, string $ajout) use ($ligne_lien, $liens
     <?= champ_csrf() ?><input type="hidden" name="action" value="enregistrer">
     <h2>Informations générales</h2>
     <?= champ('titre', 'Titre', $v('titre'), ['requis' => true, 'aide' => '*…* pour l\'italique.']) ?>
-    <?= champ_bi('sous_titre', 'Sous-titre (facultatif)', $v('sous_titre_fr'), '', $lg('sous_titre')) ?>
+    <?= champ_tr('sous_titre', 'Sous-titre (facultatif)', $v('sous_titre_en'), $lg('sous_titre')) ?>
     <div class="colonnes">
-      <?= champ_choix('maison_id', 'Label ou éditeur', $maisons, $v('maison_id'), ['vide' => '— aucun —', 'aide' => 'Fiches « maison de disques » de l\'annuaire.']) ?>
+      <?= champ_annuaire('maison', 'Label ou éditeur', $maison_nom, 'liste-maisons', ['fiche' => !empty($f['maison_id']) && !$saisie ? (int) $f['maison_id'] : null, 'nouveau' => 'nouveau label : sa fiche sera créée dans l\'annuaire']) ?>
       <?= champ('annee', 'Année', $v('annee'), ['max' => 4, 'classe' => 'champ--court']) ?>
       <?= champ('date_sortie', 'Date de sortie', $v('date_sortie'), ['max' => 10, 'indication' => '2026-02-13', 'aide' => 'AAAA, AAAA-MM ou AAAA-MM-JJ.']) ?>
     </div>
-    <?= champ_bi('descriptif', 'Lignes de la vignette', $v('descriptif_fr'), '', ['texte' => true, 'aide' => 'Sous le titre, sur la vignette : une ligne par ligne affichée (orchestre, soliste). Les distinctions ont leur propre rubrique.'] + $lg('descriptif')) ?>
+    <?= champ_tr('descriptif', 'Lignes de la vignette', $v('descriptif_en'), ['texte' => true, 'aide' => 'Sous le titre, sur la vignette : une ligne par ligne affichée (orchestre, soliste). Les distinctions ont leur propre rubrique.'] + $lg('descriptif')) ?>
     <div class="colonnes">
-      <?= champ('ensemble', 'Orchestre ou ensemble', $v('ensemble'), ['liste' => 'liste-ensembles', 'aide' => 'Appellation officielle.']) ?>
+      <?= champ_annuaire('ensemble', 'Orchestre ou ensemble', $v('ensemble'), 'liste-ensembles', ['fiche' => !empty($f['ensemble_id']) && !$saisie ? (int) $f['ensemble_id'] : null, 'nouveau' => 'nouvel orchestre : sa fiche sera créée dans l\'annuaire', 'aide' => 'Appellation officielle.']) ?>
       <?= champ_texte('compositeurs', 'Compositeurs', $v('compositeurs'), ['lignes' => 3, 'aide' => 'Un par ligne.']) ?>
     </div>
-    <?= champ_bi('oeuvres', 'Œuvres enregistrées', $v('oeuvres_fr'), '', ['texte' => true, 'aide' => 'Une œuvre par ligne. *…* pour l\'italique.'] + $lg('oeuvres')) ?>
-    <?= champ_bi('interpretes', 'Interprètes et collaborateurs', $v('interpretes_fr'), '', ['texte' => true, 'aide' => 'Un par ligne : nom, rôle ou instrument.'] + $lg('interpretes')) ?>
+    <?= champ_tr('oeuvres', 'Œuvres enregistrées', $v('oeuvres_en'), ['texte' => true, 'aide' => 'Une œuvre par ligne. *…* pour l\'italique.'] + $lg('oeuvres')) ?>
+    <?= champ_tr('interpretes', 'Interprètes et collaborateurs', $v('interpretes_en'), ['texte' => true, 'aide' => 'Un par ligne : nom, rôle ou instrument.'] + $lg('interpretes')) ?>
 
-    <h2>Contenus éditoriaux</h2>
-    <?= champ_bi('presentation', 'Présentation générale', $v('presentation_fr'), '', ['texte' => true, 'aide' => 'Texte de la rédaction. Un paragraphe par bloc, séparés par une ligne vide.'] + $lg('presentation')) ?>
-    <?= champ_bi('contexte', 'Contexte artistique de l\'enregistrement', $v('contexte_fr'), '', ['texte' => true] + $lg('contexte')) ?>
-    <?= champ_bi('mot', 'Notes personnelles de Pierre Bleuse', $v('mot_fr'), '', ['texte' => true, 'aide' => 'Le mot de l\'artiste, présenté comme tel, distinct de la présentation. Seulement ce qu\'il a écrit ou validé.'] + $lg('mot')) ?>
-    <?= champ_bi('citations', 'Citations de Pierre Bleuse', $v('citations_fr'), '', ['texte' => true, 'aide' => 'Une par ligne, avec ses guillemets. Seulement des propos qu\'il a tenus ou validés.'] + $lg('citations')) ?>
-    <?= champ_bi('infos', 'Informations complémentaires sur les œuvres', $v('infos_fr'), '', ['texte' => true] + $lg('infos')) ?>
+    <h2>Textes</h2>
+    <?= champ_tr('presentation', 'Présentation', $v('presentation_en'), ['texte' => true, 'aide' => 'Le texte de la rédaction sur l\'album. Un paragraphe par bloc, séparés par une ligne vide.'] + $lg('presentation')) ?>
+    <?= champ_tr('mot', 'Note de Pierre Bleuse', $v('mot_en'), ['texte' => true, 'aide' => 'Le mot de l\'artiste, présenté comme tel sur le site. Seulement ce qu\'il a écrit ou validé.'] + $lg('mot')) ?>
 
     <h2>Écouter</h2>
     <p class="aide aide--haut">Une plateforme ne paraît sur le site que si son adresse est renseignée. La plateforme choisit le pictogramme.</p>
@@ -195,7 +217,7 @@ $liste_liens = function (string $nature, string $ajout) use ($ligne_lien, $liens
         <?= champ_csrf() ?><input type="hidden" name="usage" value="<?= (int) $u['id'] ?>">
         <?= media_apercu($m, 'apercu-media apercu-media--petit') ?>
         <?php if ($i === 0): ?><p><span class="puce puce--accent">visuel principal</span></p><?php endif; ?>
-        <?= champ_bi('alt', 'Texte alternatif', $u['alt_fr'], '', ['prefixe' => 'v[' . $u['id'] . ']', 'objet' => ['medias_usages', $u['id'], 'alt']]) ?>
+        <?= champ_tr('alt', 'Texte alternatif', $u['alt_en'], ['prefixe' => 'v[' . $u['id'] . ']', 'objet' => ['medias_usages', $u['id'], 'alt']]) ?>
         <?= champ('credit', 'Crédit', $u['credit'], ['prefixe' => 'v[' . $u['id'] . ']', 'max' => 255, 'aide' => 'Vide : celui de la fiche du média.']) ?>
         <?= champ_case('publie', 'Publié', (bool) $u['publie'], ['prefixe' => 'v[' . $u['id'] . ']']) ?>
         <div class="actions">
@@ -226,7 +248,7 @@ $liste_liens = function (string $nature, string $ajout) use ($ligne_lien, $liens
     <input type="search" id="chercher-article" placeholder="chercher : média, titre, auteur" data-filtrer-cases="#articles-choix">
     <ul class="cases cases--defile" id="articles-choix">
       <?php foreach ($tous as $a): ?>
-        <li data-texte="<?= e(mb_strtolower(($a['media'] ?? '') . ' ' . $a['titre_fr'] . ' ' . $a['auteur'])) ?>"><label><input type="checkbox" name="articles[]" value="<?= (int) $a['id'] ?>"<?= in_array((int) $a['id'], $lies, true) ? ' checked' : '' ?>> <?= e($a['media'] ?? '—') ?> <span class="discret"><?= e(couper(preg_replace('/\*/', '', $a['titre_fr']), 50)) ?><?= $a['publie'] ? '' : ' · dépublié' ?><?= $a['exemple'] ? ' · exemple' : '' ?></span></label></li>
+        <li data-texte="<?= e(mb_strtolower(($a['media'] ?? '') . ' ' . $a['titre_en'] . ' ' . $a['auteur'])) ?>"><label><input type="checkbox" name="articles[]" value="<?= (int) $a['id'] ?>"<?= in_array((int) $a['id'], $lies, true) ? ' checked' : '' ?>> <?= e($a['media'] ?? '—') ?> <span class="discret"><?= e(couper(preg_replace('/\*/', '', $a['titre_en']), 50)) ?><?= $a['publie'] ? '' : ' · dépublié' ?><?= $a['exemple'] ? ' · exemple' : '' ?></span></label></li>
       <?php endforeach; ?>
     </ul>
     <div class="actions">

@@ -144,11 +144,11 @@ function concert_orchestres_poser(int $concert_id, array $fiches, string $titre 
 function concert_orchestre_reconnaitre(int $concert_id): array
 {
     $c = bd_ligne('SELECT * FROM concerts WHERE id = ?', [$concert_id]);
-    if (!$c || $c['type'] === 'disque' || trim($c['ensemble_fr']) === '') return ['id' => null, 'niveau' => 'sans', 'candidats' => []];
-    $r = orchestre_chercher($c['ensemble_fr'], (string) traduction_publiee('concerts', $concert_id, 'ensemble', 'en'));
+    if (!$c || $c['type'] === 'disque' || trim($c['ensemble_en']) === '') return ['id' => null, 'niveau' => 'sans', 'candidats' => []];
+    $r = orchestre_chercher($c['ensemble_en'], (string) (traductions_noms('concerts', $concert_id, 'ensemble')[0] ?? ''));
     if ($r['id']) {
         $deja = array_map('intval', bd_colonne('SELECT fiche_id FROM concerts_orchestres WHERE concert_id = ? ORDER BY ordre', [$concert_id]));
-        if (!in_array($r['id'], $deja, true)) concert_orchestres_poser($concert_id, array_merge([$r['id']], $deja), $c['titre_fr']);
+        if (!in_array($r['id'], $deja, true)) concert_orchestres_poser($concert_id, array_merge([$r['id']], $deja), $c['titre_en']);
         if ((int) $c['ensemble_id'] !== $r['id']) bd_modifier('concerts', ['ensemble_id' => $r['id']], ['id' => $concert_id]);
     }
     return $r;
@@ -158,8 +158,8 @@ function concert_orchestre_reconnaitre(int $concert_id): array
 function concerts_orchestre_inconnu(): array
 {
     $l = [];
-    $sql = "SELECT c.* FROM concerts c WHERE c.type <> 'disque' AND c.ensemble_fr <> '' AND NOT EXISTS (SELECT 1 FROM concerts_orchestres co WHERE co.concert_id = c.id) ORDER BY c.id";
-    foreach (bd_lignes($sql) as $c) $l[] = [$c, orchestre_chercher($c['ensemble_fr'])];
+    $sql = "SELECT c.* FROM concerts c WHERE c.type <> 'disque' AND c.ensemble_en <> '' AND NOT EXISTS (SELECT 1 FROM concerts_orchestres co WHERE co.concert_id = c.id) ORDER BY c.id";
+    foreach (bd_lignes($sql) as $c) $l[] = [$c, orchestre_chercher($c['ensemble_en'])];
     return $l;
 }
 
@@ -171,19 +171,19 @@ function concerts_orchestre_inconnu(): array
 function orchestre_creer_depuis_concert(int $concert_id): ?int
 {
     $c = bd_ligne('SELECT * FROM concerts WHERE id = ?', [$concert_id]);
-    if (!$c || trim($c['ensemble_fr']) === '') return null;
-    $en = traduction_publiee('concerts', $concert_id, 'ensemble', 'en');
+    if (!$c || trim($c['ensemble_en']) === '') return null;
+    $autres = array_values(array_filter(traductions_noms('concerts', $concert_id, 'ensemble'), fn($n) => normaliser($n) !== normaliser($c['ensemble_en'])));
     $rep = bd_ligne('SELECT * FROM representations WHERE concert_id = ? ORDER BY date LIMIT 1', [$concert_id]) ?: [];
-    $categorie = preg_match('/\b(ensemble|compagnie|ch[oœ]e?ur|choir|quatuor|quartet)\b/iu', $c['ensemble_fr']) ? 'ensemble' : 'orchestre';
+    $categorie = preg_match('/\b(ensemble|compagnie|ch[oœ]e?ur|choir|quatuor|quartet)\b/iu', $c['ensemble_en']) ? 'ensemble' : 'orchestre';
     $id = (int) objet_enregistrer('annuaire', null, [
-        'categorie' => $categorie, 'nom' => trim($c['ensemble_fr']), 'autres_noms' => ($en !== '' && normaliser($en) !== normaliser($c['ensemble_fr'])) ? $en : '',
-        'ville_fr' => $c['ville_fr'] !== '' ? $c['ville_fr'] : (string) ($rep['ville_fr'] ?? ''),
-        'pays_fr' => $c['pays_fr'] !== '' ? $c['pays_fr'] : (string) ($rep['pays_fr'] ?? ''),
+        'categorie' => $categorie, 'nom' => trim($c['ensemble_en']), 'autres_noms' => implode("\n", $autres),
+        'ville_en' => $c['ville_en'] !== '' ? $c['ville_en'] : (string) ($rep['ville_en'] ?? ''),
+        'pays_en' => $c['pays_en'] !== '' ? $c['pays_en'] : (string) ($rep['pays_en'] ?? ''),
         'verifie' => 0,
-    ], 'fiche', trim($c['ensemble_fr']));
+    ], 'fiche', trim($c['ensemble_en']));
     $GLOBALS['annuaire_perime'] = true;
     bd_modifier('concerts', ['ensemble_id' => $id], ['id' => $concert_id]);
-    concert_orchestres_poser($concert_id, [$id], $c['titre_fr']);
+    concert_orchestres_poser($concert_id, [$id], $c['titre_en']);
     return $id;
 }
 
@@ -203,11 +203,11 @@ function coordonnees_connues(string $ville): ?array
 {
     $v = normaliser($ville);
     if ($v === '') return null;
-    foreach (bd_lignes('SELECT id, ville_fr, latitude, longitude FROM parcours_orchestres WHERE latitude IS NOT NULL AND longitude IS NOT NULL ORDER BY verifie DESC, id') as $l) {
-        if (normaliser($l['ville_fr']) === $v || normaliser(traduction_publiee('parcours_orchestres', $l['id'], 'ville', 'en')) === $v) return [(float) $l['latitude'], (float) $l['longitude'], 'une ville déjà sur la carte'];
+    foreach (bd_lignes('SELECT id, ville_en, latitude, longitude FROM parcours_orchestres WHERE latitude IS NOT NULL AND longitude IS NOT NULL ORDER BY verifie DESC, id') as $l) {
+        if (normaliser($l['ville_en']) === $v || in_array($v, array_map('normaliser', traductions_noms('parcours_orchestres', $l['id'], 'ville')), true)) return [(float) $l['latitude'], (float) $l['longitude'], 'une ville déjà sur la carte'];
     }
-    foreach (bd_lignes('SELECT id, ville_fr, latitude, longitude FROM annuaire WHERE latitude IS NOT NULL AND longitude IS NOT NULL ORDER BY verifie DESC, id') as $l) {
-        if (normaliser($l['ville_fr']) === $v || normaliser(traduction_publiee('annuaire', $l['id'], 'ville', 'en')) === $v) return [(float) $l['latitude'], (float) $l['longitude'], 'une fiche de l\'annuaire'];
+    foreach (bd_lignes('SELECT id, ville_en, latitude, longitude FROM annuaire WHERE latitude IS NOT NULL AND longitude IS NOT NULL ORDER BY verifie DESC, id') as $l) {
+        if (normaliser($l['ville_en']) === $v || in_array($v, array_map('normaliser', traductions_noms('annuaire', $l['id'], 'ville')), true)) return [(float) $l['latitude'], (float) $l['longitude'], 'une fiche de l\'annuaire'];
     }
     return null;
 }

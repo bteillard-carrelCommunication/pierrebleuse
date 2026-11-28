@@ -14,15 +14,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inria+Serif:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/etourneaux.css?v=20261127j">
-  <link rel="stylesheet" href="css/site.css?v=20261127j">
-  <!-- SITE-STATIQUE:DEBUT (couleur de fond et blocs masqués, générés par Pupitre, ne pas modifier à la main) -->
-  <style data-site>
-    :root { --bg: #04070d; --bg-rvb: 4 7 13; }
-    #visuel-3, [data-menu-liste] a[href="#visuel-3"] { display: none !important; }
-    [data-menu-liste] li:has(> a[href="#visuel-3"]) { display: none !important; }
-  </style>
-  <!-- SITE-STATIQUE:FIN -->
+  <link rel="stylesheet" href="css/etourneaux.css?v=20261128a">
+  <link rel="stylesheet" href="css/site.css?v=20261128a">
+  <link rel="stylesheet" href="css/reglages.css?v=20261128a">
 
   <script>
     document.documentElement.classList.add('js');
@@ -32,12 +26,12 @@
       if (!window.__h4Booted) { document.documentElement.classList.add('js-timeout'); document.documentElement.style.setProperty('--barre', '1'); }
     }, 4000);
   </script>
-  <!-- Réglages du site (data/site.js : langues, couleur de fond, blocs visibles), libellés de l'interface (data/libelles.js)
+  <!-- Réglages du site (data/site.js : langues, blocs visibles ; la couleur de fond est dans css/reglages.css), libellés de l'interface (data/libelles.js)
        et textes éditables (data/textes.js), puis langue et dictionnaire : avant tout le reste (pose <html lang>, prépare le menu) -->
-  <script src="data/site.js?v=20261127j"></script>
-  <script src="data/libelles.js?v=20261127j"></script>
-  <script src="data/textes.js?v=20261127j"></script>
-  <script src="js/contenu.js?v=20261127j"></script>
+  <script src="data/site.js?v=20261128a"></script>
+  <script src="data/libelles.js?v=20261128a"></script>
+  <script src="data/textes.js?v=20261128a"></script>
+  <script src="js/contenu.js?v=20261128a"></script>
 </head>
 <body>
 
@@ -77,7 +71,7 @@
       </ul>
       <div class="barre__lang" data-langues>
         <!-- LANGUES-STATIQUE:DEBUT (langues du site, générées par Pupitre, ne pas modifier à la main) -->
-        <a href="?lang=fr" data-langue="fr" lang="fr" hreflang="fr">FR</a><span class="sep" aria-hidden="true">|</span><a href="?lang=en" data-langue="en" lang="en" hreflang="en" class="is-on" aria-current="true">EN</a>
+        <a href="?lang=en" data-langue="en" lang="en" hreflang="en" class="is-on" aria-current="true">EN</a><span class="sep" aria-hidden="true">|</span><a href="?lang=fr" data-langue="fr" lang="fr" hreflang="fr">FR</a>
         <!-- LANGUES-STATIQUE:FIN -->
       </div>
       <!-- Fenêtres étroites : le menu se replie derrière ce bouton (js/contenu.js) -->
@@ -449,19 +443,19 @@
   <audio data-audio preload="none"></audio>
 
   <!-- Données, puis rendu synchrone, avant le moteur qui recense les [data-revele] à son chargement -->
-  <script src="data/agenda.js?v=20261127j"></script>
-  <script src="data/playlist.js?v=20261127j"></script>
-  <script src="data/visuels.js?v=20261127j"></script>
-  <script src="data/disques.js?v=20261127j"></script>
-  <script src="data/presse.js?v=20261127j"></script>
-  <script src="data/orchestres.js?v=20261127j"></script>
-  <script src="data/cartes.js?v=20261127j"></script>
-  <script src="data/parcours.js?v=20261127j"></script>
-  <script src="data/telechargements.js?v=20261127j"></script>
-  <script src="data/contacts.js?v=20261127j"></script>
-  <script src="data/reseaux.js?v=20261127j"></script>
-  <script src="js/agenda.js?v=20261127j"></script>
-  <script src="js/sections.js?v=20261127j"></script>
+  <script src="data/agenda.js?v=20261128a"></script>
+  <script src="data/playlist.js?v=20261128a"></script>
+  <script src="data/visuels.js?v=20261128a"></script>
+  <script src="data/disques.js?v=20261128a"></script>
+  <script src="data/presse.js?v=20261128a"></script>
+  <script src="data/orchestres.js?v=20261128a"></script>
+  <script src="data/cartes.js?v=20261128a"></script>
+  <script src="data/parcours.js?v=20261128a"></script>
+  <script src="data/telechargements.js?v=20261128a"></script>
+  <script src="data/contacts.js?v=20261128a"></script>
+  <script src="data/reseaux.js?v=20261128a"></script>
+  <script src="js/agenda.js?v=20261128a"></script>
+  <script src="js/sections.js?v=20261128a"></script>
   <script>
     try { window.SiteContenu.appliquer(document); }
     catch (e) { document.documentElement.classList.remove('i18n-attente'); console.error(e); }
@@ -475,13 +469,13 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 
   <!-- Moteur de la nuée, animations des blocs visuels (registre et modules) et lecteur de musique -->
-  <script src="js/lumiere.js?v=20261127j"></script>
-  <script src="js/animations.js?v=20261127j"></script>
-  <script src="js/parametres.js?v=20261127j"></script>
-  <script src="js/musique.js?v=20261127j"></script>
-  <script src="js/sync.js?v=20261127j"></script>
-  <script src="js/nuee.js?v=20261127j"></script>
-  <script src="js/reglages.js?v=20261127j"></script>
-  <script src="js/main.js?v=20261127j"></script>
+  <script src="js/lumiere.js?v=20261128a"></script>
+  <script src="js/animations.js?v=20261128a"></script>
+  <script src="js/parametres.js?v=20261128a"></script>
+  <script src="js/musique.js?v=20261128a"></script>
+  <script src="js/sync.js?v=20261128a"></script>
+  <script src="js/nuee.js?v=20261128a"></script>
+  <script src="js/reglages.js?v=20261128a"></script>
+  <script src="js/main.js?v=20261128a"></script>
 </body>
 </html>

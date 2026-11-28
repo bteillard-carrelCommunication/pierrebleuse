@@ -32,7 +32,7 @@ function date_souple_valide(string $d): bool
 
 /**
  * Ce que montre une collaboration : son intitulé éditorial s'il existe, sinon le nom de son
- * orchestre, sinon le titre de son concert. Rend ['intitule_fr' => …, 'orchestre' => …, 'annee' => …, 'concert' => ligne ou null].
+ * orchestre, sinon le titre de son concert. Rend ['intitule_en' => …, 'orchestre' => …, 'annee' => …, 'concert' => ligne ou null].
  */
 function collaboration_resoudre(array $c): array
 {
@@ -40,12 +40,12 @@ function collaboration_resoudre(array $c): array
     $concert = $c['concert_id'] ? bd_ligne('SELECT * FROM concerts WHERE id = ?', [$c['concert_id']]) : null;
     if ($orchestre === '' && $concert) {
         $o = concert_orchestres((int) $concert['id']);
-        $orchestre = $o ? $o[0]['nom'] : (string) $concert['ensemble_fr'];
+        $orchestre = $o ? $o[0]['nom'] : (string) $concert['ensemble_en'];
     }
     $annee = annee_de((string) $c['annee']);
     if ($annee === '' && $concert) $annee = annee_de((string) bd_valeur("SELECT MIN(date) FROM representations WHERE concert_id = ? AND statut <> 'annulee'", [$concert['id']]));
-    $intitule = trim((string) $c['intitule_fr']) !== '' ? trim((string) $c['intitule_fr']) : ($orchestre !== '' ? $orchestre : (string) ($concert['titre_fr'] ?? ''));
-    return ['intitule_fr' => $intitule, 'orchestre' => $orchestre, 'annee' => $annee, 'concert' => $concert];
+    $intitule = trim((string) $c['intitule_en']) !== '' ? trim((string) $c['intitule_en']) : ($orchestre !== '' ? $orchestre : (string) ($concert['titre_en'] ?? ''));
+    return ['intitule_en' => $intitule, 'orchestre' => $orchestre, 'annee' => $annee, 'concert' => $concert];
 }
 
 /** Un concert sort-il sur le site ? Publié, avec au moins une date annoncée ou publiée. */

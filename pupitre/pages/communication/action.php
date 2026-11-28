@@ -32,6 +32,9 @@ if (est_post() && recu('action') === 'supprimer' && $a) {
 }
 if (est_post() && recu('action') === 'enregistrer') {
     [$nouvel_id, $erreurs] = communication_enregistrer($id, $_POST + ['concerts' => is_array($_POST['concerts'] ?? null) ? $_POST['concerts'] : []]);
+    if (!$erreurs && $nouvelle && ($signalement = recu_entier('veille')) && function_exists('veille_decider')) {
+        veille_decider($signalement, 'partagee', ['communication_id' => $nouvel_id]);       // le signalement de la veille que cette publication partage
+    }
     if (!$erreurs) {
         message('ok', $nouvelle ? ($lettre ? 'Lettre enregistrée.' : 'Publication enregistrée.') : 'Enregistré.');
         rediriger(url('communication', ['id' => $nouvel_id]));
@@ -41,6 +44,13 @@ if (est_post() && recu('action') === 'enregistrer') {
 // ce que le formulaire montre : la fiche, ou ce qui vient d'être saisi
 $saisie = est_post() && $erreurs;
 $f = $a ?? ['canal' => $lettre ? 'lettre' : '', 'titre' => '', 'texte' => '', 'statut' => 'a_preparer', 'prevue_le' => null, 'publiee_le' => null, 'lien' => '', 'notes' => '', 'concerts' => array_filter([recu_entier('concert')])];
+// une publication qui partage un signalement de la veille : son titre et son adresse sont repris
+$partage = ($nouvelle && recu_entier('veille') && bd_colonne_existe('veille', 'empreinte')) ? bd_ligne('SELECT * FROM veille WHERE id = ?', [recu_entier('veille')]) : null;
+if ($partage && !$saisie) {
+    $f['titre'] = mb_substr('Partage : ' . $partage['titre'], 0, 255);
+    $f['texte'] = '« ' . $partage['titre'] . ' »' . ($partage['site'] !== '' ? ' · ' . $partage['site'] : '') . "\n" . $partage['lien'];
+    $f['notes'] = 'Signalement de la veille du ' . date_fr(substr($partage['cree_le'], 0, 10)) . ($partage['mention'] === 'cite' ? ' : l\'artiste y est cité sans être identifié.' : '.');
+}
 $v = fn(string $k) => $saisie ? recu($k) : (string) ($f[$k] ?? '');
 $date = fn(string $k, string $champ) => $saisie ? recu($champ) : ($f[$k] ? substr($f[$k], 0, 10) : '');
 $heure = fn(string $k, string $champ) => $saisie ? recu($champ) : (($f[$k] && substr($f[$k], 11, 5) !== '00:00') ? substr($f[$k], 11, 5) : '');
@@ -48,7 +58,7 @@ $coches = $saisie ? array_map('intval', is_array($_POST['concerts'] ?? null) ? $
 $titre = $nouvelle ? ($lettre ? 'Nouvelle lettre' : 'Nouvelle publication') : communication_libelle($a);
 $jour = aujourdhui();
 // les concerts à proposer : à venir d'abord, puis les plus récents ; ceux qui sont déjà associés restent toujours visibles
-$concerts = bd_lignes("SELECT c.id, c.titre_fr, c.publie, (SELECT MIN(r.date) FROM representations r WHERE r.concert_id = c.id AND r.date >= ? AND r.statut <> 'annulee') AS prochaine,
+$concerts = bd_lignes("SELECT c.id, c.titre_en, c.publie, (SELECT MIN(r.date) FROM representations r WHERE r.concert_id = c.id AND r.date >= ? AND r.statut <> 'annulee') AS prochaine,
     (SELECT MAX(r.date) FROM representations r WHERE r.concert_id = c.id) AS derniere,
     (SELECT COUNT(*) FROM representations r WHERE r.concert_id = c.id AND r.statut IN ('annoncee', 'publiee')) AS annoncees
     FROM concerts c ORDER BY prochaine IS NULL, prochaine, derniere DESC", [$jour]);
@@ -66,6 +76,9 @@ foreach (STATUTS_COMMUNICATION as $k => $s) $statuts[$k] = $s[$lettre ? 1 : 0];
 <div>
   <form method="post" class="carte" id="fiche">
     <?= champ_csrf() ?><input type="hidden" name="action" value="enregistrer">
+    <?php if ($partage): ?><input type="hidden" name="veille" value="<?= (int) $partage['id'] ?>">
+      <p class="encart" style="margin-bottom:1rem"><?= icone('veille') ?><span><strong>Partage d'un signalement de la veille.</strong> <?= e($partage['titre']) ?><?= $partage['site'] !== '' ? ' · ' . e($partage['site']) : '' ?>. Choisissez le réseau, ajustez le texte : à l'enregistrement, le signalement sera marqué « partagé ».</span></p>
+    <?php endif; ?>
     <h2><?= $lettre ? 'La lettre' : 'La publication' ?></h2>
     <?php if ($lettre): ?>
       <input type="hidden" name="canal" value="lettre">
@@ -92,7 +105,7 @@ foreach (STATUTS_COMMUNICATION as $k => $s) $statuts[$k] = $s[$lettre ? 1 : 0];
     <div class="champ"><label for="chercher-concert">Chercher un concert</label><input type="search" id="chercher-concert" data-filtrer-cases="#liste-concerts" placeholder="titre, année…" autocomplete="off"></div>
     <ul class="cases cases--defile" id="liste-concerts">
       <?php foreach ($concerts as $c): $quand = $c['prochaine'] ?: $c['derniere']; ?>
-        <li data-texte="<?= e(mb_strtolower($c['titre_fr'] . ' ' . $quand)) ?>"><label><input type="checkbox" name="concerts[]" value="<?= (int) $c['id'] ?>"<?= in_array((int) $c['id'], $coches, true) ? ' checked' : '' ?>> <?= e($c['titre_fr']) ?></label>
+        <li data-texte="<?= e(mb_strtolower($c['titre_en'] . ' ' . $quand)) ?>"><label><input type="checkbox" name="concerts[]" value="<?= (int) $c['id'] ?>"<?= in_array((int) $c['id'], $coches, true) ? ' checked' : '' ?>> <?= e($c['titre_en']) ?></label>
           <span class="discret"><?= e(date_fr($quand)) ?><?= $c['prochaine'] ? '' : ' · passé' ?><?= ($c['prochaine'] && !(int) $c['annoncees']) ? ' · pas encore annoncé' : '' ?><?= $c['publie'] ? '' : ' · dépublié' ?></span></li>
       <?php endforeach; ?>
     </ul>
@@ -120,13 +133,46 @@ foreach (STATUTS_COMMUNICATION as $k => $s) $statuts[$k] = $s[$lettre ? 1 : 0];
       <li><span class="item__titre">Rien ne part d'ici</span><span class="discret">Pupitre garde la trace : la publication elle-même se fait sur le réseau, ou dans l'outil d'envoi de la lettre.</span></li>
     </ul>
   </div>
+  <?php if ($a && !$lettre):
+      $parties = parties_prenantes($a['concerts']);
+      $reseau = $a['canal'];
+      $identifiants = [];
+      foreach ($parties as $x) if (($x['comptes'][$reseau]['etat'] ?? '') === 'verifie' && $x['comptes'][$reseau]['identifiant'] !== '') $identifiants[] = $x['comptes'][$reseau]['identifiant'];
+      $dieses = array_values(array_unique(array_filter(preg_split('/[\s,;]+/', implode(' ', array_column($parties, 'mots_diese'))), fn($m) => $m !== '')));
+      $sans = array_filter($parties, fn($x) => !isset($x['comptes'][$reseau]));
+  ?>
+  <div class="carte" id="identifier">
+    <div class="carte__tete"><h2>Comptes à identifier</h2><span class="carte__compte"><?= count($identifiants) ?></span></div>
+    <?php if (!$a['concerts']): ?><p class="rien">Associez un concert à cette publication : ses orchestres, sa salle et ses solistes seront proposés ici, avec leur compte sur ce réseau.</p>
+    <?php elseif (!$parties): ?><p class="rien">Les concerts associés n'ont pas encore de fiche reliée dans l'annuaire (orchestre, salle, solistes).</p>
+    <?php else: ?>
+    <ul class="items">
+      <?php foreach ($parties as $x): $c = $x['comptes'][$reseau] ?? null; ?>
+        <li><span class="en-ligne"><a class="item__titre" href="<?= e(url('fiche', ['id' => $x['id']])) ?>#comptes"><?= e($x['nom']) ?></a> <span class="discret"><?= e(mb_strtolower(CATEGORIES[$x['categorie']] ?? '')) ?></span></span>
+          <?php if ($c && $c['etat'] === 'verifie'): ?><span><code><?= e($c['identifiant'] ?: $c['adresse']) ?></code></span>
+          <?php elseif ($c): ?><span><code><?= e($c['identifiant'] ?: $c['adresse']) ?></code> <span class="puce puce--alerte">à vérifier avant de l'employer</span></span>
+          <?php else: ?><span class="discret">pas de compte <?= e(CANAUX[$reseau][0] ?? 'sur ce réseau') ?> connu<?= $x['comptes'] ? ' (il en a sur ' . e(implode(', ', array_map(fn($r) => RESEAUX_CONNUS[$r] ?? $r, array_keys($x['comptes'])))) . ')' : '' ?></span><?php endif; ?></li>
+      <?php endforeach; ?>
+    </ul>
+    <?php if ($identifiants || $dieses): ?>
+      <div class="champ" style="margin-top:1rem"><label for="identifiants">À coller dans la publication</label><textarea id="identifiants" rows="2" readonly><?= e(trim(implode(' ', $identifiants) . ($dieses ? "\n" . implode(' ', array_map(fn($m) => '#' . ltrim($m, '#'), $dieses)) : ''))) ?></textarea></div>
+      <div class="actions"><button type="button" class="bouton bouton--petit" data-copier="#identifiants" data-copie="Copié"><?= icone('copier') ?>Copier</button></div>
+    <?php endif; ?>
+    <?php if ($sans && peut('annuaire')): ?>
+      <form method="post" action="<?= e(url('annuaire')) ?>" class="actions"><?= champ_csrf() ?><input type="hidden" name="action" value="completer">
+        <button type="submit" class="bouton bouton--petit"<?= ia_configuree() ? '' : ' disabled title="L\'IA n\'est pas configurée"' ?>><?= icone('ia') ?>Chercher les comptes manquants avec l'IA</button></form>
+    <?php endif; ?>
+    <p class="aide">Seuls les comptes vérifiés sont donnés à copier. Un compte proposé par l'IA se vérifie sur la fiche, ou depuis le tableau de bord.</p>
+    <?php endif; ?>
+  </div>
+  <?php endif; ?>
   <?php if ($a): ?>
   <div class="carte">
     <h2>Concerts concernés</h2>
     <?php if (!$a['concerts']): ?><p class="rien">Aucun concert associé.</p><?php else: ?>
     <ul class="items">
-      <?php foreach ($a['concerts'] as $cid): $c = bd_ligne('SELECT id, titre_fr FROM concerts WHERE id = ?', [$cid]); if (!$c) continue; ?>
-        <li><span class="item__titre"><?= e($c['titre_fr']) ?></span><a class="bouton bouton--petit" href="<?= e(url('concert', ['id' => $c['id']])) ?>">Ouvrir</a></li>
+      <?php foreach ($a['concerts'] as $cid): $c = bd_ligne('SELECT id, titre_en FROM concerts WHERE id = ?', [$cid]); if (!$c) continue; ?>
+        <li><span class="item__titre"><?= e($c['titre_en']) ?></span><a class="bouton bouton--petit" href="<?= e(url('concert', ['id' => $c['id']])) ?>">Ouvrir</a></li>
       <?php endforeach; ?>
     </ul>
     <?php endif; ?>

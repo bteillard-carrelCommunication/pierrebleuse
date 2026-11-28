@@ -102,7 +102,8 @@ if (est_post()) {
             'credit' => mb_substr($t('credit'), 0, 255),
             'parametres' => json_encode($p ?: new stdClass(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
             'publie' => empty($r['publie']) ? 0 : 1,
-        ] + recu_bi($r, 'alt', 500) + recu_bi($r, 'titre', 255) + recu_bi($r, 'description', 2000);
+        ] + recu_tr($r, 'alt', 500) + recu_tr($r, 'titre', 255) + recu_tr($r, 'description', 2000);
+        // seule une vidéo porte un titre et une description : ceux d'une image s'effacent, avec leurs traductions
         if ($nature !== 'video') foreach (langues() as $l) { $d['titre_' . $l] = ''; $d['description_' . $l] = ''; }
         $vers = $t('vers');
         if ($vers !== '' && $vers !== $bloc && isset(BLOCS_A_MEDIAS[$vers])) {
@@ -144,7 +145,7 @@ $fautif = $erreurs ? (recu_entier('id') ?? 0) : 0;
       $v = fn(string $k, $defaut = '') => $saisi !== null ? (string) ($saisi[$k] ?? '') : (string) $defaut;
       $nature = $saisi !== null && $m && $m['type'] === 'image' ? (($saisi['nature'] ?? '') === 'animation' ? 'animation' : 'image') : $el['nature'];
       $montre = in_array($el['id'], $affiches, false);
-      $langues_o = fn(string $champ) => $saisi !== null ? ['valeurs' => saisie_bi($saisi, $champ)] : ['objet' => ['medias_usages', $el['id'], $champ]];
+      $langues_o = fn(string $champ) => ['objet' => ['medias_usages', $el['id'], $champ]];
   ?>
   <form method="post" class="carte element<?= $el['publie'] ? '' : ' element--reserve' ?>" id="e-<?= (int) $el['id'] ?>">
     <?= champ_csrf() ?><input type="hidden" name="id" value="<?= (int) $el['id'] ?>">
@@ -163,7 +164,7 @@ $fautif = $erreurs ? (recu_entier('id') ?? 0) : 0;
       <div>
         <?php if ($m && $m['type'] === 'image'): ?>
           <div class="focal" data-focal="<?= e($p) ?>" title="Cliquez pour poser le point de cadrage">
-            <img src="<?= e(media_adresse((int) $m['id'])) ?>" alt="<?= e($el['alt_fr']) ?>">
+            <img src="<?= e(media_adresse((int) $m['id'])) ?>" alt="<?= e($el['alt_en']) ?>">
             <span class="focal__point focal__point--large" hidden></span>
             <span class="focal__point focal__point--mobile" hidden></span>
           </div>
@@ -204,8 +205,8 @@ $fautif = $erreurs ? (recu_entier('id') ?? 0) : 0;
           <?php else: ?>
             <p class="aide">Vidéo YouTube : rien n'est chargé sur le site avant l'accord du visiteur ; la musique se tait quand il la lance.</p>
           <?php endif; ?>
-          <?= champ_bi('titre', 'Titre (facultatif)', $v('titre_fr', $el['titre_fr']), '', ['prefixe' => $p] + $langues_o('titre')) ?>
-          <?= champ_bi('description', 'Description (facultative)', $v('description_fr', $el['description_fr']), '', ['prefixe' => $p, 'texte' => true] + $langues_o('description')) ?>
+          <?= champ_tr('titre', 'Titre (facultatif)', $v('titre_en', $el['titre_en']), ['prefixe' => $p] + $langues_o('titre')) ?>
+          <?= champ_tr('description', 'Description (facultative)', $v('description_en', $el['description_en']), ['prefixe' => $p, 'texte' => true] + $langues_o('description')) ?>
         <?php endif; ?>
         <?php if (!$m || media_youtube($m) === ''): ?>
         <div class="colonnes">
@@ -217,7 +218,7 @@ $fautif = $erreurs ? (recu_entier('id') ?? 0) : 0;
           <?= champ('mobile_y', 'Téléphone : vertical (%)', $v('mobile_y', $pp['mobile'][1] ?? ''), ['prefixe' => $p, 'type' => 'number', 'max' => 3]) ?>
         </div>
         <?php endif; ?>
-        <?= champ_bi('alt', 'Texte alternatif', $v('alt_fr', $el['alt_fr']), '', ['prefixe' => $p, 'aide' => 'Ce que montre le média, pour qui ne le voit pas. Vide : celui de la fiche du média.'] + $langues_o('alt')) ?>
+        <?= champ_tr('alt', 'Texte alternatif', $v('alt_en', $el['alt_en']), ['prefixe' => $p, 'aide' => 'Ce que montre le média, pour qui ne le voit pas. Vide : celui de la fiche du média.'] + $langues_o('alt')) ?>
         <?= champ('credit', 'Crédit', $v('credit', $el['credit']), ['prefixe' => $p, 'max' => 255, 'aide' => 'Vide : celui de la fiche du média' . ($m && $m['credit'] !== '' ? ' (« ' . $m['credit'] . ' »)' : '') . '.']) ?>
         <div class="colonnes">
           <?= champ_case('publie', 'Publié', $saisi !== null ? !empty($saisi['publie']) : (bool) $el['publie'], ['prefixe' => $p]) ?>

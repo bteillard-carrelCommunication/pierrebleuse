@@ -8,8 +8,11 @@ ni npm. Une installation sert un artiste. L'intervention du 27/11/2026 (cahier d
 `docs/cahier-des-charges-pupitre.md`) a réorganisé Pupitre en blocs et en collections, l'a rendu
 multilingue et a étendu son usage de l'IA. La refonte de l'interface qui a suivi, le même jour, lui a
 donné un design system, un nouveau menu (Site internet, Carrière, Pilotage de la communication), un
-tableau de bord, un centre de notifications et les écrans du pilotage de la communication. Ce
-document décrit l'état qui en résulte.
+tableau de bord, un centre de notifications et les écrans du pilotage de la communication.
+L'intervention du 28/11/2026 (version 1.1) a fait de l'anglais la langue de rédaction, donné à
+Pupitre sa charte graphique, et ajouté les aperçus à valider, les zones de dépôt des concerts, les
+résultats des publications (Metricool), la veille et le courrier : la section « Évolutions du
+28/11/2026 » les décrit. Ce document décrit l'état qui en résulte.
 
 Quatre règles tiennent tout le reste :
 
@@ -69,6 +72,9 @@ Quatre règles tiennent tout le reste :
 | `PILOTE_EMAIL`, `PILOTE_NOM` | compte pilote créé par la reprise |
 | `ANTHROPIC_API_KEY` | clé de l'API d'Anthropic : import des concerts, lecture d'un article, traduction, géolocalisation. Sans elle, tout reste faisable à la main |
 | `ANTHROPIC_MODELE` | modèle. Vide : `claude-opus-5-5` |
+| `ANTHROPIC_MODELE_RECHERCHE` | modèle des recherches sur le web (complément de l'annuaire, veille). Vide : le même. Ces recherches lisent beaucoup de pages : un modèle plus léger en réduit le coût |
+| `METRICOOL_JETON`, `METRICOOL_UTILISATEUR` | jeton d'API et identifiant du compte Metricool (Metricool › Paramètres du compte › API). La marque se choisit dans les réglages de Pupitre |
+| `IMAP_HOTE`, `IMAP_PORT`, `IMAP_UTILISATEUR`, `IMAP_MOT_DE_PASSE`, `IMAP_DOSSIER` | boîte de l'expéditeur, lue pour suivre les retours des mails. Boîte OVH : `ssl0.ovh.net`, `993`, l'adresse complète, `INBOX` |
 | `MAILJET_CLE`, `MAILJET_SECRET`, `MAIL_EXPEDITEUR`, `MAIL_EXPEDITEUR_NOM` | envoi des mails par Mailjet. Sans clé, les messages sont écrits dans `stockage/journaux/mails.log` |
 | `PHP_CLI`, `PYTHON3`, `FFMPEG` | chemins complets des outils. Vides : cherchés sur le poste |
 
@@ -121,6 +127,7 @@ php pupitre/sql/migrer.php            passe les migrations en attente (sauvegard
 php pupitre/sql/migrer.php --etat     dit où en est la base
 php pupitre/sql/migrer.php --defaire  retire la dernière migration (sauvegarde d'abord)
 php pupitre/sql/structure.php         réécrit sql/installation/2-structure.sql (référence)
+php pupitre/sql/mise-a-jour.php       écrit mise-a-jour-base/pupitre-mise-a-jour-AAAAMMJJ.sql, pour la base d'un autre poste
 ```
 
 Tant qu'une migration attend, Pupitre n'ouvre que l'écran « Base de données », où le pilote la
@@ -138,13 +145,20 @@ passe d'un bouton. Les dix migrations en place :
 | 008 | import des concerts : annulation annoncée | aucune |
 | 009 | anglais par défaut, téléchargements, cadrage de « Restons en contact » | les 4 ressources, publiées |
 | 010 | pilotage de la communication (actions, concerts associés), niveaux des alertes | aucune ; la place gardée `publications_reseaux`, vide, est retirée |
+| 011 | l'anglais devient la langue de rédaction ; le français, une traduction | chaque texte : sa traduction anglaise validée devient le texte de référence, le français est gardé comme traduction validée ; les traductions anglaises seulement proposées attendent sur l'écran « Langues » |
+| 012 | aperçus à valider, zones de dépôt, publications des réseaux, veille, courrier, mise en page du tableau de bord | aucune ; les trois rubriques d'album retirées étaient vides (gardées dans un réglage si elles ne l'étaient pas) |
 
 ## Tâches de fond et cron
 
 Une table de tâches (`taches`), exécutée par `cron/taches.php` : lecture d'un extrait de l'agence,
-lecture d'un article de presse, propositions de traduction, analyse d'une bande-son. Le même
-script recalcule les alertes une fois par nuit et efface les lectures d'articles de plus de deux
-jours. Une requête web ne porte jamais un travail long (MAMP coupe à trente secondes).
+lecture d'un article de presse, propositions de traduction, analyse d'une bande-son, relevé des
+publications (Metricool), recherche des comptes d'une fiche par l'IA, collecte de la veille, relevé
+de la boîte aux lettres. À chaque passage, le même script retire les aperçus expirés, envoie les
+invitations de la veille des concerts (à partir de neuf heures) et, toutes les demi-heures, relève la
+boîte aux lettres si elle est reliée. Une fois par nuit, il recalcule les alertes, lance la collecte
+de la veille et le relevé des publications, et efface les lectures d'articles de plus de deux
+jours. Sur un poste sans cron, l'ouverture du tableau de bord fait le strict nécessaire (aperçus
+expirés, invitations de la veille). Une requête web ne porte jamais un travail long (MAMP coupe à trente secondes).
 
 ```
 0-59/5 * * * * /chemin/vers/php /chemin/vers/pupitre/cron/taches.php >/dev/null 2>&1
@@ -194,29 +208,42 @@ sont ces deux fichiers qu'on adapte.
 
 ## Interface et design system
 
-L'interface est contemporaine et sobre : un fond clair, des cartes blanches aux angles doux, un
-indigo pour l'action, Poppins pour le texte. Elle tient en quatre fichiers, sans bibliothèque :
+L'interface suit la **charte graphique de Pupitre** (`ressources/charteGraphique/`, version 1.0) :
+un fond clair et chaud (lin), une navigation marine, une seule couleur vive (mandarine) pour les
+actions et les repères, Outfit pour les titres et Manrope pour tout le reste. Aplats, pas de
+dégradé, pas d'ombre, coins très arrondis. Trois règles passent avant tout : jamais de texte blanc
+sur mandarine (le texte y est marine) ; la mandarine sert aux actions et aux repères, jamais au
+texte courant (un lien est cuivre) ; un seul bouton plein par zone. Elle tient en quatre fichiers,
+sans bibliothèque :
 
 | Fichier | Ce qu'il porte |
 |---|---|
 | `ressources/css/pupitre.css` | les jetons (variables CSS) et tous les composants |
-| `gabarits/composants.php` | les fonctions qui écrivent un composant : champs, tuiles, indicateurs, états vides… |
+| `gabarits/composants.php` | les fonctions qui écrivent un composant : champs, tuiles, indicateurs, états vides, logotype (`marque_logo()`, `marque_tete()`), pages hors connexion… |
 | `inclus/icones.php` | les pictogrammes, en SVG dans la page : `icone('concerts')` |
 | `ressources/js/pupitre.js` | les comportements, par attributs `data-` ; aucun script dans les pages |
 
-« Administration › Bibliothèque d'interface » montre le tout sur pièces : couleurs, typographie,
-boutons, étiquettes, messages, champs, tuiles, tableaux, notifications, pictogrammes, chacun avec
-son balisage. C'est la référence à ouvrir avant d'écrire un écran.
+`ressources/marque/` porte les logos, le symbole, les icônes et les logos des mails, recopiés du
+pack de la charte ; le logotype ne se recompose jamais en texte. Le dossier de la charte lui-même
+(`ressources/charteGraphique/`) n'est pas servi par le web. Les mails suivent la même charte
+(`inclus/mail.php` : tableaux de 600 px, bandeau marine, bouton mandarine à texte marine).
 
-**Trois étages de jetons.** La palette (`--indigo-600`, `--gris-200`, `--e-4`, `--r-lg`) ; les
-rôles, qui disent à quoi sert une valeur (`--primaire`, `--surface`, `--texte-doux`, `--trait`) ;
-les réglages propres à un composant (`--tuile-fond`). Un composant passe toujours par un rôle :
-changer l'identité de l'interface, c'est changer les deux premiers étages, en tête de la feuille
-de style, et rien d'autre.
+« Administration › Bibliothèque d'interface » montre le tout sur pièces : règles, logotype,
+couleurs, typographie, boutons, étiquettes, messages, champs, tuiles, tableaux, notifications,
+pictogrammes, chacun avec son balisage. C'est la référence à ouvrir avant d'écrire un écran.
 
-**Rien ne vient d'ailleurs.** La police (Poppins, licence OFL) est dans `ressources/polices/`, les
-pictogrammes (tracés de Lucide, licence ISC) sont recopiés dans `inclus/icones.php` : aucune
-requête ne part vers un service tiers, et la politique de sécurité du contenu reste `'self'`.
+**Trois étages de jetons.** La palette, celle de la charte et elle seule (`--pp-marine`,
+`--pp-mandarine`, `--pp-lin`…, avec quelques mélanges pour les surfaces et les traits) ; les rôles,
+qui disent à quoi sert une valeur (`--primaire` est un fond, `--accent` un texte, `--surface`,
+`--texte-doux`, `--trait`) ; les réglages propres à un composant (`--tuile-fond`). Un composant
+passe toujours par un rôle. Deux écarts assumés à la lettre de la charte, pour l'accessibilité : le
+bord d'un champ est plus soutenu que le « trait » (3:1 exigé), et les couleurs d'état sont celles
+que la charte propose « à valider ».
+
+**Rien ne vient d'ailleurs.** Les polices (Outfit et Manrope, licence OFL) sont dans
+`ressources/polices/`, les pictogrammes (tracés de Lucide, licence ISC) sont recopiés dans
+`inclus/icones.php` : aucune requête ne part vers un service tiers, et la politique de sécurité du
+contenu reste `'self'`.
 
 **Accessibilité.** Tenue au niveau AA des règles WCAG 2.2, et vérifiée par `tests/interface.py` :
 contraste des textes (4,5:1), bord des champs perceptible (3:1), un nom accessible pour chaque
@@ -365,50 +392,49 @@ la couleur d'origine), langues et traductions, réglages, base de données, comp
 
 ## Langues et traductions
 
-Les contenus sont rédigés dans la **langue de référence** (le français). Son texte vit dans les
-tables des objets (colonnes `champ_fr`). Toutes les autres langues vivent dans la table
-`traductions` : une ligne par objet, champ et langue, avec son statut. Ce qui n'est pas du texte
-(dates, coordonnées, liens, relations) n'existe qu'une fois. `TRADUISIBLES`, dans
+Les contenus sont rédigés dans la **langue de rédaction : l'anglais** (migration 011). Son texte vit
+dans les tables des objets (colonnes `champ_en`). Toutes les autres langues, le français compris,
+vivent dans la table `traductions` : une ligne par objet, champ et langue, avec son statut. Ce qui
+n'est pas du texte (dates, coordonnées, liens, relations) n'existe qu'une fois. `TRADUISIBLES`, dans
 `inclus/langues.php`, dit table par table quels champs se traduisent.
+
+**Sur les écrans de saisie, on n'écrit que l'anglais.** Chaque champ traduisible (`champ_tr()`)
+porte la marque « EN » et, pour chaque autre langue, un lien qui dit où en est sa traduction
+(validée, proposée, à revoir, à traduire) et mène à sa ligne sur l'écran « Traductions ».
+
+**L'écran « Traductions »** (Site internet › Mise en ligne) liste tous les textes, langue par
+langue, par sections : textes des pages, concerts, presse, discographie, parcours, playlist,
+téléchargements, contacts, médias, annuaire. Chaque ligne montre le texte anglais et sa traduction,
+qui se saisit ou se corrige sur place ; l'IA peut proposer ce qui manque (une section, ou un seul
+texte), et chaque proposition se relit et se valide.
 
 | Statut | Sens | Sur le site |
 |---|---|---|
 | validée | saisie ou relue par une personne | oui |
-| proposée | proposée par l'IA, pas encore relue | non : le site garde le texte de référence |
-| à revoir | validée, mais le texte de référence a changé depuis | oui, et elle est signalée |
-| sans traduction | rien n'est saisi | le site affiche le texte de référence |
+| proposée | proposée par l'IA, pas encore relue | non : le site garde le texte anglais |
+| à revoir | validée, mais le texte anglais a changé depuis | oui, et elle est signalée |
+| sans traduction | rien n'est saisi | le site affiche le texte anglais |
 
-La **langue de la première visite** est l'anglais. Le site s'ouvre dans cette langue, sauf si
-l'adresse en demande une autre (`?lang=fr`) ou si le visiteur en a déjà choisi une, que son
-navigateur retient. La langue du navigateur n'est pas consultée. Le HTML statique des pages
-(celui que lisent un moteur de recherche et un visiteur sans JavaScript) est écrit dans la langue
-de la première visite à chaque publication : `<html lang>`, titre, description, menus, intitulés,
-contenus de repli, dates.
-
-L'écran « Langues et traductions » a trois onglets : les langues ; toutes les traductions, filtrées
-par langue, par état et par partie du site ; les libellés de l'interface du site.
+**L'écran « Langues »** ajoute, retire, active et ordonne les langues. L'anglais est toujours la
+première langue de la bascule du site et celle de la première visite, sauf si l'adresse en demande
+une autre (`?lang=fr`) ou si le visiteur en a déjà choisi une. La bascule du site suit la liste
+d'elle-même à la publication. Le HTML statique des pages est écrit en anglais.
 
 ### Ajouter une langue
 
-1. « Langues et traductions », onglet « Langues », « Ajouter une langue » : son code (`de`), son nom
-   dans cette langue (`Deutsch`), son nom en français, le format de ses dates (`de-DE`). Elle est
-   créée **inactive** : elle se prépare sans paraître sur le site. Aucune colonne n'est ajoutée à
-   la base.
-2. Onglet « Traductions », cette langue : traduire. Chaque formulaire de Pupitre montre aussi, sous
-   chaque champ traduisible, un champ par langue. « Proposer les traductions manquantes » demande
-   une proposition à l'IA pour tout ce qui manque ; chaque proposition se relit, se corrige et se
-   valide (case « valider cette proposition », ou « Tout cocher »).
+1. « Langues », « Ajouter une langue » : son code (`de`), son nom dans cette langue (`Deutsch`), son
+   nom en français, le format de ses dates (`de-DE`). Elle est créée hors du site : elle se prépare
+   sans paraître. Aucune colonne n'est ajoutée à la base.
+2. « Traductions », cette langue : traduire, section par section. « Proposer les traductions
+   manquantes » demande une proposition à l'IA ; chaque proposition se relit, se corrige et se valide.
 3. Traduire les pages rédigées à la main : `mentions-legales.html`, `confidentialite.html` et
    `credits.html` portent un bloc par langue (`<div class="legal" data-langue-bloc="de" lang="de">`).
-   Sans bloc dans cette langue, la page montre celui de la langue de la première visite.
-4. Onglet « Langues » : cocher « active », enregistrer. Pour en faire la langue de la première
-   visite : « par défaut ».
-5. Publier (« Le site »). Le site reçoit la langue dans sa bascule (FR | EN | DE), ses libellés et
-   ses contenus ; les dates suivent son format.
+   Sans bloc dans cette langue, la page montre celui de l'anglais.
+4. « Langues » : cocher « sur le site », régler sa place dans la bascule.
+5. Publier (« Le site ») : la bascule devient EN | FR | DE.
 
 Retirer une langue : la décocher (elle quitte le site, ses traductions restent), ou la supprimer
-avec ses traductions. La langue de référence et la langue par défaut ne se suppriment pas.
-
+avec ses traductions. L'anglais ne se retire pas.
 
 ## Blocs visuels
 
@@ -482,6 +508,87 @@ script ne se saisit dans Pupitre, et une valeur hors du registre est refusée.
 Le module existant, `lumiere` (découpes de lumière, `js/lumiere.js`), est déclaré ainsi, sans que
 son algorithme ait été modifié. Ses préréglages `bleuse-1` et `bleuse-3` sont dessinés pour ces
 deux photographies ; `generique` suit le point de cadrage de toute autre image.
+
+## Évolutions du 28/11/2026
+
+**Couleur de fond du site : un seul fichier.** La couleur (variables `--bg`, `--bg-rvb`) et les
+blocs masqués étaient recopiés dans le `<head>` de chacune des six pages, et la couleur aussi dans
+`data/site.js`, que rien ne lisait : sept fichiers pour une couleur. Ils tiennent désormais dans
+`css/reglages.css`, que Pupitre génère (`site_reglages_css()`) et que chaque page charge après
+`css/site.css`. Changer la couleur ne fait plus qu'un écart. Une page qui porterait encore
+l'ancienne zone est convertie à la publication suivante (`repli_convertir_reglages()`). À chaque
+publication, les pages reçoivent toujours leur numéro de version `?v=` : c'est lui qui fait
+recharger aux navigateurs un fichier modifié ; le message de publication distingue désormais les
+fichiers modifiés des pages qui ne reçoivent que ce numéro.
+
+**Aperçus et validations** (`inclus/apercu.php`, `pages/site/apercus.php`, `apercu.php`). Un aperçu
+est une copie figée du site tel qu'il serait publié, dans `<site>/apercu/<jeton>/` (hors git) :
+pages, données et feuilles de style du moment ; les médias en ligne ne sont pas recopiés, ceux qui
+attendent leur publication sont rangés dans la copie. Son adresse se partage ; il expire (un jour à
+un mois) et son dossier est alors retiré (cron, écran « Le site », tableau de bord ; son bandeau le
+déclare expiré d'ici là). Pour une validation, Pupitre envoie à un compte un lien personnel : il
+mène à l'aperçu, avec un bouton « Valider » qui ouvre le procès-verbal (valider, ou demander des
+corrections). La décision, la déclaration acceptée, la date, l'adresse IP et le navigateur sont
+gardés ; le pilote est prévenu par mail et par une notification. L'empreinte de l'aperçu (SHA-256
+de ce qui serait publié) dit, sur l'écran de publication, si ce qu'on s'apprête à publier est bien
+ce qui a été validé. C'est une signature électronique simple, pas une signature qualifiée.
+
+**Zones de dépôt** (`inclus/depot.php`, `depot.php`, « Images des concerts »). La fiche d'un concert
+porte un contact « communication » (nom, adresse, langue du mail). La veille de la première date, à
+partir de neuf heures, le cron lui envoie l'adresse de la zone de dépôt du concert ; la fiche permet
+aussi de l'envoyer à la main, de la copier, de fermer la zone. La page de dépôt, sans compte, en
+français ou en anglais, reçoit photos et courtes vidéos : le type est relu sur le fichier, jamais
+sur son nom. Les fichiers sont rangés dans `stockage/depots/`, hors du web ; « Retenir » en met une
+copie dans la médiathèque avec le crédit donné par le déposant. `pupitre/.user.ini` demande 300 Mo
+par envoi à PHP (CGI ou FPM) ; l'écran dit la limite en vigueur. Google Drive : non fait. Il
+faudrait un compte de service Google, membre d'un Drive partagé (un compte de service n'a pas
+d'espace de stockage à lui), et l'envoi par l'API Drive ; le stockage sur le serveur ne dépend de
+personne et suffit pour commencer.
+
+**Résultats des publications** (`inclus/metricool.php`, « Résultats des publications »). Pupitre lit
+dans Metricool ce qui a été publié sur les comptes de l'artiste, par lui ou autrement, et les
+mesures de chaque publication ; chaque résultat est rapporté à la médiane de son réseau sur la
+période. Une publication « vient de Pupitre » quand une action de communication lui correspond
+(même adresse, ou même réseau, même jour et même début de texte) : l'action passe alors à
+« publiée ». Les réglages portent deux marques, celle des vrais comptes et celle de comptes de
+test, et un mode actif ; basculer ne supprime rien.
+
+**Comptes des parties prenantes et IA** (`inclus/ia_recherche.php`). L'annuaire porte déjà les
+comptes de chaque fiche (proposé, vérifié, à revoir). L'IA peut chercher sur le web le site officiel
+et les comptes officiels d'une fiche (outil de recherche de l'API d'Anthropic) : ils entrent
+« proposés », avec la page où ils ont été trouvés, et se valident sur la fiche ou au tableau de bord.
+Sur une publication, la carte « Comptes à identifier » donne, pour le réseau choisi, les
+identifiants vérifiés des orchestres, salles et solistes des concerts associés, prêts à coller.
+
+**Veille** (`inclus/veille.php`, « Veille »). Trois sources : des flux d'actualités (Google
+Actualités, par recherche et par pays), une recherche de l'IA sur le web (ce que les flux ne voient
+pas, avec une première lecture : l'artiste est-il identifié, ou seulement cité), et l'ajout à la
+main. Un signalement arrive « à lire » ; on le retient (il peut devenir un article de la revue de
+presse), on le partage (une action de communication est créée), ou on l'écarte. Collecte chaque
+nuit par le cron (la recherche de l'IA deux fois par semaine), et à la demande.
+
+**Courrier** (`inclus/courrier.php`, « Courrier »). Chaque mail envoyé par Pupitre est noté. La boîte
+de l'expéditeur est lue par IMAP, en lecture seule (client écrit dans Pupitre, sans extension) :
+réponses, messages d'absence, avis de non-remise sont rattachés à l'envoi auquel ils répondent ;
+le reste de la boîte n'est ni copié ni montré. Mailjet dit ce que sont devenus les envois (remis,
+ouvert, rejeté). Aucun mail ne part vers une adresse d'essai (`.test`, `example.com`…).
+
+**Tableau de bord.** Les raccourcis sont en haut. « Mise en page » replie les blocs à leur titre et
+les rend déplaçables, par leur poignée ou par leurs flèches, entre trois zones (haut, gauche,
+droite) ; la disposition est enregistrée par compte (`comptes.preferences`).
+
+**Revue de presse.** La composition de l'accueil se fait sur la grille : on fait glisser un article
+(ou on emploie ses flèches), on choisit sa largeur ; le numéro d'ordre se déduit de la place, la
+grille se redessine et tout s'enregistre aussitôt (`ajax/presse.php`).
+
+**Discographie.** Le label et l'orchestre d'un album se choisissent dans l'annuaire ou se créent
+depuis la fiche de l'album (`champ_annuaire()`) : un nom nouveau ouvre sa fiche à l'enregistrement.
+Les textes d'un album se réduisent à la présentation et à la note de l'artiste.
+
+**Concerts.** Plus de type à choisir : un concert est un concert. Des dates dans des lieux
+différents en font de lui-même une tournée (`concert_nature()`), et le site donne alors son lieu à
+chaque date. Les fiches « opéra » et « disque » d'avant, ou venues de l'extrait de l'agence, gardent
+leur nature.
 
 ## Rôles
 
@@ -673,6 +780,7 @@ l'alerte une semaine, « Ignorer » la cache tant que son sujet ne change pas.
 | `php pupitre/sql/migrer.php --etat` | toutes les migrations sont passées | oui |
 | `python3 pupitre/tests/parcours.py` | dans Chrome : chaque écran, parcours complet (citation, album, concert annoncé, publication, vérification sur le site, retour en arrière), droits des trois rôles, vue de l'artiste à 390 px et au clavier | oui, remise en état à la fin |
 | `python3 pupitre/tests/interface.py` | dans Chrome : le cadre (menu, tiroir, notifications, compte, recherche), le pilotage de la communication de bout en bout, les tableaux de 320 à 1440 px (aucune colonne écrasée, fiches empilées à l'étroit), l'accessibilité de trente écrans à 1440 px et à 320 px | oui, remise en état à la fin |
+| `python3 pupitre/tests/nouveautes.py` | dans Chrome, avec de vrais gestes de souris : glisser-déposer (accueil de la presse, mise en page du tableau de bord), fiche album, aperçu du site et procès-verbal de validation, zone de dépôt (dépôt réel d'une photo, refus d'un faux fichier), puis Metricool, veille et courrier sur de faux services locaux (`tests/faux-services.py`), jamais sur les vrais | oui, remise en état à la fin |
 | `python3 outils/temoin.py capturer dossier`, puis `comparer` | le rendu du site, section par section, face à un témoin | non |
 
 `tests/annonce.php` et `tests/import.php` travaillent dans une transaction annulée à la fin.
@@ -776,7 +884,16 @@ qui lisent du français le demandent par `?lang=fr`. Le témoin d'avant l'interv
   collaborations, confirmation du CBSO, validation des données géographiques, bleu nuit.
 - Éprouver l'import des concerts sur les documents réels de l'agence, quand ils seront transmis :
   la lecture par l'IA tourne (essais sur des extraits fictifs), le format réel reste à voir.
-- Renseigner Mailjet pour que les liens partent par mail ; installer le cron sur le serveur.
+- Renseigner Mailjet pour que les liens partent par mail ; installer le cron sur le serveur (il porte
+  aussi l'invitation de la veille des concerts, la veille de la nuit et le relevé de la boîte).
+- Relier Metricool (`METRICOOL_JETON`, `METRICOOL_UTILISATEUR`), choisir les deux marques dans les
+  réglages ; relier la boîte de l'expéditeur (`IMAP_*`). Les deux connexions ont été écrites d'après
+  la documentation et éprouvées sur de faux services : un premier relevé réel reste à faire.
+- Zones de dépôt : sur le serveur, vérifier la taille d'envoi acceptée (écran « Images des
+  concerts ») et, sous nginx, que `pupitre/stockage/` et `pupitre/.user.ini` ne sont pas servis.
+  L'envoi des fichiers vers Google Drive n'est pas fait (voir « Évolutions du 28/11/2026 »).
+- Publier depuis Pupitre vers Metricool (programmer une publication) n'est pas fait : Pupitre lit,
+  il n'envoie pas encore. Le client (`metricool_appeler()`) et la bascule vers la marque de test sont là.
 - Compléter les fiches : liens source, billetteries, fuseaux de Porto et de Valladolid.
 - Pilotage de la communication, seconde phase : spécifications détaillées, connexion aux réseaux
   sociaux et à l'outil d'envoi de la lettre, inscriptions. Le modèle et les écrans l'attendent.
@@ -784,16 +901,14 @@ qui lisent du français le demandent par `?lang=fr`. Le témoin d'avant l'interv
   dans Chrome (bureau, et téléphone émulé).
 - Reportée par le cahier des charges (section 77) : la synchronisation sonore avancée entre la
   musique d'ouverture et la première vidéo. Rien n'a été développé sur ce sujet.
-- Hors de cette version, avec une place gardée dans la base : mails automatiques, liens de dépôt
-  pour les photographes, visuels générés, veille de presse, statistiques, plusieurs artistes, mise
-  en ligne automatique.
+- Hors de cette version : visuels générés, plusieurs artistes, mise en ligne automatique.
 
 ## Poste de développement (relevé du 12/11/2026, inchangé le 27/11/2026)
 
 | Outil | Version | Où |
 |---|---|---|
 | PHP servi par Apache | 8.3.14 | MAMP, `http://localhost:8888/` |
-| PHP en ligne de commande | 8.3.14 et 8.4.1 | `/Applications/MAMP/bin/php/php8.3.14/bin/php` (absent du PATH) |
+| PHP en ligne de commande | 8.4.1 | `/Applications/MAMP/bin/php/php/bin/php` (absent du PATH). Relevé du 28/11/2026 : sur ce poste, la version 8.3.14 de MAMP n'a que `php-cgi` ; `php_cli()` cherche de lui-même une version voisine, et les essais se lancent avec `PHP_CLI=/Applications/MAMP/bin/php/php/bin/php` |
 | MySQL | 8.0.40 | MAMP, port 8889 |
 | Python | 3.15.2 | `/opt/homebrew/bin/python3` |
 | ffmpeg | 8.0 | `/opt/homebrew/bin/ffmpeg` |

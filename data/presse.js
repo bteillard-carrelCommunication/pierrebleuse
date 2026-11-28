@@ -6,8 +6,8 @@ window.PRESSE = [
     "media": "Fanfare",
     "logo": "",
     "titre": {
-      "fr": "À propos de *Ravel Abroad*",
-      "en": "On *Ravel Abroad*"
+      "en": "On *Ravel Abroad*",
+      "fr": "À propos de *Ravel Abroad*"
     },
     "auteur": "Colin Clarke",
     "date": "",
@@ -30,8 +30,8 @@ window.PRESSE = [
     "media": "Le Monde",
     "logo": "",
     "titre": {
-      "fr": "Portrait",
-      "en": "Profile"
+      "en": "Profile",
+      "fr": "Portrait"
     },
     "auteur": "Pierre Gervasoni",
     "date": "2024-06-22",
@@ -48,8 +48,8 @@ window.PRESSE = [
     "media": "The Guardian",
     "logo": "",
     "titre": {
-      "fr": "Critique du disque *Unsuk Chin*",
-      "en": "Review of the *Unsuk Chin* album"
+      "en": "Review of the *Unsuk Chin* album",
+      "fr": "Critique du disque *Unsuk Chin*"
     },
     "auteur": "Fiona Maddocks",
     "date": "2026-02-13",
@@ -66,8 +66,8 @@ window.PRESSE = [
     "media": "Gramophone",
     "logo": "",
     "titre": {
-      "fr": "Critique du disque *Ligeti*",
-      "en": "Review of the *Ligeti* album"
+      "en": "Review of the *Ligeti* album",
+      "fr": "Critique du disque *Ligeti*"
     },
     "auteur": "Richard Whitehouse",
     "date": "2024-06",
@@ -84,8 +84,8 @@ window.PRESSE = [
     "media": "Contrepoint",
     "logo": "assets/presse/exemples/contrepoint.svg",
     "titre": {
-      "fr": "Pierre Bleuse, la clarté comme manifeste",
-      "en": "Pierre Bleuse: clarity as a manifesto"
+      "en": "Pierre Bleuse: clarity as a manifesto",
+      "fr": "Pierre Bleuse, la clarté comme manifeste"
     },
     "auteur": "Claire Duvernay",
     "date": "2026-10-08",
@@ -99,8 +99,8 @@ window.PRESSE = [
     ],
     "chapeau": "",
     "resume": {
-      "fr": "Rencontre avec le directeur musical de l’Ensemble intercontemporain, entre deux répétitions, sur la transmission du répertoire d’aujourd’hui.",
-      "en": "An interview with the music director of the Ensemble intercontemporain, between two rehearsals, on passing on today’s repertoire."
+      "en": "An interview with the music director of the Ensemble intercontemporain, between two rehearsals, on passing on today’s repertoire.",
+      "fr": "Rencontre avec le directeur musical de l’Ensemble intercontemporain, entre deux répétitions, sur la transmission du répertoire d’aujourd’hui."
     },
     "infos": "",
     "lien": "https://example.com/contrepoint/pierre-bleuse",
@@ -115,8 +115,8 @@ window.PRESSE = [
     "media": "The Score Weekly",
     "logo": "assets/presse/exemples/the-score.svg",
     "titre": {
-      "fr": "Critique du disque *Ligeti*",
-      "en": "Review of the *Ligeti* album"
+      "en": "Review of the *Ligeti* album",
+      "fr": "Critique du disque *Ligeti*"
     },
     "auteur": "Hannah Whitcombe",
     "date": "2026-09-19",
@@ -130,8 +130,8 @@ window.PRESSE = [
     ],
     "chapeau": "",
     "resume": {
-      "fr": "Le critique salue une lecture des concertos à la fois rigoureuse et chantante, servie par une prise de son d’une grande transparence.",
-      "en": "The reviewer praises a reading of the concertos both rigorous and lyrical, served by a recording of great transparency."
+      "en": "The reviewer praises a reading of the concertos both rigorous and lyrical, served by a recording of great transparency.",
+      "fr": "Le critique salue une lecture des concertos à la fois rigoureuse et chantante, servie par une prise de son d’une grande transparence."
     },
     "infos": "",
     "lien": "https://example.com/the-score/ligeti-review",
@@ -146,8 +146,8 @@ window.PRESSE = [
     "media": "Klangbild",
     "logo": "assets/presse/exemples/klangbild.svg",
     "titre": {
-      "fr": "Un chef français à Stuttgart",
-      "en": "A French conductor in Stuttgart"
+      "en": "A French conductor in Stuttgart",
+      "fr": "Un chef français à Stuttgart"
     },
     "auteur": "Stefan Kranich",
     "date": "2026-07-02",
@@ -161,8 +161,8 @@ window.PRESSE = [
     ],
     "chapeau": "",
     "resume": {
-      "fr": "Compte rendu d’un concert avec le SWR Symphonieorchester, où la *Symphonie fantastique* retrouve sa part de rêve et d’inquiétude.",
-      "en": "A concert review with the SWR Symphonieorchester, in which the *Symphonie fantastique* regains its share of dream and unease."
+      "en": "A concert review with the SWR Symphonieorchester, in which the *Symphonie fantastique* regains its share of dream and unease.",
+      "fr": "Compte rendu d’un concert avec le SWR Symphonieorchester, où la *Symphonie fantastique* retrouve sa part de rêve et d’inquiétude."
     },
     "infos": "",
     "lien": "https://example.com/klangbild/stuttgart",
@@ -177,8 +177,8 @@ window.PRESSE = [
     "media": "L’Écho lyrique",
     "logo": "assets/presse/exemples/l-echo-lyrique.svg",
     "titre": {
-      "fr": "Prades, un festival qui respire",
-      "en": "Prades, a festival that breathes"
+      "en": "Prades, a festival that breathes",
+      "fr": "Prades, un festival qui respire"
     },
     "auteur": "Julien Morel",
     "date": "2026-08-14",
@@ -192,8 +192,8 @@ window.PRESSE = [
     ],
     "chapeau": "",
     "resume": {
-      "fr": "Retour sur l’édition 2026 du Festival Pablo Casals, sa programmation entre musique de chambre et créations, et l’abbaye Saint-Michel-de-Cuxa comme écrin.",
-      "en": "A look back at the 2026 Pablo Casals Festival, its programme between chamber music and premieres, set in the abbey of Saint-Michel-de-Cuxa."
+      "en": "A look back at the 2026 Pablo Casals Festival, its programme between chamber music and premieres, set in the abbey of Saint-Michel-de-Cuxa.",
+      "fr": "Retour sur l’édition 2026 du Festival Pablo Casals, sa programmation entre musique de chambre et créations, et l’abbaye Saint-Michel-de-Cuxa comme écrin."
     },
     "infos": "",
     "lien": "https://example.com/echo-lyrique/prades-2026",
@@ -208,8 +208,8 @@ window.PRESSE = [
     "media": "Mesures",
     "logo": "assets/presse/exemples/mesures.svg",
     "titre": {
-      "fr": "*Répons*, l’espace pour instrument",
-      "en": "*Répons*, with space as an instrument"
+      "en": "*Répons*, with space as an instrument",
+      "fr": "*Répons*, l’espace pour instrument"
     },
     "auteur": "Margot Lefèvre",
     "date": "2026-05-27",
@@ -223,8 +223,8 @@ window.PRESSE = [
     ],
     "chapeau": "",
     "resume": {
-      "fr": "À la Philharmonie de Paris, l’Ensemble intercontemporain redonne l’œuvre emblématique de Pierre Boulez dans un dispositif spatialisé.",
-      "en": "At the Philharmonie de Paris, the Ensemble intercontemporain revives Pierre Boulez’s emblematic work in a spatialised set-up."
+      "en": "At the Philharmonie de Paris, the Ensemble intercontemporain revives Pierre Boulez’s emblematic work in a spatialised set-up.",
+      "fr": "À la Philharmonie de Paris, l’Ensemble intercontemporain redonne l’œuvre emblématique de Pierre Boulez dans un dispositif spatialisé."
     },
     "infos": "",
     "lien": "https://example.com/mesures/repons",
@@ -239,8 +239,8 @@ window.PRESSE = [
     "media": "Podium Review",
     "logo": "assets/presse/exemples/podium-review.svg",
     "titre": {
-      "fr": "Une soirée Unsuk Chin éblouissante",
-      "en": "A dazzling Unsuk Chin evening"
+      "en": "A dazzling Unsuk Chin evening",
+      "fr": "Une soirée Unsuk Chin éblouissante"
     },
     "auteur": "Daniel Ashworth",
     "date": "2026-03-11",
@@ -254,8 +254,8 @@ window.PRESSE = [
     ],
     "chapeau": "",
     "resume": {
-      "fr": "Le concert de sortie du disque consacré à Unsuk Chin, entre virtuosité des solistes et cohésion de l’ensemble.",
-      "en": "The launch concert of the Unsuk Chin album, between the soloists’ virtuosity and the ensemble’s cohesion."
+      "en": "The launch concert of the Unsuk Chin album, between the soloists’ virtuosity and the ensemble’s cohesion.",
+      "fr": "Le concert de sortie du disque consacré à Unsuk Chin, entre virtuosité des solistes et cohésion de l’ensemble."
     },
     "infos": "",
     "lien": "https://example.com/podium/unsuk-chin",
@@ -270,8 +270,8 @@ window.PRESSE = [
     "media": "La Gazette des salles",
     "logo": "assets/presse/exemples/la-gazette-des-salles.svg",
     "titre": {
-      "fr": "Ravel, d’un continent à l’autre",
-      "en": "Ravel, from one continent to another"
+      "en": "Ravel, from one continent to another",
+      "fr": "Ravel, d’un continent à l’autre"
     },
     "auteur": "Antoine Valcourt",
     "date": "2026-01-23",
@@ -285,8 +285,8 @@ window.PRESSE = [
     ],
     "chapeau": "",
     "resume": {
-      "fr": "Le disque *Ravel Abroad* éclaire les échos de l’Amérique et de l’Espagne dans l’œuvre du compositeur.",
-      "en": "The *Ravel Abroad* album sheds light on the echoes of America and Spain in the composer’s work."
+      "en": "The *Ravel Abroad* album sheds light on the echoes of America and Spain in the composer’s work.",
+      "fr": "Le disque *Ravel Abroad* éclaire les échos de l’Amérique et de l’Espagne dans l’œuvre du compositeur."
     },
     "infos": "",
     "lien": "https://example.com/gazette/ravel-abroad",
@@ -301,8 +301,8 @@ window.PRESSE = [
     "media": "Nordisk Musik",
     "logo": "assets/presse/exemples/nordisk-musik.svg",
     "titre": {
-      "fr": "Cinq saisons à Odense",
-      "en": "Five seasons in Odense"
+      "en": "Five seasons in Odense",
+      "fr": "Cinq saisons à Odense"
     },
     "auteur": "Ida Halvorsen",
     "date": "2025-12-05",
@@ -316,8 +316,8 @@ window.PRESSE = [
     ],
     "chapeau": "",
     "resume": {
-      "fr": "Bilan du mandat de chef principal à l’Orchestre symphonique d’Odense, des grandes symphonies aux commandes passées aux compositeurs danois.",
-      "en": "An assessment of his tenure as Chief Conductor of the Odense Symphony Orchestra, from the great symphonies to commissions from Danish composers."
+      "en": "An assessment of his tenure as Chief Conductor of the Odense Symphony Orchestra, from the great symphonies to commissions from Danish composers.",
+      "fr": "Bilan du mandat de chef principal à l’Orchestre symphonique d’Odense, des grandes symphonies aux commandes passées aux compositeurs danois."
     },
     "infos": "",
     "lien": "https://example.com/nordisk/odense",

@@ -15,7 +15,7 @@
    d'empilement : son contenu reste sous la nuée, sauf les blocs qui portent --z-dessus. */
 
 :root {
-  --bg: #000;                    /* couleur de fond générale du site : Pupitre la règle (Apparence), le <head> de chaque page la pose */
+  --bg: #000;                    /* couleur de fond générale du site : Pupitre la règle (Apparence) et l'écrit dans css/reglages.css, chargé après ce fichier */
   --bg-rvb: 0 0 0;               /* la même, en « r v b », pour les fonds translucides : rgb(var(--bg-rvb) / .8) */
   --fg: #f1ece4;
   --muted: #8f8a82;

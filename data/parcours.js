@@ -3,8 +3,8 @@ window.PARCOURS = {
   "fonctions": [
     {
       "intitule": {
-        "fr": "Directeur musical",
-        "en": "Music Director"
+        "en": "Music Director",
+        "fr": "Directeur musical"
       },
       "institution": "Ensemble intercontemporain",
       "debut": "2023",
@@ -14,12 +14,12 @@ window.PARCOURS = {
     },
     {
       "intitule": {
-        "fr": "Directeur artistique",
-        "en": "Artistic Director"
+        "en": "Artistic Director",
+        "fr": "Directeur artistique"
       },
       "institution": {
-        "fr": "Festival Pablo Casals de Prades",
-        "en": "Pablo Casals Festival, Prades"
+        "en": "Pablo Casals Festival, Prades",
+        "fr": "Festival Pablo Casals de Prades"
       },
       "debut": "2021",
       "fin": "",
@@ -27,12 +27,12 @@ window.PARCOURS = {
     },
     {
       "intitule": {
-        "fr": "Chef principal",
-        "en": "Chief Conductor"
+        "en": "Chief Conductor",
+        "fr": "Chef principal"
       },
       "institution": {
-        "fr": "Orchestre symphonique d'Odense",
-        "en": "Odense Symphony Orchestra"
+        "en": "Odense Symphony Orchestra",
+        "fr": "Orchestre symphonique d'Odense"
       },
       "debut": "2021",
       "fin": "2026",

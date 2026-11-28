@@ -4,3 +4,6 @@ _sources/
 pupitre/.env
 pupitre/stockage/*
 !pupitre/stockage/.htaccess
+
+# aperçus du site avant publication : des copies temporaires, générées par Pupitre
+/apercu/

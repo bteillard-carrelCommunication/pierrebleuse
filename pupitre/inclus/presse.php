@@ -10,7 +10,7 @@
  * et sa largeur ; « à la une ». Une mise en avant ne rend jamais visible un article dépublié.
  *
  * Citations : chaque citation est gardée dans sa langue et sa formulation d'origine (texte, langue).
- * Sa traduction est à part (traduction_fr, puis la table des traductions pour les autres langues) :
+ * Sa traduction est à part (traduction_en pour l'anglais, la table des traductions pour les autres langues) :
  * le site ne présente jamais une traduction, ni un résumé, comme la citation d'origine. Une citation
  * proposée par l'IA n'est retenue que si elle se retrouve mot pour mot dans le texte de l'article
  * (citation_dans_texte) ; elle reste « à vérifier » tant qu'une personne ne l'a pas validée.
@@ -53,13 +53,54 @@ function articles_lister(array $f = []): array
     if (($f['etat'] ?? '') === 'accueil') $ou[] = 'p.accueil = 1';
     if (($f['etat'] ?? '') === 'exemples') $ou[] = 'p.exemple = 1';
     if (!empty($f['q'])) {
-        $ou[] = '(p.titre_fr LIKE ? OR p.auteur LIKE ? OR m.nom LIKE ? OR p.resume_fr LIKE ? OR EXISTS (SELECT 1 FROM articles_citations c WHERE c.article_id = p.id AND c.texte LIKE ?))';
+        $ou[] = '(p.titre_en LIKE ? OR p.auteur LIKE ? OR m.nom LIKE ? OR p.resume_en LIKE ? OR EXISTS (SELECT 1 FROM articles_citations c WHERE c.article_id = p.id AND c.texte LIKE ?))';
         $q = '%' . $f['q'] . '%';
         array_push($p, $q, $q, $q, $q, $q);
     }
     return bd_lignes('SELECT p.*, m.nom AS media, m.logo_id,
             (SELECT texte FROM articles_citations c WHERE c.article_id = p.id ORDER BY c.principale DESC, c.ordre, c.id LIMIT 1) AS citation
         FROM articles p LEFT JOIN annuaire m ON m.id = p.media_id WHERE ' . implode(' AND ', $ou) . ' ORDER BY p.ordre, p.id', $p);
+}
+
+/**
+ * Compose l'accueil. $ordre : les articles qui y paraissent, dans l'ordre où ils paraissent ; $largeurs : la
+ * largeur de chacun (1, 2 ou 4 colonnes). Le rang d'un article est sa place dans la liste (1, 2, 3…) : il ne se
+ * saisit pas, il se déduit. Un article absent de la liste quitte l'accueil (il garde sa largeur).
+ * Journalise ce qui a changé. Rend le nombre d'articles modifiés.
+ */
+function accueil_composer(array $ordre, array $largeurs = []): int
+{
+    $ordre = array_values(array_unique(array_filter(array_map('intval', $ordre))));
+    $avant = $apres = [];
+    bd_transaction(function () use ($ordre, $largeurs, &$avant, &$apres) {
+        $rangs = array_flip($ordre);
+        foreach (bd_lignes('SELECT id, cle, accueil, ordre_accueil, largeur FROM articles') as $x) {
+            $id = (int) $x['id'];
+            $sur = isset($rangs[$id]);
+            $largeur = (int) ($largeurs[$id] ?? $x['largeur']);
+            $d = ['accueil' => $sur ? 1 : 0, 'ordre_accueil' => $sur ? $rangs[$id] + 1 : 0, 'largeur' => isset(LARGEURS_ARTICLE[$largeur]) ? $largeur : (int) $x['largeur']];
+            $etait = ['accueil' => (int) $x['accueil'], 'ordre_accueil' => (int) $x['ordre_accueil'], 'largeur' => (int) $x['largeur']];
+            // un article hors de l'accueil ne change pas de rang pour autant : seul son retrait compte
+            if (!$sur && !$etait['accueil']) continue;
+            if ($d == $etait) continue;
+            $avant[$x['cle']] = ['accueil' => $etait['accueil'], 'rang' => $etait['ordre_accueil'], 'largeur' => $etait['largeur']];
+            $apres[$x['cle']] = ['accueil' => $d['accueil'], 'rang' => $d['ordre_accueil'], 'largeur' => $d['largeur']];
+            bd_modifier('articles', $d, ['id' => $id]);
+        }
+    });
+    if ($apres) {
+        journaliser('modification', 'article', null, 'Revue de presse : composition de l\'accueil', $avant, $apres);
+        $GLOBALS['donnees_modifiees'] = true;
+    }
+    return count($apres);
+}
+
+/** Les articles de l'accueil, dans l'ordre où ils paraissent. $tous : articles_lister(). */
+function accueil_articles(array $tous): array
+{
+    $accueil = array_values(array_filter($tous, fn($a) => $a['accueil']));
+    usort($accueil, fn($x, $y) => [(int) $x['ordre_accueil'], (int) $x['id']] <=> [(int) $y['ordre_accueil'], (int) $y['id']]);
+    return $accueil;
 }
 
 /** Identifiant de l'article dans les fichiers du site, unique : « le-monde-portrait ». */
@@ -92,13 +133,13 @@ function article_doublons(array $a, ?int $sauf = null): array
 {
     $trouves = [];
     $adresses = array_values(array_filter(array_map('adresse_canon', [(string) ($a['lien'] ?? ''), (string) ($a['url_canonique'] ?? '')]), 'strlen'));
-    $titre = normaliser(preg_replace('/\*/', '', (string) ($a['titre_fr'] ?? '')));
-    foreach (bd_lignes('SELECT p.id, p.titre_fr, p.lien, p.url_canonique, p.media_id, p.date_article, m.nom AS media FROM articles p LEFT JOIN annuaire m ON m.id = p.media_id') as $b) {
+    $titre = normaliser(preg_replace('/\*/', '', (string) ($a['titre_en'] ?? '')));
+    foreach (bd_lignes('SELECT p.id, p.titre_en, p.lien, p.url_canonique, p.media_id, p.date_article, m.nom AS media FROM articles p LEFT JOIN annuaire m ON m.id = p.media_id') as $b) {
         if ($sauf !== null && (int) $b['id'] === $sauf) continue;
         $raison = '';
         if ($adresses && array_intersect($adresses, array_filter(array_map('adresse_canon', [$b['lien'], $b['url_canonique']]), 'strlen'))) $raison = 'même adresse';
         elseif (!empty($a['media_id']) && (int) $a['media_id'] === (int) $b['media_id']) {
-            $t = normaliser(preg_replace('/\*/', '', $b['titre_fr']));
+            $t = normaliser(preg_replace('/\*/', '', $b['titre_en']));
             if ($titre !== '' && $titre === $t) $raison = 'même média, même titre';
             elseif ($titre !== '' && $t !== '' && ($a['date_article'] ?? '') !== '' && $a['date_article'] === $b['date_article']) {
                 similar_text($titre, $t, $pourcent);
@@ -125,7 +166,8 @@ function citation_dans_texte(string $citation, string $texte): bool
 }
 
 /**
- * Enregistre les citations d'un article. $recues : lignes [id, texte, langue, traduction_fr, traduction_en…, principale, verifiee].
+ * Enregistre les citations d'un article. $recues : lignes [id, texte, langue, traduction_en, principale, verifiee],
+ * et, pour une citation lue par l'IA, ia_tr [langue => traduction proposée] : rangée parmi les traductions à valider.
  * Une seule citation principale : la première cochée, sinon la première de la liste.
  */
 function citations_enregistrer(int $article_id, array $recues, string $principale = ''): void
@@ -145,9 +187,12 @@ function citations_enregistrer(int $article_id, array $recues, string $principal
     if ($rang_principal === null && $lignes) $rang_principal = 0;
     foreach ($lignes as $k => [$i, $id, $r, $texte]) {
         $d = ['texte' => mb_substr($texte, 0, 5000), 'langue' => preg_match('/^[a-z]{2,3}$/', mb_strtolower(trim((string) ($r['langue'] ?? '')))) ? mb_strtolower(trim((string) $r['langue'])) : '',
-            'principale' => $k === $rang_principal ? 1 : 0, 'verifiee' => empty($r['verifiee']) ? 0 : 1, 'ordre' => $k] + recu_bi($r, 'traduction', 5000);
+            'principale' => $k === $rang_principal ? 1 : 0, 'verifiee' => empty($r['verifiee']) ? 0 : 1, 'ordre' => $k] + recu_tr($r, 'traduction', 5000);
         if ($id) { $gardees[] = $id; bd_modifier('articles_citations', $d, ['id' => $id]); }
-        else bd_inserer('articles_citations', $d + ['article_id' => $article_id]);
+        else $id = bd_inserer('articles_citations', $d + ['article_id' => $article_id]);
+        foreach (is_array($r['ia_tr'] ?? null) ? $r['ia_tr'] : [] as $langue => $t) {
+            if (isset(langues_toutes()[$langue]) && $langue !== $d['langue'] && is_string($t)) traduction_poser('articles_citations', (string) $id, 'traduction', (string) $langue, mb_substr($t, 0, 5000), 'ia');
+        }
     }
     foreach ($existantes as $id => $c) if (!in_array($id, $gardees, true)) bd_supprimer('articles_citations', ['id' => $id]);
 }
@@ -183,7 +228,7 @@ function article_supprimer(int $id): void
         bd_requete('DELETE FROM articles_concerts WHERE article_id = ?', [$id]);
         bd_requete('DELETE FROM articles_disques WHERE article_id = ?', [$id]);
         bd_supprimer('medias_usages', ['objet' => 'articles', 'objet_id' => (string) $id]);
-        objet_supprimer('articles', $id, 'article', preg_replace('/\*/', '', $a['titre_fr']) ?: $a['cle']);
+        objet_supprimer('articles', $id, 'article', preg_replace('/\*/', '', $a['titre_en']) ?: $a['cle']);
     });
 }
 
@@ -270,7 +315,7 @@ function visuels_traiter(string $objet, int $id, string $libelle): ?string
     }
     if ($action === 'regler') {
         $r = is_array($_POST['v'][$u['id']] ?? null) ? $_POST['v'][$u['id']] : [];
-        objet_enregistrer('medias_usages', (int) $u['id'], recu_bi($r, 'alt', 500) + ['credit' => mb_substr(trim((string) ($r['credit'] ?? '')), 0, 255), 'publie' => empty($r['publie']) ? 0 : 1], 'visuel', $nom);
+        objet_enregistrer('medias_usages', (int) $u['id'], recu_tr($r, 'alt', 500) + ['credit' => mb_substr(trim((string) ($r['credit'] ?? '')), 0, 255), 'publie' => empty($r['publie']) ? 0 : 1], 'visuel', $nom);
         return '';
     }
     return null;

@@ -136,7 +136,7 @@ function publication_etat(): array
 function publication_representations(): array
 {
     return [
-        'entrent' => bd_lignes("SELECT r.id, r.date, c.titre_fr FROM representations r JOIN concerts c ON c.id = r.concert_id WHERE r.statut = 'annoncee' ORDER BY r.date"),
+        'entrent' => bd_lignes("SELECT r.id, r.date, c.titre_en FROM representations r JOIN concerts c ON c.id = r.concert_id WHERE r.statut = 'annoncee' ORDER BY r.date"),
     ];
 }
 
@@ -200,7 +200,8 @@ function ecrire_lot(string $racine, array $fichiers, string $sauvegarde): array
 }
 
 /**
- * Publie. Rend un résumé : ['fichiers' => n, 'medias' => n, 'representations' => n, 'version' => …].
+ * Publie. Rend un résumé : ['fichiers' => n (écrits), 'contenus' => n (dont le contenu change), 'pages_version' => n
+ * (pages qui ne reçoivent que le numéro de version), 'medias' => n, 'representations' => n, 'version' => …].
  */
 function publier(bool $version_seule = false): array
 {
@@ -214,7 +215,11 @@ function publier(bool $version_seule = false): array
     // main ; les pages reçoivent un nouveau numéro de version pour que les navigateurs rechargent ces fichiers
     if (!$a_ecrire && !$etat['medias'] && !$version_seule) throw new ErreurPublication('Le site est déjà à jour : rien à publier.');
 
-    // le numéro de version des scripts et des feuilles de style, dans toutes les pages
+    // ce dont le contenu change : c'est ce nombre que la publication annonce
+    $contenus = array_keys(array_filter($etat['fichiers'], fn($f) => in_array($f['etat'], ['modifie', 'nouveau'], true)));
+
+    // le numéro de version des scripts et des feuilles de style, dans toutes les pages : c'est lui qui fait
+    // recharger aux navigateurs un fichier modifié (une donnée, css/reglages.css), sans attendre la fin de leur cache
     $pages = site_pages($racine);
     $version = '';
     foreach ($pages as $page) $version = max($version, version_actuelle($etat['fichiers'][$page]['apres'] ?? ''));
@@ -247,7 +252,7 @@ function publier(bool $version_seule = false): array
 
     // la base suit : les représentations annoncées sont désormais publiées
     $c = compte();
-    return bd_transaction(function () use ($lot, $medias_copies, $dossier, $sauvegarde, $nouvelle, $c, $etat) {
+    return bd_transaction(function () use ($lot, $medias_copies, $dossier, $sauvegarde, $nouvelle, $c, $etat, $contenus, $pages) {
         $reps = array_map('intval', bd_colonne("SELECT id FROM representations WHERE statut = 'annoncee'"));
         if ($reps) bd_requete("UPDATE representations SET statut = 'publiee' WHERE statut = 'annoncee'");
         foreach ($etat['medias'] as $source => $cible) {
@@ -265,7 +270,9 @@ function publier(bool $version_seule = false): array
             'representations' => json_encode($reps),
             'version' => $nouvelle,
         ]);
-        $resume = ['fichiers' => count($lot['remplaces']) + count($lot['crees']), 'medias' => count($medias_copies), 'representations' => count($reps), 'version' => $nouvelle];
+        // « fichiers » : tout ce qui a été écrit ; « contenus » : ce dont le contenu a changé ; « pages_version » : les pages qui n'ont reçu que le numéro de version
+        $resume = ['fichiers' => count($lot['remplaces']) + count($lot['crees']), 'contenus' => count($contenus), 'pages_version' => count(array_diff($pages, $contenus)),
+            'medias' => count($medias_copies), 'representations' => count($reps), 'version' => $nouvelle];
         journaliser('publication', 'site', $id, 'Publication du ' . date('d/m/Y à H:i'), null, $resume);
         return $resume;
     });
@@ -300,7 +307,7 @@ function publication_revenir(): array
     $retour = dossier(STOCKAGE . '/publications/' . date('Ymd-His') . '-retour');
     ecrire_lot($racine, $a_remettre, $retour);
     foreach ($manifeste['crees'] ?? [] as $chemin) {
-        if (preg_match('#^(data/[\w.-]+|[\w.-]+\.html)$#', $chemin) && is_file($racine . '/' . $chemin)) {
+        if (preg_match('#^(data/[\w.-]+|css/reglages\.css|[\w.-]+\.html)$#', $chemin) && is_file($racine . '/' . $chemin)) {
             dossier(dirname($retour . '/' . $chemin));
             @copy($racine . '/' . $chemin, $retour . '/' . $chemin);
             @unlink($racine . '/' . $chemin);

@@ -1,0 +1,141 @@
+/* Pupitre, composants de référence
+   À adapter à la structure réelle de l'application.
+   Dépend de tokens.css et de polices/fonts.css. */
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: 400 var(--fs-body)/1.5 var(--font-text);
+}
+
+h1, h2, h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: var(--tracking-display);
+}
+h1 { font-size: var(--fs-h1); line-height: 1; }
+h2 { font-size: var(--fs-h2); line-height: 1.15; }
+h3 { font-size: var(--fs-h3); line-height: 1.25; }
+
+a { color: var(--color-link); }
+a:hover { color: var(--color-text); }
+
+:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+
+/* Libellé de section, en capitales */
+.pp-label {
+  font: 600 var(--fs-label)/1.2 var(--font-text);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+/* Boutons */
+.pp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--control-height);
+  padding: 0 var(--space-5);
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  font: 600 var(--fs-ui)/1 var(--font-text);
+  text-decoration: none;
+  cursor: pointer;
+}
+.pp-btn--primary { background: var(--color-primary); color: var(--color-on-primary); }
+.pp-btn--primary:hover { background: var(--color-primary-hover); color: var(--color-on-primary); }
+.pp-btn--primary:active { background: var(--color-primary-active); }
+.pp-btn--secondary { background: transparent; border-color: var(--color-text); color: var(--color-text); }
+.pp-btn--secondary:hover { background: var(--color-highlight); }
+.pp-btn--dark { background: var(--pp-marine); color: var(--pp-lin); }
+.pp-btn[disabled] { opacity: .5; cursor: not-allowed; }
+
+/* Navigation latérale, sur fond marine */
+.pp-sidebar {
+  width: var(--sidebar-width);
+  padding: var(--space-7) 18px;
+  background: var(--color-nav-bg);
+}
+.pp-nav { display: flex; flex-direction: column; gap: var(--space-1); }
+.pp-nav__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--control-height);
+  padding: 0 14px;
+  border-radius: var(--radius-nav);
+  font: 500 var(--fs-ui)/1 var(--font-text);
+  color: var(--color-nav-text);
+  text-decoration: none;
+}
+.pp-nav__item:hover { background: var(--color-nav-hover-bg); color: var(--pp-lin); }
+.pp-nav__item[aria-current="page"] {
+  background: var(--color-nav-active-bg);
+  color: var(--color-nav-active-text);
+  font-weight: 600;
+}
+.pp-sidebar :focus-visible { outline-color: var(--color-focus-on-dark); }
+
+/* Carte */
+.pp-card {
+  padding: var(--space-3) 14px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+}
+
+/* Étiquette de catégorie : pastille de couleur + texte */
+.pp-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 32px;
+  padding: 0 var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  font: 600 var(--fs-small)/1 var(--font-text);
+  color: var(--color-text);
+}
+.pp-tag::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--pp-mandarine);
+}
+.pp-tag--presse::before { background: var(--pp-cuivre); }
+.pp-tag--mailing::before { background: var(--pp-marine); }
+
+/* Bandeau de mise en avant */
+.pp-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-6);
+  background: var(--color-highlight);
+  color: var(--color-text);
+  border-radius: var(--radius-card);
+}
+
+/* Champ de formulaire */
+.pp-field {
+  min-height: var(--control-height);
+  padding: 0 14px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-field);
+  font: 400 var(--fs-ui)/1 var(--font-text);
+  color: var(--color-text);
+}
+.pp-field::placeholder { color: var(--color-text-muted); }
+.pp-field:focus-visible { border-color: var(--color-text); }
+
+/* Chiffres alignés : dates, heures, compteurs */
+.pp-num { font-variant-numeric: tabular-nums; }

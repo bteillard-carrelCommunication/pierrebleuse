@@ -7,9 +7,10 @@
  * Les collections plus riches (concerts, orchestres, discographie, revue de presse, parcours,
  * playlist) ont leurs propres écrans et leurs propres fichiers dans inclus/.
  *
- * Types de champ : ligne, texte, bi (français et anglais côte à côte), bi-texte, nombre, decimal,
- * adresse, email, case, date-souple (AAAA-MM-JJ ou AAAA-MM), fiche (annuaire), media (médiathèque), choix.
- * Un champ « bi » nommé x occupe les colonnes x_fr et x_en.
+ * Types de champ : ligne, texte, bi (champ traduisible, saisi dans la langue de rédaction), bi-texte
+ * (le même, sur plusieurs lignes), nombre, decimal, adresse, email, case, date-souple (AAAA-MM-JJ ou
+ * AAAA-MM), fiche (annuaire), media (médiathèque), choix. Un champ « bi » nommé x occupe la colonne
+ * x_en ; ses traductions se saisissent sur l'écran « Traductions ».
  */
 
 defined('PUPITRE') or exit;
@@ -39,7 +40,7 @@ function contenus(): array
             'intro' => 'Les ressources de l\'espace de téléchargement : biographies, photographies, autres documents. Sans fichier ni adresse, la ligne porte la mention « à venir ». Une ressource dépubliée quitte le site sans être supprimée. Les fichiers se déposent dans la médiathèque.',
             'apercu' => ['TELECHARGEMENTS' => ''],
             'listes' => [
-                'telechargements' => ['titre' => '', 'table' => 'telechargements', 'cle' => 'libelle_fr', 'ajout' => 'Ajouter une ressource', 'champs' => [
+                'telechargements' => ['titre' => '', 'table' => 'telechargements', 'cle' => 'libelle_en', 'ajout' => 'Ajouter une ressource', 'champs' => [
                     ['libelle', 'bi', 'Titre', 'requis' => true],
                     ['type', 'choix', 'Type', 'options' => TYPES_TELECHARGEMENT, 'vide' => '— à préciser —', 'defaut' => '', 'rang' => 'nature'],
                     ['langue', 'ligne', 'Langue du document', 'max' => 3, 'aide' => 'Son code : fr, en… Vide si la langue est sans objet (photographies).', 'rang' => 'nature'],
@@ -85,16 +86,16 @@ function contacts_groupes_choix(): array
 {
     $c = [];
     foreach (bd_lignes('SELECT * FROM contacts_groupes ORDER BY ordre, id') as $g) {
-        $c[(int) $g['id']] = $g['structure'] !== '' ? $g['structure'] : ($g['mention_fr'] !== '' ? $g['mention_fr'] : 'Groupe ' . $g['id']);
+        $c[(int) $g['id']] = $g['structure'] !== '' ? $g['structure'] : ($g['mention_en'] !== '' ? $g['mention_en'] : 'Groupe ' . $g['id']);
     }
     return $c;
 }
 
-/** Colonnes qu'occupe un champ dans les données : une par langue des contenus s'il est traduisible, la langue de référence d'abord. */
+/** Colonne qu'occupe un champ dans les données : celle de la langue de rédaction s'il est traduisible. */
 function champ_colonnes(array $champ): array
 {
     if (!in_array($champ[1], ['bi', 'bi-texte'], true)) return [$champ[0]];
-    return array_map(fn(string $langue) => $champ[0] . '_' . $langue, langues());
+    return [$champ[0] . '_' . langue_reference()];
 }
 
 function liste_colonnes(array $liste): array
@@ -251,20 +252,24 @@ function textes_lire(): array
     return $t;
 }
 
-/** Enregistre les textes reçus (champs <clé>_fr, <clé>_en…). $cles : les seuls textes à lire ; sans elles, tous. */
-function textes_enregistrer(array $recus, ?array $cles = null): void
+/**
+ * Enregistre les textes reçus, dans la langue de rédaction (champs <clé>_en). $cles : les seuls
+ * textes à lire ; sans elles, tous. Leurs traductions ne changent pas : elles deviennent « à revoir ».
+ */
+function textes_enregistrer(array $recus, ?array $cles = null): int
 {
     $avant = textes_lire();
     $reference = langue_reference();
+    $n = 0;
     foreach (TEXTES as $cle => $_) {
         if ($cles !== null && !in_array($cle, $cles, true)) continue;
-        $neuf = [];
-        foreach (langues() as $langue) $neuf[$langue] = trim(str_replace("\r\n", "\n", (string) ($recus[$cle . '_' . $langue] ?? '')));
-        $a = [$reference => (string) ($avant[$cle][$reference] ?? '')];
-        foreach (langues_autres() as $langue) $a[$langue] = (string) (traduction('textes', $cle, 'texte', $langue)['texte'] ?? '');
-        if ($a === $neuf) continue;
-        bd_requete('INSERT INTO textes (cle, ' . bd_nom($reference) . ') VALUES (?, ?) ON DUPLICATE KEY UPDATE ' . bd_nom($reference) . ' = VALUES(' . bd_nom($reference) . ')', [$cle, $neuf[$reference]]);
-        foreach (langues_autres() as $langue) traduction_poser('textes', $cle, 'texte', $langue, $neuf[$langue]);
-        journaliser('modification', 'texte', null, TEXTES[$cle][0], $a, $neuf);
+        if (!array_key_exists($cle . '_' . $reference, $recus)) continue;
+        $neuf = trim(str_replace("\r\n", "\n", (string) $recus[$cle . '_' . $reference]));
+        $ancien = (string) ($avant[$cle][$reference] ?? '');
+        if ($ancien === $neuf) continue;
+        bd_requete('INSERT INTO textes (cle, ' . bd_nom($reference) . ') VALUES (?, ?) ON DUPLICATE KEY UPDATE ' . bd_nom($reference) . ' = VALUES(' . bd_nom($reference) . ')', [$cle, $neuf]);
+        journaliser('modification', 'texte', null, TEXTES[$cle][0], [$reference => $ancien], [$reference => $neuf]);
+        $n++;
     }
+    return $n;
 }

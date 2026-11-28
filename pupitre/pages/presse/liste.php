@@ -1,8 +1,13 @@
 <?php
 /**
  * Revue de presse : la collection des articles. Recherche, filtres, publication, ordre de la
- * collection, sélection et composition de l'accueil (rang et largeur), suppression des faux
- * articles de maquette. La fiche d'un article est sur son écran (pages/presse/article.php).
+ * collection, composition de l'accueil, suppression des faux articles de maquette. La fiche d'un
+ * article est sur son écran (pages/presse/article.php).
+ *
+ * La composition de l'accueil se fait sur la grille elle-même : on fait glisser un article pour
+ * changer sa place (ou on emploie ses flèches), on choisit sa largeur ; le rang se déduit de la
+ * place et la grille se redessine à chaque geste. Tout s'enregistre au fur et à mesure
+ * (ajax/presse.php) ; sans script, « Ajouter » et « Retirer » restent de simples formulaires.
  */
 
 defined('PUPITRE') or exit;
@@ -18,7 +23,7 @@ if (est_post()) {
         rediriger(url('presse'));
     }
     if ($a && in_array($action, ['publier', 'depublier'], true)) {
-        objet_enregistrer('articles', (int) $a['id'], ['publie' => $action === 'publier' ? 1 : 0], 'article', preg_replace('/\*/', '', $a['titre_fr']) ?: $a['cle']);
+        objet_enregistrer('articles', (int) $a['id'], ['publie' => $action === 'publier' ? 1 : 0], 'article', preg_replace('/\*/', '', $a['titre_en']) ?: $a['cle']);
     } elseif ($a && in_array($action, ['monter', 'descendre'], true)) {
         $ordre = array_map('intval', bd_colonne('SELECT id FROM articles ORDER BY ordre, id'));
         $i = array_search((int) $a['id'], $ordre, true);
@@ -27,21 +32,13 @@ if (est_post()) {
             [$ordre[$i], $ordre[$j]] = [$ordre[$j], $ordre[$i]];
             foreach ($ordre as $rang => $x) bd_modifier('articles', ['ordre' => $rang], ['id' => $x]);
         }
-    } elseif ($action === 'accueil') {
-        // composition de l'accueil : pour chaque article, sélection, rang et largeur
-        $avant = $apres = [];
-        foreach (is_array($_POST['art'] ?? null) ? $_POST['art'] : [] as $id => $r) {
-            $x = bd_ligne('SELECT id, cle, accueil, ordre_accueil, largeur FROM articles WHERE id = ?', [(int) $id]);
-            if (!$x || !is_array($r)) continue;
-            $d = ['accueil' => empty($r['accueil']) ? 0 : 1, 'ordre_accueil' => max(0, min(999, (int) ($r['rang'] ?? 0))), 'largeur' => isset(LARGEURS_ARTICLE[(int) ($r['largeur'] ?? 1)]) ? (int) $r['largeur'] : 1];
-            if ($d != ['accueil' => (int) $x['accueil'], 'ordre_accueil' => (int) $x['ordre_accueil'], 'largeur' => (int) $x['largeur']]) {
-                $avant[$x['cle']] = ['accueil' => (int) $x['accueil'], 'rang' => (int) $x['ordre_accueil'], 'largeur' => (int) $x['largeur']];
-                $apres[$x['cle']] = ['accueil' => $d['accueil'], 'rang' => $d['ordre_accueil'], 'largeur' => $d['largeur']];
-                bd_modifier('articles', $d, ['id' => $x['id']]);
-            }
-        }
-        if ($apres) journaliser('modification', 'article', null, 'Revue de presse : composition de l\'accueil', $avant, $apres);
-        message('ok', $apres ? 'Composition de l\'accueil enregistrée. Le site suivra à la prochaine publication.' : 'Rien n\'a changé.');
+    } elseif ($a && in_array($action, ['accueil_ajouter', 'accueil_retirer'], true)) {
+        // l'accueil : un article y entre en dernière place, ou le quitte ; les rangs se resserrent d'eux-mêmes
+        $ordre = array_map(fn($x) => (int) $x['id'], accueil_articles(articles_lister()));
+        $ordre = array_values(array_diff($ordre, [(int) $a['id']]));
+        if ($action === 'accueil_ajouter') $ordre[] = (int) $a['id'];
+        accueil_composer($ordre);
+        message('ok', ($action === 'accueil_ajouter' ? 'Article ajouté à l\'accueil, en dernière place.' : 'Article retiré de l\'accueil.') . ' Le site suivra à la prochaine publication.');
         rediriger(url('presse') . '#accueil');
     }
     rediriger(url('presse', array_filter(['q' => recu('q'), 'type' => recu('type'), 'etat' => recu('etat')], 'strlen')) . ($a ? '#a-' . $a['id'] : ''));
@@ -50,10 +47,10 @@ if (est_post()) {
 $filtres = ['q' => recu('q'), 'type' => isset(TYPES_ARTICLE[recu('type')]) ? recu('type') : '', 'etat' => recu('etat')];
 $articles = articles_lister($filtres);
 $tous = articles_lister();
-$accueil = array_values(array_filter($tous, fn($a) => $a['accueil']));
-usort($accueil, fn($x, $y) => [(int) $x['ordre_accueil'], (int) $x['id']] <=> [(int) $y['ordre_accueil'], (int) $y['id']]);
+$accueil = accueil_articles($tous);
+$hors_accueil = array_values(array_filter($tous, fn($a) => !$a['accueil']));
 $exemples = count(array_filter($tous, fn($a) => $a['exemple']));
-$titre_article = fn(array $a) => preg_replace('/\*/', '', $a['titre_fr']) ?: ('(sans titre) ' . $a['cle']);
+$titre_article = fn(array $a) => preg_replace('/\*/', '', $a['titre_en']) ?: ('(sans titre) ' . $a['cle']);
 $colonnes = 0;
 ?>
 <div class="titre">
@@ -76,31 +73,42 @@ $colonnes = 0;
 </div>
 <?php endif; ?>
 
-<form method="post" class="carte" id="accueil">
-  <?= champ_csrf() ?><input type="hidden" name="action" value="accueil">
-  <h2>Composition de l'accueil</h2>
-  <p class="aide aide--haut">Les articles sélectionnés paraissent dans l'ordre de leur rang, sur une grille de quatre colonnes : un article en occupe une, deux ou les quatre. Aperçu de la grille ci-dessous.</p>
-  <div class="grille-presse" aria-hidden="true">
-    <?php foreach ($accueil as $a): if (!$a['publie']) continue; ?>
-      <div class="grille-presse__case grille-presse__case--<?= (int) $a['largeur'] ?><?= $a['exemple'] ? ' grille-presse__case--exemple' : '' ?>"><?= e(couper(($a['media'] ?? '') . ' · ' . preg_replace('/[«»“”"]/u', '', (string) ($a['citation'] ?? $a['titre_fr'])), 70)) ?></div>
+<section class="carte" id="accueil" aria-labelledby="t-accueil" data-composition>
+  <div class="carte__tete"><h2 id="t-accueil">Composition de l'accueil</h2><span class="carte__compte" data-composition-compte><?= count($accueil) ?></span>
+    <span class="carte__suite discret" data-composition-etat role="status" aria-live="polite"></span></div>
+  <p class="aide aide--haut">La grille ci-dessous est celle de l'accueil du site : quatre colonnes, un article en occupe une, deux ou les quatre. Faites glisser un article pour changer sa place (ou employez ses flèches), choisissez sa largeur : le numéro d'ordre suit, la grille se redessine, et tout s'enregistre aussitôt.</p>
+  <div class="grille-presse" data-glisser="accueil" data-composition-grille role="list" aria-label="Articles de l'accueil, dans l'ordre">
+    <?php foreach ($accueil as $i => $a): $nom_a = ($a['media'] ?? '—') . ' · ' . couper($titre_article($a), 40); ?>
+      <div class="grille-presse__case grille-presse__case--<?= (int) $a['largeur'] ?><?= $a['exemple'] ? ' grille-presse__case--exemple' : '' ?><?= $a['publie'] ? '' : ' grille-presse__case--depublie' ?>" role="listitem" data-glisser-element data-id="<?= (int) $a['id'] ?>">
+        <div>
+          <span class="grille-presse__media"><?= e($a['media'] ?? '—') ?></span>
+          <?php if (!$a['publie']): ?> <span class="puce puce--alerte">dépublié : ne paraîtra pas</span><?php endif; ?><?php if ($a['exemple']): ?> <span class="puce puce--erreur">exemple</span><?php endif; ?>
+          <span class="grille-presse__texte"><?= e(couper(preg_replace('/[«»“”"]/u', '', (string) ($a['citation'] ?: $titre_article($a))), 120)) ?></span>
+        </div>
+        <div class="grille-presse__pied">
+          <span class="grille-presse__rang" data-rang title="Numéro d'ordre : il suit la place de l'article"><?= $i + 1 ?></span>
+          <label class="sr" for="larg-<?= (int) $a['id'] ?>">Largeur de « <?= e($nom_a) ?> »</label>
+          <select id="larg-<?= (int) $a['id'] ?>" data-largeur><?php foreach ([1 => '1 col.', 2 => '2 col.', 4 => '4 col.'] as $n => $l): ?><option value="<?= $n ?>"<?= (int) $a['largeur'] === $n ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select>
+          <button type="button" class="outil" data-glisser-avant title="Avancer d'une place" aria-label="Avancer « <?= e($nom_a) ?> » d'une place"><?= icone('chevron-gauche') ?></button>
+          <button type="button" class="outil" data-glisser-apres title="Reculer d'une place" aria-label="Reculer « <?= e($nom_a) ?> » d'une place"><?= icone('chevron-droite') ?></button>
+          <form method="post" class="en-ligne"><?= champ_csrf() ?><input type="hidden" name="id" value="<?= (int) $a['id'] ?>"><button type="submit" name="action" value="accueil_retirer" class="outil outil--retirer" title="Retirer de l'accueil" aria-label="Retirer « <?= e($nom_a) ?> » de l'accueil"><?= icone('fermer') ?></button></form>
+        </div>
+      </div>
     <?php endforeach; ?>
+    <?php if (!$accueil): ?><p class="grille-presse__vide">Aucun article sur l'accueil : ajoutez-en ci-dessous.</p><?php endif; ?>
   </div>
-  <div class="tableau-defile"><table class="tableau tableau--serre">
-    <thead><tr><th>Sur l'accueil</th><th>Rang</th><th>Largeur</th><th>Article</th><th>État</th></tr></thead>
-    <tbody>
-    <?php foreach ($tous as $a): ?>
-      <tr>
-        <td><label><input type="checkbox" name="art[<?= (int) $a['id'] ?>][accueil]" value="1"<?= $a['accueil'] ? ' checked' : '' ?>> <span class="sr">Mettre « <?= e($titre_article($a)) ?> » sur l'accueil</span></label></td>
-        <td><label class="sr" for="rang-<?= (int) $a['id'] ?>">Rang</label><input type="number" id="rang-<?= (int) $a['id'] ?>" name="art[<?= (int) $a['id'] ?>][rang]" value="<?= (int) $a['ordre_accueil'] ?>" min="0" max="999" class="champ-nombre"></td>
-        <td><label class="sr" for="larg-<?= (int) $a['id'] ?>">Largeur</label><select id="larg-<?= (int) $a['id'] ?>" name="art[<?= (int) $a['id'] ?>][largeur]"><?php foreach (LARGEURS_ARTICLE as $n => $l): ?><option value="<?= $n ?>"<?= (int) $a['largeur'] === $n ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select></td>
-        <th scope="row"><a href="<?= e(url('article', ['id' => $a['id']])) ?>"><?= e($a['media'] ?? '—') ?></a> <span class="discret"><?= e(couper($titre_article($a), 60)) ?></span></th>
-        <td><?= $a['publie'] ? '' : '<span class="puce puce--alerte">dépublié : ne paraîtra pas</span>' ?><?= $a['exemple'] ? ' <span class="puce puce--erreur">exemple</span>' : '' ?></td>
-      </tr>
-    <?php endforeach; ?>
-    </tbody>
-  </table></div>
-  <div class="actions"><button type="submit" class="bouton bouton--plein">Enregistrer la composition de l'accueil</button></div>
-</form>
+  <details<?= $accueil ? '' : ' open' ?>>
+    <summary>Ajouter un article à l'accueil (<?= count($hors_accueil) ?> disponibles)</summary>
+    <?php if (!$hors_accueil): ?><p class="rien">Tous les articles sont sur l'accueil.</p><?php else: ?>
+    <ul class="items">
+      <?php foreach ($hors_accueil as $a): ?>
+        <li><span><a class="item__titre" href="<?= e(url('article', ['id' => $a['id']])) ?>"><?= e($a['media'] ?? '—') ?></a> <span class="discret"><?= e(couper($titre_article($a), 70)) ?></span><?= $a['publie'] ? '' : ' <span class="puce puce--alerte">dépublié</span>' ?><?= $a['exemple'] ? ' <span class="puce puce--erreur">exemple</span>' : '' ?></span>
+          <form method="post"><?= champ_csrf() ?><input type="hidden" name="id" value="<?= (int) $a['id'] ?>"><button type="submit" name="action" value="accueil_ajouter" class="bouton bouton--petit"><?= icone('plus') ?>Ajouter</button></form></li>
+      <?php endforeach; ?>
+    </ul>
+    <?php endif; ?>
+  </details>
+</section>
 
 <form method="get" class="filtres">
   <input type="hidden" name="page" value="presse">

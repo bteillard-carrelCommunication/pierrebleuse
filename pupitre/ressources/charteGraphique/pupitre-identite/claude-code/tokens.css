@@ -1,0 +1,87 @@
+/* Pupitre, variables de design
+   Palette Mandarine, typographies Outfit + Manrope
+   Version 1.0, novembre 2026 */
+
+:root {
+  /* Couleurs de marque */
+  --pp-marine: #12263F;            /* textes, navigation, fonds sombres */
+  --pp-lin: #FAF6F0;               /* fond principal */
+  --pp-blanc: #FFFFFF;             /* cartes, champs */
+  --pp-mandarine: #FF8B3D;         /* actions, signal */
+  --pp-mandarine-survol: #F57B2A;
+  --pp-mandarine-presse: #E86E1F;
+  --pp-cuivre: #B84E0C;            /* liens, accents, signe du logo sur fond clair */
+  --pp-abricot: #FFE4CC;           /* aplats, survols, bandeaux */
+  --pp-ardoise: #586273;           /* textes secondaires */
+  --pp-trait: #EAE3D9;             /* bordures, séparateurs */
+  --pp-brume: #B9C4D4;             /* texte secondaire sur marine */
+  --pp-marine-survol: #1E3552;     /* survol d'une entrée de navigation */
+
+  /* Rôles */
+  --color-bg: var(--pp-lin);
+  --color-surface: var(--pp-blanc);
+  --color-text: var(--pp-marine);
+  --color-text-muted: var(--pp-ardoise);
+  --color-border: var(--pp-trait);
+  --color-primary: var(--pp-mandarine);
+  --color-primary-hover: var(--pp-mandarine-survol);
+  --color-primary-active: var(--pp-mandarine-presse);
+  --color-on-primary: var(--pp-marine);
+  --color-link: var(--pp-cuivre);
+  --color-highlight: var(--pp-abricot);
+  --color-nav-bg: var(--pp-marine);
+  --color-nav-text: var(--pp-brume);
+  --color-nav-hover-bg: var(--pp-marine-survol);
+  --color-nav-active-bg: var(--pp-mandarine);
+  --color-nav-active-text: var(--pp-marine);
+  --color-focus: var(--pp-marine);
+  --color-focus-on-dark: var(--pp-mandarine);
+
+  /* États : proposition à valider, hors charte validée */
+  --color-success: #1E7B4F;
+  --color-success-bg: #DDF2E6;
+  --color-success-text: #17603D;
+  --color-warning-bg: #FFEFC2;
+  --color-warning-text: #7A4F00;
+  --color-danger: #B3261E;
+  --color-danger-bg: #FBE3E1;
+  --color-danger-text: #8C1D18;
+  --color-info-bg: #E3EAF3;
+  --color-info-text: #12263F;
+
+  /* Typographie */
+  --font-display: "Outfit", "Helvetica Neue", Arial, sans-serif;
+  --font-text: "Manrope", "Helvetica Neue", Arial, sans-serif;
+  --fs-h1: 2.75rem;      /* 44 px, Outfit 600, interligne 1 */
+  --fs-h2: 1.75rem;      /* 28 px, Outfit 600, interligne 1.15 */
+  --fs-h3: 1.25rem;      /* 20 px, Outfit 600, interligne 1.25 */
+  --fs-body: 1rem;       /* 16 px, Manrope 400, interligne 1.5 */
+  --fs-ui: 0.9375rem;    /* 15 px, Manrope 500 ou 600 */
+  --fs-small: 0.8125rem; /* 13 px */
+  --fs-label: 0.8125rem; /* 13 px, Manrope 600, capitales */
+  --tracking-display: -0.02em;
+  --tracking-label: 0.08em;
+
+  /* Formes */
+  --radius-pill: 999px;  /* boutons, étiquettes */
+  --radius-nav: 22px;    /* entrées de navigation */
+  --radius-card: 20px;   /* cartes, bandeaux */
+  --radius-panel: 24px;  /* grands panneaux */
+  --radius-field: 12px;  /* champs de formulaire */
+
+  /* Espacements */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-9: 36px;
+  --space-10: 48px;
+
+  /* Dimensions */
+  --control-height: 44px;
+  --sidebar-width: 220px;
+}

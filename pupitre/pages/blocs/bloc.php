@@ -79,13 +79,13 @@ $voisins = array_keys(blocs_tous());
     <h2>Textes</h2>
     <p class="aide aide--haut">*…* rend l'italique. Les espaces insécables de la typographie sont posées par le site : n'en saisissez pas.</p>
     <?php foreach ($textes_du_bloc as $t): [$libelle, $type, $aide] = TEXTES[$t]; ?>
-      <?= champ_bi($t, $libelle, $textes[$t][$reference] ?? '', '', ['texte' => $type === 'bi-texte', 'aide' => $aide, 'objet' => ['textes', $t, 'texte']]) ?>
+      <?= champ_tr($t, $libelle, $textes[$t][$reference] ?? '', ['texte' => $type === 'bi-texte', 'aide' => $aide, 'objet' => ['textes', $t, 'texte']]) ?>
     <?php endforeach; ?>
   <?php endif; ?>
   <?php if ($libelles_du_bloc): ?>
     <h2>Intitulés et boutons</h2>
     <?php foreach ($libelles_du_bloc as $l): if (!isset($libelles[$l])) continue; ?>
-      <?= champ_bi('texte', $l, $libelles[$l]['texte_' . $reference], '', ['prefixe' => 'lib[' . $l . ']', 'objet' => ['libelles', $l, 'texte'], 'texte' => mb_strlen((string) $libelles[$l]['texte_' . $reference]) > 90]) ?>
+      <?= champ_tr('texte', $l, $libelles[$l]['texte_' . $reference], ['prefixe' => 'lib[' . $l . ']', 'objet' => ['libelles', $l, 'texte'], 'texte' => mb_strlen((string) $libelles[$l]['texte_' . $reference]) > 90]) ?>
     <?php endforeach; ?>
   <?php endif; ?>
   <div class="actions actions--bas"><button type="submit" class="bouton bouton--plein">Enregistrer</button></div>

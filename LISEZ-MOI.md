@@ -15,11 +15,34 @@ qu'elle était après les retours du 13/11/2026 ; ce qui n'est pas repris dans �
 27/11/2026 » n'a pas changé (nuée, moteur, matrice, barre du haut, aimantation, musique, lumière,
 pages légales), et là où les deux se contredisent, c'est la section du 27/11 qui dit vrai.
 
+## Intervention du 28/11/2026 : ce qui a changé sur le site
+
+Là où cette section et celle du 27/11 se contredisent, c'est celle-ci qui dit vrai.
+
+**`css/reglages.css` : la couleur de fond et les blocs masqués, en un seul fichier.** Pupitre le
+génère (écrans « Apparence » et « Blocs du site ») ; chaque page le charge dans son `<head>`, après
+`css/site.css`. Il remplace la zone `SITE-STATIQUE` (un bloc `<style>` recopié dans chacune des six
+pages) et la clé `fond` de `data/site.js`, que rien ne lisait : changer la couleur de fond ne
+modifie plus que ce fichier. Ne pas le modifier à la main.
+
+**L'anglais est la langue de rédaction.** Dans les fichiers de `data/`, un texte écrit comme une
+simple chaîne est le texte anglais, qui vaut pour toutes les langues ; un objet `{en, fr, …}` porte
+les traductions validées. `data/site.js` donne `langues.reference` et `langues.defaut` à `en`, et la
+liste des langues, l'anglais en tête : la bascule de langue des pages (zone `LANGUES-STATIQUE`) suit
+cette liste. Ajouter ou retirer une langue se fait dans Pupitre, puis se publie.
+
+**`apercu/` : des copies temporaires du site.** Pupitre y range les aperçus avant publication
+(`apercu/<jeton>/`, une copie figée par aperçu), et les retire à leur expiration. Le dossier est
+hors git, ne se liste pas et n'est jamais indexé ; il ne fait pas partie du site à déployer.
+
+**Discographie.** Les clés `contexte`, `citations` et `infos` d'un album ne sont plus écrites par
+Pupitre (restent `presentation` et `mot`) ; le site les lit encore si elles sont là.
+
 ## Intervention du 27/11/2026 : ce qui a changé sur le site
 
-**Réglages généraux (`data/site.js`).** Les langues du site, la langue de la première visite, la
-couleur de fond (variables CSS `--bg` et `--bg-rvb`, posées dans le `<head>` de chaque page) et la
-liste des blocs affichés. Un bloc masqué dans Pupitre n'occupe plus de place, quitte le menu, ne
+**Réglages généraux (`data/site.js`).** Les langues du site, la langue de la première visite et la
+liste des blocs affichés (la couleur de fond, variables CSS `--bg` et `--bg-rvb`, est depuis le 28/11
+dans `css/reglages.css`). Un bloc masqué dans Pupitre n'occupe plus de place, quitte le menu, ne
 compte ni dans l'aimantation ni dans le parcours du bouton Scroll, et ne charge pas ses médias.
 
 **Langues.** Le site s'ouvre en **anglais**. Le français est proposé par la bascule (FR | EN) ;
@@ -100,8 +123,8 @@ Pupitre ; les liens vers les pages légales, à gauche, restent posés par le si
 | `data/orchestres.js` | `ORCHESTRES` | inchangé ; seules les lignes « affichées » y figurent |
 | `data/telechargements.js` | `TELECHARGEMENTS` | `id`, `libelle`, `fichier` (chemin ou adresse), et, s'ils sont saisis, `type`, `langue`, `description`, `credit`, `conditions` |
 
-**Repères ajoutés dans les pages** (zones réécrites par Pupitre) : `SITE` (couleur de fond et
-blocs masqués, dans le `<head>`), `LANGUES` (la bascule de langue), `VISUEL-1` à `VISUEL-3` et
+**Repères ajoutés dans les pages** (zones réécrites par Pupitre) : `LANGUES` (la bascule de langue ;
+le repère `SITE` du 27/11 a laissé la place, le 28/11, au fichier `css/reglages.css`), `VISUEL-1` à `VISUEL-3` et
 `VISUEL-SUIVRE`, `PARCOURS-COLLABORATIONS` (qui remplace `PARCOURS-OPERA`). Hors des repères,
 Pupitre réécrit aussi, dans la langue de la première visite, `<html lang>`, le `<title>`, le
 contenu des éléments `data-t`, les attributs `data-t-attr` et le bloc affiché des pages légales.

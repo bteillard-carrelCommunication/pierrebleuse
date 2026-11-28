@@ -4,7 +4,7 @@
  *
  * Quatre espaces, plus l'administration :
  *   Tableau de bord                l'accueil : ce qui arrive, ce qui attend, ce qui cloche ;
- *   Site internet                  les textes et les blocs de la page, les données qu'elle affiche, la mise en ligne ;
+ *   Site internet                  les textes et les blocs de la page, les données qu'elle affiche, leurs traductions, la mise en ligne ;
  *   Carrière                       le parcours, les orchestres dirigés, la carte du monde, le carnet d'adresses ;
  *   Pilotage de la communication   le calendrier éditorial, les réseaux, la lettre ;
  *   Médiathèque                    les fichiers, communs au site et à la communication ;
@@ -32,8 +32,10 @@ const NAVIGATION = [
         ['Téléchargements', 'contenu', ['type' => 'telechargements'], 'contenus', ['contenu:telechargements'], 'telechargements'],
         ['Contacts et réseaux', 'contenu', ['type' => 'contacts'], 'contenus', ['contenu:contacts'], 'contacts'],
         ['@' => 'Mise en ligne'],
-        ['Langues et traductions', 'langues', [], 'contenus', ['langues'], 'langues'],
+        ['Traductions', 'traductions', [], 'contenus', ['traductions'], 'langues'],
+        ['Langues', 'langues', [], 'contenus', ['langues'], 'langues'],
         ['Apparence', 'apparence', [], 'reglages', ['apparence'], 'apparence'],
+        ['Aperçus et validations', 'apercus', [], 'site.voir', ['apercus', 'apercu'], 'oeil'],
         ['Publication', 'site', [], 'site.voir', ['site'], 'publier'],
     ]],
     'carriere' => ['libelle' => 'Carrière', 'icone' => 'carriere', 'entrees' => [
@@ -46,6 +48,10 @@ const NAVIGATION = [
         ['Tableau de bord éditorial', 'editorial', [], 'communication', ['editorial'], 'editorial'],
         ['Social Media', 'social', [], 'communication', ['social', 'communication:social'], 'social'],
         ['Newsletter', 'newsletter', [], 'communication', ['newsletter', 'communication:lettre'], 'newsletter'],
+        ['Résultats des publications', 'resultats', [], 'communication', ['resultats'], 'mesures'],
+        ['Veille', 'veille', [], 'communication', ['veille'], 'veille'],
+        ['Courrier', 'courrier', [], 'communication', ['courrier'], 'courrier'],
+        ['Images des concerts', 'depots', [], 'communication', ['depots', 'depot'], 'depot'],
     ]],
     'medias' => ['libelle' => 'Médiathèque', 'icone' => 'medias', 'entree' => ['Médiathèque', 'medias', [], 'medias', ['medias', 'media'], 'medias']],
     'administration' => ['libelle' => 'Administration', 'icone' => 'administration', 'entrees' => [
@@ -161,30 +167,30 @@ function recherche(string $q, int $par_groupe = 6): array
     $limite = ' LIMIT ' . (int) $par_groupe;
     if (peut('agenda')) {
         $l = [];
-        foreach (bd_lignes("SELECT c.id, c.titre_fr, c.ensemble_fr, c.ville_fr, (SELECT MIN(r.date) FROM representations r WHERE r.concert_id = c.id AND r.date >= CURDATE()) AS prochaine,
+        foreach (bd_lignes("SELECT c.id, c.titre_en, c.ensemble_en, c.ville_en, (SELECT MIN(r.date) FROM representations r WHERE r.concert_id = c.id AND r.date >= CURDATE()) AS prochaine,
                                    (SELECT MAX(r.date) FROM representations r WHERE r.concert_id = c.id) AS derniere
-                            FROM concerts c WHERE c.titre_fr LIKE ? OR c.ensemble_fr LIKE ? OR c.ville_fr LIKE ? OR c.salle_fr LIKE ? ORDER BY prochaine IS NULL, prochaine, derniere DESC" . $limite, [$comme, $comme, $comme, $comme]) as $c) {
-            $l[] = [$c['titre_fr'], trim(date_fr($c['prochaine'] ?: $c['derniere']) . ' · ' . $c['ville_fr'], ' ·'), url('concert', ['id' => $c['id']]), 'concerts'];
+                            FROM concerts c WHERE c.titre_en LIKE ? OR c.ensemble_en LIKE ? OR c.ville_en LIKE ? OR c.salle_en LIKE ? ORDER BY prochaine IS NULL, prochaine, derniere DESC" . $limite, [$comme, $comme, $comme, $comme]) as $c) {
+            $l[] = [$c['titre_en'], trim(date_fr($c['prochaine'] ?: $c['derniere']) . ' · ' . $c['ville_en'], ' ·'), url('concert', ['id' => $c['id']]), 'concerts'];
         }
         if ($l) $groupes[] = ['Concerts', $l];
     }
     if (peut('contenus')) {
         $l = [];
-        foreach (bd_lignes("SELECT p.id, p.titre_fr, p.date_article, a.nom FROM articles p LEFT JOIN annuaire a ON a.id = p.media_id
-                            WHERE p.titre_fr LIKE ? OR a.nom LIKE ? OR p.auteur LIKE ? ORDER BY p.date_article DESC" . $limite, [$comme, $comme, $comme]) as $p) {
-            $l[] = [preg_replace('/\*/', '', (string) $p['titre_fr']), trim(($p['nom'] ?? '') . ' · ' . $p['date_article'], ' ·'), url('article', ['id' => $p['id']]), 'presse'];
+        foreach (bd_lignes("SELECT p.id, p.titre_en, p.date_article, a.nom FROM articles p LEFT JOIN annuaire a ON a.id = p.media_id
+                            WHERE p.titre_en LIKE ? OR a.nom LIKE ? OR p.auteur LIKE ? ORDER BY p.date_article DESC" . $limite, [$comme, $comme, $comme]) as $p) {
+            $l[] = [preg_replace('/\*/', '', (string) $p['titre_en']), trim(($p['nom'] ?? '') . ' · ' . $p['date_article'], ' ·'), url('article', ['id' => $p['id']]), 'presse'];
         }
         if ($l) $groupes[] = ['Presse', $l];
         $l = [];
-        foreach (bd_lignes('SELECT id, titre, annee FROM disques WHERE titre LIKE ? OR descriptif_fr LIKE ? ORDER BY ordre' . $limite, [$comme, $comme]) as $d) {
+        foreach (bd_lignes('SELECT id, titre, annee FROM disques WHERE titre LIKE ? OR descriptif_en LIKE ? ORDER BY ordre' . $limite, [$comme, $comme]) as $d) {
             $l[] = [preg_replace('/\*/', '', (string) $d['titre']), (string) $d['annee'], url('disque', ['id' => $d['id']]), 'disques'];
         }
         if ($l) $groupes[] = ['Discographie', $l];
     }
     if (peut('annuaire')) {
         $l = [];
-        foreach (bd_lignes('SELECT id, nom, categorie, ville_fr FROM annuaire WHERE nom LIKE ? OR autres_noms LIKE ? ORDER BY nom' . $limite, [$comme, $comme]) as $f) {
-            $l[] = [$f['nom'], trim((CATEGORIES[$f['categorie']] ?? $f['categorie']) . ' · ' . $f['ville_fr'], ' ·'), url('fiche', ['id' => $f['id']]), 'annuaire'];
+        foreach (bd_lignes('SELECT id, nom, categorie, ville_en FROM annuaire WHERE nom LIKE ? OR autres_noms LIKE ? ORDER BY nom' . $limite, [$comme, $comme]) as $f) {
+            $l[] = [$f['nom'], trim((CATEGORIES[$f['categorie']] ?? $f['categorie']) . ' · ' . $f['ville_en'], ' ·'), url('fiche', ['id' => $f['id']]), 'annuaire'];
         }
         if ($l) $groupes[] = ['Annuaire', $l];
     }

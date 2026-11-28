@@ -60,14 +60,14 @@ try {
     $red_fox = array_values(array_filter($lignes, fn($l) => ($l['propose']['titre'] ?? '') === 'Red Fox'));
     $verifier(count($red_fox) === 3 && !array_filter($red_fox, fn($l) => substr($l['propose']['date'], 0, 7) !== '2026-05' || !in_array('passee', $l['controles'], true) || !in_array('hors_saison', $l['controles'], true)),
         'les 3 représentations de « Red Fox » datées de mai 2026 sont relevées : date passée, hors saison');
-    $verifier((int) bd_valeur("SELECT COUNT(*) FROM representations WHERE origine = 'import'") === 0 && (int) bd_valeur('SELECT COUNT(*) FROM concerts WHERE titre_fr LIKE ?', ['%fictif%']) === 0,
+    $verifier((int) bd_valeur("SELECT COUNT(*) FROM representations WHERE origine = 'import'") === 0 && (int) bd_valeur('SELECT COUNT(*) FROM concerts WHERE titre_en LIKE ?', ['%fictif%']) === 0,
         'rien n\'est écrit dans l\'agenda avant la validation');
 
     echo "Validation\n";
     $par = fn(string $nature) => array_values(array_filter($lignes, fn($l) => $l['nature'] === $nature));
     $tournee_lignes = array_values(array_filter($par('nouvelle'), fn($l) => $l['propose']['ensemble'] === 'Orchestre fictif de la Vallée'));
     $verifier(import_ligne_valider((int) $tournee_lignes[0]['id']) === null && import_ligne_valider((int) $tournee_lignes[1]['id']) === null, 'deux nouvelles dates d\'un même engagement se valident');
-    $cree = bd_ligne("SELECT c.id, COUNT(r.id) AS n, MIN(r.statut) AS statut, MIN(r.origine) AS origine FROM concerts c JOIN representations r ON r.concert_id = c.id WHERE c.ensemble_fr = 'Orchestre fictif de la Vallée' GROUP BY c.id");
+    $cree = bd_ligne("SELECT c.id, COUNT(r.id) AS n, MIN(r.statut) AS statut, MIN(r.origine) AS origine FROM concerts c JOIN representations r ON r.concert_id = c.id WHERE c.ensemble_en = 'Orchestre fictif de la Vallée' GROUP BY c.id");
     $verifier($cree && (int) $cree['n'] === 2 && $cree['statut'] === 'connue' && $cree['origine'] === 'import', 'elles entrent dans un seul concert, au statut « connue », origine « import »');
     $verifier(!str_contains(implode("\n", site_fichiers(site_exports())), 'Orchestre fictif de la Vallée'), 'une date validée ne sort pas sur le site : elle n\'est pas annoncée');
     $heure = array_values(array_filter($par('modifiee'), fn($l) => in_array('heure', $l['propose']['champs'], true)))[0];
@@ -78,15 +78,15 @@ try {
     $verifier(import_ligne_valider((int) $douteuse['id']) !== null, 'un cas douteux ne se valide pas sans avoir été tranché');
     $verifier(import_ligne_corriger((int) $red_fox[0]['id'], ['date' => '2027-05-13', 'heure' => '20:00']) === null
         && !in_array('passee', import_ligne_lire((int) $red_fox[0]['id'])['controles'], true), 'une ligne se corrige avant validation, et le contrôle est refait');
-    $verifier(import_ligne_refuser((int) $red_fox[1]['id']) === null && (int) bd_valeur("SELECT COUNT(*) FROM concerts WHERE titre_fr = 'Red Fox'") === 1, 'une ligne refusée ne touche pas à l\'agenda');
+    $verifier(import_ligne_refuser((int) $red_fox[1]['id']) === null && (int) bd_valeur("SELECT COUNT(*) FROM concerts WHERE titre_en = 'Red Fox'") === 1, 'une ligne refusée ne touche pas à l\'agenda');
 
     echo "Annulation annoncée par le document\n";
     // une date à venir de l'agenda, que l'extrait dit annulée ; une autre, que l'agenda ne connaît pas
-    $cible = bd_ligne("SELECT r.id, r.date, r.heure, r.statut, c.id AS concert_id, c.titre_fr, c.ensemble_fr FROM representations r JOIN concerts c ON c.id = r.concert_id
-                       WHERE r.statut <> 'annulee' AND c.type <> 'disque' AND c.ensemble_fr <> '' ORDER BY r.date DESC, r.id DESC LIMIT 1");
+    $cible = bd_ligne("SELECT r.id, r.date, r.heure, r.statut, c.id AS concert_id, c.titre_en, c.ensemble_en FROM representations r JOIN concerts c ON c.id = r.concert_id
+                       WHERE r.statut <> 'annulee' AND c.type <> 'disque' AND c.ensemble_en <> '' ORDER BY r.date DESC, r.id DESC LIMIT 1");
     $rep = fn(string $date, bool $annulee, ?string $motif) => ['date' => $date, 'heure' => null, 'salle' => null, 'ville' => null, 'pays' => null, 'annulee' => $annulee, 'motif' => $motif];
     [$d2, $e2] = import_controler_reponse(json_encode(['date_extrait' => null, 'engagements' => [
-        ['titre' => null, 'type' => 'concert', 'ensemble' => $cible['ensemble_fr'], 'mentions' => null, 'programme' => [], 'solistes' => [], 'representations' => [$rep($cible['date'], true, 'ANNULÉ (grève)')]],
+        ['titre' => null, 'type' => 'concert', 'ensemble' => $cible['ensemble_en'], 'mentions' => null, 'programme' => [], 'solistes' => [], 'representations' => [$rep($cible['date'], true, 'ANNULÉ (grève)')]],
         ['titre' => null, 'type' => 'concert', 'ensemble' => 'Orchestre fictif des Lisières', 'mentions' => null, 'programme' => [], 'solistes' => [], 'representations' => [$rep('2031-01-15', true, 'cancelled')]],
     ]], JSON_UNESCAPED_UNICODE));
     $id2 = bd_inserer('imports', ['nature' => 'texte', 'fichier' => 'annulation.txt', 'nom_origine' => 'Annulation (test)', 'statut' => 'lecture']);
@@ -94,7 +94,7 @@ try {
     bd_modifier('imports', ['statut' => 'a_valider', 'bilan' => json_encode($bilan2)], ['id' => $id2]);
     $annulees = array_values(array_filter(import_lignes($id2), fn($l) => $l['nature'] === 'annulee'));
     $verifier(!$e2 && count($annulees) === 1 && (int) $annulees[0]['representation_id'] === (int) $cible['id'] && $annulees[0]['propose']['motif'] === 'ANNULÉ (grève)', 'la date que le document dit annulée est proposée à l\'annulation, avec ce qu\'il en dit');
-    $verifier(($bilan2['annulations_sans_objet'] ?? 0) === 1 && (int) bd_valeur("SELECT COUNT(*) FROM concerts WHERE ensemble_fr = 'Orchestre fictif des Lisières' AND id NOT IN (SELECT concert_id FROM import_lignes WHERE import_id = ? AND concert_id IS NOT NULL)", [$id]) >= 0
+    $verifier(($bilan2['annulations_sans_objet'] ?? 0) === 1 && (int) bd_valeur("SELECT COUNT(*) FROM concerts WHERE ensemble_en = 'Orchestre fictif des Lisières' AND id NOT IN (SELECT concert_id FROM import_lignes WHERE import_id = ? AND concert_id IS NOT NULL)", [$id]) >= 0
         && !array_filter(import_lignes($id2), fn($l) => $l['nature'] === 'nouvelle'), 'une annulation pour une date inconnue de l\'agenda n\'y crée rien');
     $verifier(!array_filter(import_lignes($id2), fn($l) => $l['nature'] === 'disparue' && (int) $l['representation_id'] === (int) $cible['id']), 'une date annoncée annulée n\'est pas aussi comptée « absente »');
     $verifier(bd_valeur('SELECT statut FROM representations WHERE id = ?', [$cible['id']]) === $cible['statut'], 'rien ne change dans l\'agenda avant la validation');

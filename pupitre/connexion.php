@@ -73,13 +73,12 @@ $base = chemin_pupitre();
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
   <title>Connexion · Pupitre</title>
-  <link rel="icon" href="data:,">
-  <meta name="theme-color" content="#f5f6fc">
-  <link rel="stylesheet" href="<?= e($base) ?>/ressources/css/pupitre.css?v=<?= e(VERSION_PUPITRE) ?>-<?= (int) @filemtime(RACINE . '/ressources/css/pupitre.css') ?>">
+  <?= marque_tete() ?>
+
 </head>
 <body class="porte">
 <main class="porte__carte">
-  <h1 class="marque marque--grande"><span class="marque__logo" aria-hidden="true">P</span><span class="marque__nom">Pupitre</span><?php if ($sous_titre !== ''): ?><span class="marque__sous-titre"><?= e($sous_titre) ?></span><?php endif; ?></h1>
+  <h1 class="marque marque--grande"><?= marque_logo('principal', 44) ?><?php if ($sous_titre !== ''): ?><span class="marque__sous-titre"><?= e($sous_titre) ?></span><?php endif; ?></h1>
   <?php if ($erreur !== ''): ?><p class="message message--erreur" role="alert"><?= e($erreur) ?></p><?php endif; ?>
   <?php if ($info !== ''): ?><p class="message message--ok" role="status"><?= e($info) ?></p><?php endif; ?>
 

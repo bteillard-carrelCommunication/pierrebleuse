@@ -1,6 +1,6 @@
 <?php
 /**
- * Composants d'interface : champs de formulaire, étiquettes, listes ordonnables.
+ * Composants d'interface : champs de formulaire (dont le champ traduisible, saisi en anglais), étiquettes, listes ordonnables.
  * Tout ce qui sort passe par e().
  */
 
@@ -60,82 +60,94 @@ function champ_texte(string $nom, string $libelle, $valeur, array $o = []): stri
     return $s . '</div>';
 }
 
+/** Ce que dit l'état d'une traduction, en deux mots : pour les liens d'un champ et l'écran « Traductions ». */
+const ETATS_TRADUCTION = ['validee' => 'validée', 'proposee' => 'à valider', 'a_revoir' => 'à revoir', 'manquante' => 'à traduire'];
+
 /**
- * Champ traduisible : la langue de référence, puis chaque autre langue des contenus, côte à côte.
- * Les champs envoyés s'appellent nom_fr, nom_en, nom_de… ; bd_inserer() et bd_modifier() rangent
- * chaque langue à sa place (inclus/langues.php).
- *
- * $fr : le texte de référence. $en : le texte anglais connu de l'appelant (anciens écrans).
- * Options : texte (zones de plusieurs lignes), requis, liste, aide, prefixe ;
- *   objet    [table, clé de la ligne, champ] : les traductions et leur statut sont lus dans la base,
- *            propositions de l'IA comprises ; le champ vaut $nom s'il n'est pas donné ;
- *   valeurs  [langue => texte] : ce qui vient d'être saisi, à réafficher après une erreur.
+ * Liens d'un texte vers sa ligne sur l'écran « Traductions » : un par langue de traduction, avec
+ * l'état de la traduction. $objet : [table, clé de la ligne, champ]. Rien si la ligne n'existe pas
+ * encore, si le texte est vide, ou s'il n'y a pas d'autre langue que celle de rédaction.
  */
-function champ_bi(string $nom, string $libelle, $fr, $en = '', array $o = []): string
+function liens_traduction(?array $objet, string $reference, array $sauf = []): string
+{
+    if (!$objet || $objet[1] === null || $objet[1] === '' || trim($reference) === '' || !isset(TRADUISIBLES[$objet[0]][3][$objet[2]])) return '';
+    // la valeur affichée peut être une saisie en cours : l'état se juge sur le texte enregistré
+    $etats = array_diff_key(traductions_etat($objet[0], $objet[1], $objet[2], reference_lire($objet[0], (string) $objet[1], $objet[2])), array_flip($sauf));
+    if (!$etats) return '';
+    $s = '<span class="tr-liens">';
+    foreach ($etats as $langue => $etat) {
+        $nom = mb_strtolower(langue_nom($langue));
+        $s .= '<a class="tr-lien tr-lien--' . e($etat) . '" href="' . e(traduction_adresse($objet[0], $objet[1], $objet[2], $langue)) . '" title="Traduction en ' . e($nom) . ' : ' . e(ETATS_TRADUCTION[$etat]) . '. Ouvrir sa ligne sur l\'écran « Traductions ».">'
+            . '<span lang="' . e($langue) . '">' . e(strtoupper($langue)) . '</span> <span class="tr-lien__etat">' . e(ETATS_TRADUCTION[$etat]) . '</span><span class="sr"> : traduction en ' . e($nom) . '</span></a>';
+    }
+    return $s . '</span>';
+}
+
+/**
+ * Champ traduisible : il se saisit dans la langue de rédaction (l'anglais), et dans elle seule. Le
+ * champ envoyé s'appelle nom_en ; bd_inserer() et bd_modifier() le rangent dans sa colonne. Ses
+ * traductions se saisissent sur l'écran « Traductions » : un lien par langue y mène, à la ligne de
+ * ce texte, et dit où en est la traduction.
+ *
+ * Options : texte (zone de plusieurs lignes), lignes, requis, liste, max, aide, prefixe, classe ;
+ *   objet    [table, clé de la ligne, champ] : la ligne dont on montre les traductions ; le champ vaut
+ *            $nom s'il n'est pas donné. Sans clé (fiche pas encore créée), aucun lien ;
+ *   source   le texte que l'on traduit, s'il n'est pas celui du champ (une citation de presse se
+ *            traduit depuis sa formulation d'origine) ; sauf : langues sans objet (celle de la citation).
+ */
+function champ_tr(string $nom, string $libelle, $valeur, array $o = []): string
 {
     $reference = langue_reference();
     $objet = $o['objet'] ?? null;
-    if ($objet && ($objet[1] === null || $objet[1] === '')) $objet = null;
-    $champ_objet = $objet[2] ?? $nom;
-    $noms = [];
-    $s = '<fieldset class="bi"><legend>' . e($libelle) . (!empty($o['requis']) ? ' <span class="requis" title="obligatoire">*</span>' : '') . '</legend>'
-        . '<div class="bi__paire bi__paire--' . count(langues()) . '">';
-    foreach (langues() as $langue) {
-        $t = null;
-        if ($langue === $reference) {
-            $valeur = $fr;
-        } elseif (isset($o['valeurs']) && array_key_exists($langue, $o['valeurs'])) {
-            $valeur = $o['valeurs'][$langue];
-        } elseif ($objet) {
-            $t = traduction($objet[0], $objet[1], $champ_objet, $langue);
-            $valeur = $t['texte'] ?? ($langue === 'en' ? $en : '');
-        } else {
-            $valeur = $langue === 'en' ? $en : '';
-        }
-        $n = nom_champ($o['prefixe'] ?? '', $nom . '_' . $langue);
-        $id = id_unique(id_champ($n));
-        $s .= '<div class="bi__langue"><label for="' . $id . '"><abbr title="' . e(langue_nom($langue)) . '">' . e(strtoupper($langue)) . '</abbr></label>';
-        if (!empty($o['texte'])) {
-            $lignes = max(2, min(14, substr_count((string) $valeur, "\n") + 2 + (int) (mb_strlen((string) $valeur) / 90)));
-            $s .= '<textarea id="' . $id . '" name="' . e($n) . '" rows="' . $lignes . '" lang="' . e($langue) . '">' . e($valeur) . '</textarea>';
-        } else {
-            $s .= '<input type="text" id="' . $id . '" name="' . e($n) . '" value="' . e($valeur) . '" lang="' . e($langue) . '"'
-                . ($langue === $reference && !empty($o['requis']) ? ' required' : '')
-                . (!empty($o['liste']) && $langue === $reference ? ' list="' . e($o['liste']) . '"' : '')
-                . ($langue !== $reference ? ' placeholder="comme en ' . e(mb_strtolower(langue_nom($reference))) . '"' : '') . '>';
-        }
-        // statut de la traduction : une proposition de l'IA ou une traduction à revoir se valide d'une case
-        if ($t) {
-            $statut = traduction_statut($t, (string) $fr);
-            if ($statut === 'proposee' || $statut === 'a_revoir') {
-                $jeton = implode('|', [$objet[0], $objet[1], $champ_objet, $langue]);
-                $s .= '<p class="bi__statut"><span class="puce puce--alerte">' . ($statut === 'proposee' ? 'proposée par l\'IA, pas encore sur le site' : 'à revoir : le texte de référence a changé') . '</span> '
-                    . '<label class="bi__valider"><input type="checkbox" name="tr_ok[]" value="' . e($jeton) . '"> ' . ($statut === 'proposee' ? 'valider' : 'toujours bonne') . '</label></p>';
-            }
-        }
-        $s .= '</div>';
+    if ($objet) $objet[2] = $objet[2] ?? $nom;
+    $n = nom_champ($o['prefixe'] ?? '', $nom . '_' . $reference);
+    $id = id_unique(id_champ($n));
+    $valeur = (string) ($valeur ?? '');
+    $s = '<div class="champ champ--tr ' . e($o['classe'] ?? '') . '"><div class="champ__tete"><label for="' . $id . '">' . e($libelle)
+        . (!empty($o['requis']) ? ' <span class="requis" title="obligatoire">*</span>' : '')
+        . ' <abbr class="langue" title="Rédigé en ' . e(mb_strtolower(langue_nom($reference))) . '">' . e(strtoupper($reference)) . '</abbr></label>'
+        . liens_traduction($objet, (string) ($o['source'] ?? $valeur), (array) ($o['sauf'] ?? [])) . '</div>';
+    $decrit = !empty($o['aide']) ? ' aria-describedby="' . $id . '-aide"' : '';
+    if (!empty($o['texte'])) {
+        $lignes = $o['lignes'] ?? max(2, min(14, substr_count($valeur, "\n") + 2 + (int) (mb_strlen($valeur) / 90)));
+        $s .= '<textarea id="' . $id . '" name="' . e($n) . '" rows="' . (int) $lignes . '" lang="' . e($reference) . '"' . $decrit . '>' . e($valeur) . '</textarea>';
+    } else {
+        $s .= '<input type="text" id="' . $id . '" name="' . e($n) . '" value="' . e($valeur) . '" lang="' . e($reference) . '"'
+            . (!empty($o['requis']) ? ' required' : '')
+            . (!empty($o['liste']) ? ' list="' . e($o['liste']) . '"' : '')
+            . (!empty($o['max']) ? ' maxlength="' . (int) $o['max'] . '"' : '') . $decrit . '>';
     }
-    $s .= '</div>';
-    if (!empty($o['aide'])) $s .= '<p class="aide">' . e($o['aide']) . '</p>';
-    return $s . '</fieldset>';
+    if (!empty($o['aide'])) $s .= '<p class="aide" id="' . $id . '-aide">' . e($o['aide']) . '</p>';
+    return $s . '</div>';
 }
 
-/** Les champs nom_fr, nom_en, nom_de… lus dans un envoi de formulaire : [colonne => texte], coupés à $max. */
-function recu_bi(array $recu, string $nom, int $max = 500): array
+/** Le champ traduisible « nom » lu dans un envoi de formulaire : [colonne de la langue de rédaction => texte], coupé à $max. */
+function recu_tr(array $recu, string $nom, int $max = 500): array
 {
-    $v = [];
-    foreach (langues() as $langue) {
-        $v[$nom . '_' . $langue] = mb_substr(trim(str_replace("\r\n", "\n", (string) ($recu[$nom . '_' . $langue] ?? ''))), 0, $max);
-    }
-    return $v;
+    $colonne = $nom . '_' . langue_reference();
+    return [$colonne => mb_substr(trim(str_replace("\r\n", "\n", (string) ($recu[$colonne] ?? ''))), 0, $max)];
 }
 
-/** Traductions saisies d'un champ, à repasser à champ_bi(['valeurs' => …]) après une erreur. */
-function saisie_bi(array $recu, string $nom): array
+/**
+ * Champ relié à l'annuaire : on choisit une fiche existante (la liste propose leurs noms), ou l'on saisit un nom
+ * nouveau, dont la fiche sera créée à l'enregistrement et complétée plus tard. Le champ dit lequel des deux, au fil
+ * de la saisie. $liste : l'identifiant de la liste de choix (liste_choix()). Options : fiche (identifiant de la fiche
+ * déjà reliée : un lien y mène), nouveau (ce que dit le champ pour un nom nouveau), aide, requis, max, prefixe.
+ */
+function champ_annuaire(string $nom, string $libelle, $valeur, string $liste, array $o = []): string
 {
-    $v = [];
-    foreach (langues_autres() as $langue) if (array_key_exists($nom . '_' . $langue, $recu)) $v[$langue] = (string) $recu[$nom . '_' . $langue];
-    return $v;
+    $n = nom_champ($o['prefixe'] ?? '', $nom);
+    $id = id_unique(id_champ($n));
+    $aide = trim(($o['aide'] ?? '') . ' Choisissez dans la liste, ou saisissez un nom nouveau.');
+    $s = '<div class="champ champ--annuaire ' . e($o['classe'] ?? '') . '" data-annuaire>'
+        . '<div class="champ__tete"><label for="' . $id . '">' . e($libelle) . (!empty($o['requis']) ? ' <span class="requis" title="obligatoire">*</span>' : '') . '</label>'
+        . '<span class="champ__etat" data-annuaire-etat role="status"></span></div>'
+        . '<input type="text" id="' . $id . '" name="' . e($n) . '" value="' . e($valeur) . '" list="' . e($liste) . '" autocomplete="off" maxlength="' . (int) ($o['max'] ?? 190) . '"'
+        . ' data-annuaire-connu="dans l\'annuaire" data-annuaire-nouveau="' . e($o['nouveau'] ?? 'nouveau : sa fiche sera créée dans l\'annuaire') . '"'
+        . (!empty($o['requis']) ? ' required' : '') . ' aria-describedby="' . $id . '-aide">'
+        . '<p class="aide" id="' . $id . '-aide">' . e($aide)
+        . (!empty($o['fiche']) ? ' <a href="' . e(url('fiche', ['id' => (int) $o['fiche']])) . '">Ouvrir sa fiche</a>' : '') . '</p>';
+    return $s . '</div>';
 }
 
 /** Liste de choix. $options : valeur => libellé. Option vide : libellé du choix « aucun ». */
@@ -250,8 +262,9 @@ function liste_formulaire(array $liste, array $lignes, string $nom = 'lignes', b
         foreach ($liste['champs'] as $champ) {
             [$c, $type, $libelle] = $champ;
             $o = ['prefixe' => $prefixe, 'aide' => $champ['aide'] ?? '', 'requis' => !empty($champ['requis']), 'max' => $champ['max'] ?? 0];
-            // champ traduisible : après une erreur, ce qui vient d'être saisi ; sinon les traductions de la ligne, lues dans la base
-            $langues = $saisie ? ['valeurs' => saisie_bi($l, $c)] : ['objet' => [$liste['table'], $l['id'] ?? null, $c]];
+            // champ traduisible : la ligne dont on montre l'état des traductions
+            $langues = ['objet' => [$liste['table'], $l['id'] ?? null, $c]];
+            $ref = '_' . langue_reference();
             // les champs qui portent le même « rang » se suivent sur une ligne
             $nouveau = $champ['rang'] ?? '';
             if ($nouveau !== $rang) {
@@ -260,8 +273,8 @@ function liste_formulaire(array $liste, array $lignes, string $nom = 'lignes', b
                 $rang = $nouveau;
             }
             switch ($type) {
-                case 'bi': $s .= champ_bi($c, $libelle, $l[$c . '_fr'] ?? '', $l[$c . '_en'] ?? '', $o + $langues); break;
-                case 'bi-texte': $s .= champ_bi($c, $libelle, $l[$c . '_fr'] ?? '', $l[$c . '_en'] ?? '', $o + $langues + ['texte' => true]); break;
+                case 'bi': $s .= champ_tr($c, $libelle, $l[$c . $ref] ?? '', $o + $langues); break;
+                case 'bi-texte': $s .= champ_tr($c, $libelle, $l[$c . $ref] ?? '', $o + $langues + ['texte' => true]); break;
                 case 'texte': $s .= champ_texte($c, $libelle, $l[$c] ?? '', $o); break;
                 case 'case':
                     // ligne nouvelle : la valeur par défaut de la case ; ligne saisie ou lue : ce qu'elle dit
@@ -383,4 +396,122 @@ function notification_afficher(array $n, string $actions = ''): string
         . '<span class="notif__message">' . e($n['message']) . '</span>'
         . ($n['quand'] ? '<span class="notif__quand">' . e(il_y_a($n['quand'])) . '</span>' : '')
         . ($actions !== '' ? '<div class="notif__actions">' . $actions . '</div>' : '') . '</div>';
+}
+
+/* ---------- Marque : le logotype et les icônes de Pupitre (ressources/marque/, recopiés de la charte) ---------- */
+
+/** Proportions des fichiers vectoriels (largeur / hauteur), pour réserver la place avant leur chargement. */
+const MARQUE_PROPORTIONS = ['logo' => 2.889, 'symbole' => 1.497];
+
+/**
+ * Le logotype, en image : il ne se recompose jamais en texte. $variante : principal (fond clair), inverse (fond
+ * marine), marine (fond mandarine ou abricot), blanc, noir. $hauteur en pixels (la charte : 34 dans le menu, jamais
+ * moins de 24 ; en dessous de 70 px de large, le symbole).
+ */
+function marque_logo(string $variante = 'principal', int $hauteur = 34, string $classe = 'marque__logo'): string
+{
+    $variante = in_array($variante, ['principal', 'inverse', 'marine', 'blanc', 'noir'], true) ? $variante : 'principal';
+    return '<img class="' . e($classe) . '" src="' . e(chemin_pupitre()) . '/ressources/marque/logo/pupitre-logo-' . $variante . '.svg" alt="Pupitre" width="'
+        . (int) round($hauteur * MARQUE_PROPORTIONS['logo']) . '" height="' . $hauteur . '">';
+}
+
+/** Le symbole seul (le point d'orgue). $variante : mandarine, marine, cuivre, blanc. Décoratif : le nom est dit ailleurs. */
+function marque_symbole(string $variante = 'mandarine', int $hauteur = 26, string $classe = 'marque__symbole'): string
+{
+    $variante = in_array($variante, ['mandarine', 'marine', 'cuivre', 'blanc'], true) ? $variante : 'mandarine';
+    return '<img class="' . e($classe) . '" src="' . e(chemin_pupitre()) . '/ressources/marque/symbole/pupitre-symbole-' . $variante . '.svg" alt="" width="'
+        . (int) round($hauteur * MARQUE_PROPORTIONS['symbole']) . '" height="' . $hauteur . '">';
+}
+
+/**
+ * Ce que la marque demande au <head> de chaque page : icônes, manifeste, couleur du navigateur, polices préchargées
+ * et la feuille de style. Les deux polices du premier écran sont préchargées ; les autres graisses arrivent à la demande.
+ */
+function marque_tete(): string
+{
+    $base = e(chemin_pupitre());
+    $v = e(VERSION_PUPITRE) . '-' . (int) @filemtime(RACINE . '/ressources/css/pupitre.css');
+    return '<meta name="theme-color" content="#12263F">' . "\n"
+        . '  <link rel="icon" href="' . $base . '/ressources/marque/icones/favicon.ico" sizes="32x32">' . "\n"
+        . '  <link rel="icon" href="' . $base . '/ressources/marque/icones/favicon.svg" type="image/svg+xml">' . "\n"
+        . '  <link rel="apple-touch-icon" href="' . $base . '/ressources/marque/icones/apple-touch-icon.png">' . "\n"
+        . '  <link rel="manifest" href="' . $base . '/ressources/marque/icones/site.webmanifest">' . "\n"
+        . '  <link rel="preload" href="' . $base . '/ressources/polices/manrope-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>' . "\n"
+        . '  <link rel="preload" href="' . $base . '/ressources/polices/manrope-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>' . "\n"
+        . '  <link rel="preload" href="' . $base . '/ressources/polices/outfit-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>' . "\n"
+        . '  <link rel="stylesheet" href="' . $base . '/ressources/css/pupitre.css?v=' . $v . '">';
+}
+
+/* ---------- Pages hors connexion : procès-verbal d'un aperçu, zone de dépôt ---------- */
+
+/**
+ * Début d'une page publique de Pupitre (ouverte par un lien personnel, sans connexion) : le logotype, une carte.
+ * $langue : la langue de la page (fr, en). Ces pages ne sont jamais indexées.
+ */
+function page_publique_tete(string $titre, bool $large = true, string $langue = 'fr'): string
+{
+    $sous_titre = reglage_sur('sous_titre') ?: reglage_sur('artiste_nom');
+    $base = e(chemin_pupitre());
+    return '<!doctype html>' . "\n" . '<html lang="' . e($langue) . '">' . "\n<head>\n"
+        . '  <meta charset="utf-8">' . "\n" . '  <meta name="viewport" content="width=device-width, initial-scale=1">' . "\n" . '  <meta name="robots" content="noindex, nofollow">' . "\n"
+        . '  <title>' . e($titre) . ' · Pupitre</title>' . "\n  " . marque_tete() . "\n"
+        . '  <script src="' . $base . '/ressources/js/public.js?v=' . e(VERSION_PUPITRE) . '-' . (int) @filemtime(RACINE . '/ressources/js/public.js') . '" defer></script>' . "\n</head>\n"
+        . '<body class="porte">' . "\n" . '<main class="porte__carte' . ($large ? ' porte__carte--large' : '') . '">' . "\n"
+        . '  <p class="marque marque--grande">' . marque_logo('principal', 44) . ($sous_titre !== '' ? '<span class="marque__sous-titre">' . e($sous_titre) . '</span>' : '') . "</p>\n";
+}
+
+function page_publique_pied(string $mention = ''): string
+{
+    return ($mention !== '' ? '  <p class="porte__pied">' . e($mention) . "</p>\n" : '') . "</main>\n</body>\n</html>\n";
+}
+
+/** Une liste de définitions sobre : [libellé => valeur déjà échappée]. Les valeurs vides sont passées. */
+function fiche_definitions(array $lignes): string
+{
+    $s = '';
+    foreach ($lignes as $libelle => $valeur) {
+        if ($valeur === '' || $valeur === null) continue;
+        $s .= '<div class="definitions__ligne"><dt>' . e($libelle) . '</dt><dd>' . $valeur . '</dd></div>';
+    }
+    return $s === '' ? '' : '<dl class="definitions">' . $s . '</dl>';
+}
+
+/** Ce qu'un aperçu présente, tel que son résumé le garde : rubriques, pages, contenus modifiés, dates annoncées. */
+function apercu_resume_afficher(array $a): string
+{
+    $r = $a['resume'] ?? [];
+    $s = '';
+    if (trim((string) ($a['note'] ?? '')) !== '') $s .= '<p>' . nl2br(e(trim((string) $a['note']))) . '</p>';
+    if (!empty($r['rubriques'])) $s .= '<p><span class="libelle">Rubriques</span><br>' . e(implode(' · ', $r['rubriques'])) . '</p>';
+    if (!empty($r['contenus'])) {
+        $actions = ['creation' => 'Ajout', 'modification' => 'Modification', 'suppression' => 'Suppression', 'statut' => 'Changement de statut'];
+        $s .= '<p class="libelle">Contenus modifiés depuis la dernière publication</p><ul class="items items--serre">';
+        foreach ($r['contenus'] as $c) $s .= '<li><span>' . e(($actions[$c['action']] ?? $c['action']) . ' · ' . $c['libelle']) . '</span></li>';
+        $s .= '</ul>';
+    }
+    if (!empty($r['representations'])) $s .= '<p><span class="libelle">Dates qui paraîtront</span><br>' . e(implode(' ; ', $r['representations'])) . '</p>';
+    if (!empty($r['medias'])) $s .= '<p class="discret">' . e(pluriel((int) $r['medias'], 'média nouveau', 'médias nouveaux')) . '.</p>';
+    if ($s === '') $s = '<p class="rien">Aucune différence avec le site publié au moment de l\'aperçu.</p>';
+    return $s;
+}
+
+/** Le procès-verbal d'une validation : qui, quoi, quand, d'où. $a : l'aperçu (apercu_lire), $v : sa validation. */
+function proces_verbal_afficher(array $a, array $v): string
+{
+    $valide = $v['decision'] === 'validee';
+    return '<div class="pv"><p class="libelle">Procès-verbal de ' . ($valide ? 'validation' : 'demande de corrections') . '</p>'
+        . fiche_definitions([
+            'Site' => e(rtrim(site_adresse(), '/')),
+            'Aperçu' => '« ' . e($a['titre']) . ' », établi le ' . e(horodatage_fr($a['cree_le'])) . ' par ' . e($a['cree_par_nom']),
+            'Empreinte de l\'aperçu' => '<code class="insecable">' . e(substr($a['empreinte'], 0, 32)) . '…</code><br><span class="discret">SHA-256 de tout ce qui serait publié : elle désigne cet état du site, à l\'octet près.</span>',
+            'Décision' => '<span class="puce ' . DECISIONS_APERCU[$v['decision']][1] . '">' . e(DECISIONS_APERCU[$v['decision']][0]) . '</span>',
+            'Par' => e($v['nom']) . ' · ' . e($v['email']),
+            'Le' => e(horodatage_fr($v['decide_le'])),
+            'Déclaration' => $valide ? e($v['declaration']) : '',
+            'Remarques' => trim((string) $v['remarques']) !== '' ? nl2br(e($v['remarques'])) : '',
+            'Lien personnel' => 'envoyé le ' . e(horodatage_fr($v['envoye_le'])) . ' à ' . e($v['email']) . ($v['vu_le'] ? ', ouvert le ' . e(horodatage_fr($v['vu_le'])) : ''),
+            'Adresse IP' => e($v['ip']),
+            'Navigateur' => e($v['agent']),
+        ])
+        . '<p class="discret">Acceptation donnée en ligne par un lien personnel envoyé à l\'adresse ci-dessus (signature électronique simple) ; Pupitre en garde la trace dans son journal.</p></div>';
 }

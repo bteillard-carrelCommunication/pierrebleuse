@@ -40,7 +40,7 @@ if (est_post()) {
         elseif ($trouve['candidats'] && recu('confirmer') !== '1') $erreurs[] = 'Un orchestre au nom proche existe déjà : ' . implode(', ', array_column(array_slice($trouve['candidats'], 0, 3), 'nom')) . '. Si c\'est bien un autre orchestre, cochez « c\'est un autre orchestre » et recommencez.';
         if (!$erreurs) {
             $id = (int) objet_enregistrer('annuaire', null, ['categorie' => recu('categorie') === 'ensemble' ? 'ensemble' : 'orchestre', 'nom' => $nom,
-                'ville_fr' => mb_substr(recu('ville_fr'), 0, 120), 'pays_fr' => mb_substr(recu('pays_fr'), 0, 120)], 'fiche', $nom);
+                'ville_en' => mb_substr(recu('ville_en'), 0, 120), 'pays_en' => mb_substr(recu('pays_en'), 0, 120)], 'fiche', $nom);
             $GLOBALS['annuaire_perime'] = true;
             message('ok', 'Orchestre ajouté à la collection. Placez-le sur la carte : il n\'y paraîtra qu\'une fois affiché.');
             rediriger(url('carte', ['orchestre' => $id]) . '#placer');
@@ -49,7 +49,7 @@ if (est_post()) {
 
     // --- chercher les coordonnées d'une ville : d'abord ce que Pupitre connaît déjà, sinon l'IA, toujours à confirmer
     if ($action === 'chercher') {
-        $ville = recu('ville_fr');
+        $ville = recu('ville_en');
         $params = array_filter(['ligne' => recu('ligne'), 'orchestre' => recu('fiche_id'), 'nouvelle' => (recu('ligne') === '' && recu('fiche_id') === '') ? '1' : '', 'ville' => $ville, 'pays' => recu('pays')], 'strlen');
         $connues = coordonnees_connues($ville);
         if ($ville === '') message('erreur', 'Donnez d\'abord la ville.');
@@ -75,24 +75,23 @@ if (est_post()) {
         $lat = $num('latitude');
         $lon = $num('longitude');
         if (!isset($fiches[$fiche_id])) $erreurs[] = 'Choisissez un orchestre de la collection.';
-        if (recu('ville_fr') === '') $erreurs[] = 'La ville est obligatoire : c\'est l\'étiquette du point sur la carte.';
+        if (recu('ville_en') === '') $erreurs[] = 'La ville est obligatoire : c\'est l\'étiquette du point sur la carte.';
         if ($lat === null || $lon === null || abs($lat) > 90 || abs($lon) > 180) $erreurs[] = 'Latitude (de -90 à 90) et longitude (de -180 à 180) sont obligatoires, en degrés décimaux : cherchez-les, ou placez le point sur la carte.';
         if (!$erreurs) {
             $d = ['fiche_id' => $fiche_id, 'latitude' => round($lat, 5), 'longitude' => round($lon, 5),
                 'zone' => isset($zones[recu('zone')]) ? recu('zone') : '',
-                'affiche' => empty($_POST['affiche']) ? 0 : 1, 'verifie' => empty($_POST['verifie']) ? 0 : 1] + recu_bi($_POST, 'ville', 120);
+                'affiche' => empty($_POST['affiche']) ? 0 : 1, 'verifie' => empty($_POST['verifie']) ? 0 : 1] + recu_tr($_POST, 'ville', 120);
             if ($ligne) {
-                objet_enregistrer('parcours_orchestres', $id, $d, 'carte', $fiches[$fiche_id]['nom'] . ' · ' . $d['ville_fr']);
+                objet_enregistrer('parcours_orchestres', $id, $d, 'carte', $fiches[$fiche_id]['nom'] . ' · ' . $d['ville_en']);
             } else {
                 $d['ordre'] = 1 + (int) bd_valeur('SELECT COALESCE(MAX(ordre), 0) FROM parcours_orchestres');
                 $d['origine'] = recu('origine') === 'ia' ? 'ia' : 'main';
-                $id = (int) objet_enregistrer('parcours_orchestres', null, $d, 'carte', $fiches[$fiche_id]['nom'] . ' · ' . $d['ville_fr']);
+                $id = (int) objet_enregistrer('parcours_orchestres', null, $d, 'carte', $fiches[$fiche_id]['nom'] . ' · ' . $d['ville_en']);
             }
             // « c'est sa ville » : la fiche de l'orchestre reçoit cette ville et ces coordonnées comme référence
             if (!empty($_POST['reference'])) {
-                $ref = ['ville_fr' => $d['ville_fr'], 'latitude' => $d['latitude'], 'longitude' => $d['longitude'], 'verifie' => $d['verifie']];
-                foreach (langues_autres() as $l) $ref['ville_' . $l] = $d['ville_' . $l] ?? '';
-                if (recu('pays_fr') !== '') $ref['pays_fr'] = mb_substr(recu('pays_fr'), 0, 120);
+                $ref = ['ville_en' => $d['ville_en'], 'latitude' => $d['latitude'], 'longitude' => $d['longitude'], 'verifie' => $d['verifie']];
+                if (recu('pays_en') !== '') $ref['pays_en'] = mb_substr(recu('pays_en'), 0, 120);
                 objet_enregistrer('annuaire', $fiche_id, $ref, 'fiche', $fiches[$fiche_id]['nom']);
             }
             message('ok', 'Ligne enregistrée' . ($d['affiche'] ? '' : ' (pas encore affichée sur la carte)') . '. Le site suivra à la prochaine publication.');
@@ -100,7 +99,7 @@ if (est_post()) {
         }
     }
     if ($action === 'retirer' && ($ligne = bd_ligne('SELECT p.*, a.nom FROM parcours_orchestres p JOIN annuaire a ON a.id = p.fiche_id WHERE p.id = ?', [recu_entier('ligne') ?? 0]))) {
-        objet_supprimer('parcours_orchestres', (int) $ligne['id'], 'carte', $ligne['nom'] . ' · ' . $ligne['ville_fr']);
+        objet_supprimer('parcours_orchestres', (int) $ligne['id'], 'carte', $ligne['nom'] . ' · ' . $ligne['ville_en']);
         message('ok', 'Ligne retirée de la carte. L\'orchestre reste dans la collection.');
         rediriger(url('carte'));
     }
@@ -112,11 +111,11 @@ if (est_post()) {
             if ($i !== false && $j >= 0 && $j < count($ordre)) {
                 [$ordre[$i], $ordre[$j]] = [$ordre[$j], $ordre[$i]];
                 foreach ($ordre as $rang => $x) bd_modifier('parcours_orchestres', ['ordre' => $rang], ['id' => $x]);
-                journaliser('modification', 'carte', (int) $ligne['id'], $ligne['nom'] . ' · ' . $ligne['ville_fr'] . ' : ordre de la liste', ['rang' => $i + 1], ['rang' => $j + 1]);
+                journaliser('modification', 'carte', (int) $ligne['id'], $ligne['nom'] . ' · ' . $ligne['ville_en'] . ' : ordre de la liste', ['rang' => $i + 1], ['rang' => $j + 1]);
             }
         } else {
             $d = $action === 'verifier' ? ['verifie' => 1] : ['affiche' => $action === 'afficher' ? 1 : 0];
-            objet_enregistrer('parcours_orchestres', (int) $ligne['id'], $d, 'carte', $ligne['nom'] . ' · ' . $ligne['ville_fr']);
+            objet_enregistrer('parcours_orchestres', (int) $ligne['id'], $d, 'carte', $ligne['nom'] . ' · ' . $ligne['ville_en']);
         }
         rediriger(url('carte') . '#l-' . $ligne['id']);
     }
@@ -134,17 +133,17 @@ if (recu_entier('ligne')) {
     foreach ($lignes as $l) if ((int) $l['id'] === recu_entier('ligne')) $a_placer = $l;
 } elseif (recu_entier('orchestre') && isset($fiches[recu_entier('orchestre')])) {
     $f = $fiches[recu_entier('orchestre')];
-    $a_placer = ['id' => null, 'fiche_id' => (int) $f['id'], 'nom' => $f['nom'], 'ville_fr' => $f['ville_fr'], 'latitude' => $f['latitude'], 'longitude' => $f['longitude'], 'zone' => '', 'affiche' => 0, 'verifie' => (int) $f['verifie']];
-    if ($f['latitude'] === null && ($connues = coordonnees_connues($f['ville_fr']))) { $a_placer['latitude'] = $connues[0]; $a_placer['longitude'] = $connues[1]; }
+    $a_placer = ['id' => null, 'fiche_id' => (int) $f['id'], 'nom' => $f['nom'], 'ville_en' => $f['ville_en'], 'latitude' => $f['latitude'], 'longitude' => $f['longitude'], 'zone' => '', 'affiche' => 0, 'verifie' => (int) $f['verifie']];
+    if ($f['latitude'] === null && ($connues = coordonnees_connues($f['ville_en']))) { $a_placer['latitude'] = $connues[0]; $a_placer['longitude'] = $connues[1]; }
 } elseif (recu('nouvelle') === '1') {
-    $a_placer = ['id' => null, 'fiche_id' => 0, 'nom' => '', 'ville_fr' => '', 'latitude' => null, 'longitude' => null, 'zone' => '', 'affiche' => 0, 'verifie' => 0];
+    $a_placer = ['id' => null, 'fiche_id' => 0, 'nom' => '', 'ville_en' => '', 'latitude' => null, 'longitude' => null, 'zone' => '', 'affiche' => 0, 'verifie' => 0];
 }
 if ($a_placer) {
     // ce que la recherche de coordonnées vient de proposer, ou ce qui vient d'être saisi
-    if (recu('ville') !== '') $a_placer['ville_fr'] = recu('ville');
+    if (recu('ville') !== '') $a_placer['ville_en'] = recu('ville');
     if (is_numeric(recu('lat')) && is_numeric(recu('lon'))) { $a_placer['latitude'] = (float) recu('lat'); $a_placer['longitude'] = (float) recu('lon'); $a_placer['verifie'] = 0; }
     if ($erreurs && recu('action') === 'ligne') {
-        $a_placer = array_merge($a_placer, ['fiche_id' => recu_entier('fiche_id') ?? 0, 'ville_fr' => recu('ville_fr'), 'latitude' => recu('latitude'), 'longitude' => recu('longitude'), 'zone' => recu('zone'), 'affiche' => empty($_POST['affiche']) ? 0 : 1, 'verifie' => empty($_POST['verifie']) ? 0 : 1]);
+        $a_placer = array_merge($a_placer, ['fiche_id' => recu_entier('fiche_id') ?? 0, 'ville_en' => recu('ville_en'), 'latitude' => recu('latitude'), 'longitude' => recu('longitude'), 'zone' => recu('zone'), 'affiche' => empty($_POST['affiche']) ? 0 : 1, 'verifie' => empty($_POST['verifie']) ? 0 : 1]);
     }
 }
 $point = fn($l) => ($carte && $l['latitude'] !== null && $l['latitude'] !== '' && is_numeric($l['latitude']) && is_numeric($l['longitude'])) ? carte_projeter($carte, (float) $l['latitude'], (float) $l['longitude']) : null;
@@ -172,7 +171,7 @@ $n_a_confirmer = count(array_filter($lignes, fn($l) => !$l['verifie']));
     <svg viewBox="0 0 <?= e($carte['l']) ?> <?= e($carte['h']) ?>" role="img" aria-label="Carte du monde : les lignes de la liste">
       <path class="mappemonde__terre" d="<?= e($carte['trace']) ?>" stroke-width="<?= e(2 * $carte['r']) ?>"/>
       <?php foreach ($lignes as $l): if ($a_placer && (int) $l['id'] === (int) ($a_placer['id'] ?? 0)) continue; $p = $point($l); if (!$p) continue; ?>
-        <a href="<?= e(url('carte', ['ligne' => $l['id']])) ?>#placer"><circle class="mappemonde__point<?= $l['affiche'] ? '' : ' mappemonde__point--hors' ?><?= $l['verifie'] ? '' : ' mappemonde__point--a-confirmer' ?>" cx="<?= e($p[0]) ?>" cy="<?= e($p[1]) ?>" r="4"><title><?= e($l['nom'] . ' · ' . $l['ville_fr'] . ($l['affiche'] ? '' : ' (pas affichée)') . ($l['verifie'] ? '' : ' (à confirmer)')) ?></title></circle></a>
+        <a href="<?= e(url('carte', ['ligne' => $l['id']])) ?>#placer"><circle class="mappemonde__point<?= $l['affiche'] ? '' : ' mappemonde__point--hors' ?><?= $l['verifie'] ? '' : ' mappemonde__point--a-confirmer' ?>" cx="<?= e($p[0]) ?>" cy="<?= e($p[1]) ?>" r="4"><title><?= e($l['nom'] . ' · ' . $l['ville_en'] . ($l['affiche'] ? '' : ' (pas affichée)') . ($l['verifie'] ? '' : ' (à confirmer)')) ?></title></circle></a>
       <?php endforeach; ?>
       <?php if ($a_placer): $p = $point($a_placer); ?>
         <g class="mappemonde__curseur" data-carte-point<?= $p ? '' : ' hidden' ?> transform="translate(<?= e($p[0] ?? 0) ?> <?= e($p[1] ?? 0) ?>)"><circle r="9" class="mappemonde__halo"/><circle r="4.5" class="mappemonde__actif"/></g>
@@ -191,9 +190,9 @@ $n_a_confirmer = count(array_filter($lignes, fn($l) => !$l['verifie']));
     <?= champ_choix('fiche_id', 'Orchestre', $noms, $a_placer['fiche_id'] ?: '', ['vide' => '— choisir dans la collection —', 'requis' => true, 'aide' => 'Pour un orchestre absent de la liste : ajoutez-le d\'abord dans « Orchestres du monde ».']) ?>
     <?= champ_choix('zone', 'Colonne de la liste du site', $zones, $a_placer['zone'], ['vide' => ZONES_PARCOURS[''], 'aide' => 'À imposer quand la longitude ne suffit pas (Proche-Orient, Russie).']) ?>
   </div>
-  <?= champ_bi('ville', 'Ville', $a_placer['ville_fr'], '', ['requis' => true, 'aide' => 'L\'étiquette du point. La ville de l\'orchestre, sauf choix contraire.'] + ($a_placer['id'] && recu('ville') === '' && !$erreurs ? ['objet' => ['parcours_orchestres', $a_placer['id'], 'ville']] : ['valeurs' => saisie_bi($_POST, 'ville')])) ?>
+  <?= champ_tr('ville', 'Ville', $a_placer['ville_en'], ['requis' => true, 'aide' => 'L\'étiquette du point. La ville de l\'orchestre, sauf choix contraire.'] + ($a_placer['id'] ? ['objet' => ['parcours_orchestres', $a_placer['id'], 'ville']] : [])) ?>
   <div class="colonnes">
-    <?= champ('pays', 'Pays (pour la recherche)', recu('pays') ?: ($fiches[(int) $a_placer['fiche_id']]['pays_fr'] ?? ''), ['max' => 120]) ?>
+    <?= champ('pays', 'Pays (pour la recherche)', recu('pays') ?: ($fiches[(int) $a_placer['fiche_id']]['pays_en'] ?? ''), ['max' => 120]) ?>
     <div class="champ"><span class="champ__faux-libelle">Coordonnées</span><button type="submit" name="action" value="chercher" class="bouton" formnovalidate>Chercher les coordonnées de cette ville</button>
       <p class="aide">D'abord dans ce que Pupitre connaît déjà ; sinon l'IA propose, et vous confirmez.</p></div>
   </div>
@@ -206,7 +205,7 @@ $n_a_confirmer = count(array_filter($lignes, fn($l) => !$l['verifie']));
     <?= champ_case('affiche', 'Affichée sur la carte du site', (bool) $a_placer['affiche']) ?>
     <?= champ_case('reference', 'C\'est la ville de l\'orchestre : la noter aussi sur sa fiche', !$a_placer['id']) ?>
   </div>
-  <input type="hidden" name="pays_fr" value="<?= e(recu('pays')) ?>">
+  <input type="hidden" name="pays_en" value="<?= e(recu('pays')) ?>">
   <div class="actions">
     <button type="submit" name="action" value="ligne" class="bouton bouton--plein">Enregistrer cette ligne</button>
     <a class="bouton" href="<?= e(url('carte')) ?>">Annuler</a>
@@ -224,7 +223,7 @@ $n_a_confirmer = count(array_filter($lignes, fn($l) => !$l['verifie']));
     <?php foreach ($lignes as $i => $l): ?>
       <tr id="l-<?= (int) $l['id'] ?>">
         <th scope="row"><a href="<?= e(url('carte', ['ligne' => $l['id']])) ?>#placer"><?= e($l['nom']) ?></a><?= $l['nom_provisoire'] ? ' <span class="puce puce--alerte">nom à fournir</span>' : '' ?></th>
-        <td><?= e($l['ville_fr']) ?></td>
+        <td><?= e($l['ville_en']) ?></td>
         <td class="discret"><?= $l['latitude'] === null ? '<span class="puce puce--alerte">à placer</span>' : e(rtrim(rtrim($l['latitude'], '0'), '.') . ', ' . rtrim(rtrim($l['longitude'], '0'), '.')) ?></td>
         <td class="discret"><?= e(ZONES_PARCOURS[zone_carte($l['longitude'] === null ? null : (float) $l['longitude'], $l['zone'])] ?? '') ?></td>
         <td><?= $l['affiche'] ? '<span class="puce puce--ok">affichée</span>' : '<span class="puce">pas affichée</span>' ?></td>
@@ -258,8 +257,8 @@ $n_a_confirmer = count(array_filter($lignes, fn($l) => !$l['verifie']));
   <h2>Orchestres de concerts qui ne sont pas référencés</h2>
   <ul class="items">
   <?php foreach ($inconnus as [$c, $r]): ?>
-    <li><span class="item__titre"><?= e($c['ensemble_fr']) ?></span>
-      <span class="discret">concert « <?= e($c['titre_fr']) ?> »<?= $r['candidats'] ? ' · proche de : ' . e(implode(', ', array_column(array_slice($r['candidats'], 0, 2), 'nom'))) : '' ?></span>
+    <li><span class="item__titre"><?= e($c['ensemble_en']) ?></span>
+      <span class="discret">concert « <?= e($c['titre_en']) ?> »<?= $r['candidats'] ? ' · proche de : ' . e(implode(', ', array_column(array_slice($r['candidats'], 0, 2), 'nom'))) : '' ?></span>
       <span class="item__actions"><a class="bouton bouton--petit" href="<?= e(url('concert', ['id' => $c['id']])) ?>#orchestre">Voir le concert et décider</a></span></li>
   <?php endforeach; ?>
   </ul>
@@ -275,10 +274,10 @@ $n_a_confirmer = count(array_filter($lignes, fn($l) => !$l['verifie']));
     <?php foreach ($fiches as $id => $f): [$etat, $passes, $futurs] = $activites[$id]; $sur = $par_fiche[$id] ?? []; ?>
       <tr>
         <th scope="row"><a href="<?= e(url('fiche', ['id' => $id])) ?>"><?= e($f['nom']) ?></a></th>
-        <td><?= e(implode(', ', array_filter([$f['ville_fr'], $f['pays_fr']], 'strlen'))) ?: '<span class="discret">à préciser</span>' ?><?= ($f['ville_fr'] !== '' && !$f['verifie']) ? ' <span class="puce puce--alerte">à confirmer</span>' : '' ?></td>
+        <td><?= e(implode(', ', array_filter([$f['ville_en'], $f['pays_en']], 'strlen'))) ?: '<span class="discret">à préciser</span>' ?><?= ($f['ville_en'] !== '' && !$f['verifie']) ? ' <span class="puce puce--alerte">à confirmer</span>' : '' ?></td>
         <td><?php if ($etat === 'dirige'): ?><span class="puce puce--ok">déjà dirigé</span><?php elseif ($etat === 'a_venir'): ?><span class="puce puce--accent">engagement à venir</span><?php else: ?><span class="discret">aucun concert</span><?php endif; ?>
           <?php if ($passes || $futurs): ?><span class="discret"><?= $passes ? e(pluriel($passes, 'concert passé', 'concerts passés')) : '' ?><?= $passes && $futurs ? ', ' : '' ?><?= $futurs ? $futurs . ' à venir' : '' ?></span><?php endif; ?></td>
-        <td><?php if (!$sur): ?><span class="discret">pas sur la carte</span><?php else: ?><?= e(implode(', ', array_map(fn($l) => $l['ville_fr'] . ($l['affiche'] ? '' : ' (pas affichée)'), $sur))) ?><?php endif; ?></td>
+        <td><?php if (!$sur): ?><span class="discret">pas sur la carte</span><?php else: ?><?= e(implode(', ', array_map(fn($l) => $l['ville_en'] . ($l['affiche'] ? '' : ' (pas affichée)'), $sur))) ?><?php endif; ?></td>
         <td class="tableau__actions"><a class="bouton bouton--petit" href="<?= e(url('carte', $sur ? ['ligne' => $sur[0]['id']] : ['orchestre' => $id])) ?>#placer"><?= $sur ? 'Régler' : 'Placer sur la carte' ?></a></td>
       </tr>
     <?php endforeach; ?>
@@ -293,8 +292,8 @@ $n_a_confirmer = count(array_filter($lignes, fn($l) => !$l['verifie']));
   <div class="colonnes">
     <?= champ('nom', 'Nom officiel', recu('action') === 'creer' ? recu('nom') : '', ['requis' => true, 'max' => 190]) ?>
     <?= champ_choix('categorie', 'Nature', ['orchestre' => 'Orchestre', 'ensemble' => 'Ensemble'], recu('categorie') ?: 'orchestre') ?>
-    <?= champ('ville_fr', 'Ville de référence', recu('action') === 'creer' ? recu('ville_fr') : '', ['max' => 120]) ?>
-    <?= champ('pays_fr', 'Pays', recu('action') === 'creer' ? recu('pays_fr') : '', ['max' => 120]) ?>
+    <?= champ('ville_en', 'Ville de référence', recu('action') === 'creer' ? recu('ville_en') : '', ['max' => 120]) ?>
+    <?= champ('pays_en', 'Pays', recu('action') === 'creer' ? recu('pays_en') : '', ['max' => 120]) ?>
   </div>
   <?php if ($erreurs && recu('action') === 'creer'): ?><?= champ_case('confirmer', 'C\'est un autre orchestre : l\'ajouter quand même', false) ?><?php endif; ?>
   <div class="actions"><button type="submit" class="bouton">Ajouter, puis placer sur la carte</button></div>

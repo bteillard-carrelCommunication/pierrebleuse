@@ -10,12 +10,12 @@ defined('PUPITRE') or exit;
 $titre = 'Médiathèque';
 
 if (est_post() && recu('action') === 'deposer') {
-    $depot = media_deposer($_FILES['fichier'] ?? [], ['alt_fr' => recu('alt_fr'), 'credit' => recu('credit'), 'droits' => recu('droits')]);
+    $depot = media_deposer($_FILES['fichier'] ?? [], ['alt_en' => recu('alt_en'), 'credit' => recu('credit'), 'droits' => recu('droits')]);
     if (is_string($depot)) {
         message('erreur', $depot);
         rediriger(url('medias'));
     }
-    bd_modifier('medias', recu_bi($_POST, 'alt', 500), ['id' => $depot]);       // le texte alternatif, dans chaque langue
+    bd_modifier('medias', recu_tr($_POST, 'alt', 500), ['id' => $depot]);       // le texte alternatif, dans la langue de rédaction
     message('ok', 'Fichier déposé. Il sera copié dans le site à la publication, s\'il est employé.');
     rediriger(url('media', ['id' => $depot]));
 }
@@ -45,7 +45,7 @@ $medias = $type !== '' ? bd_lignes('SELECT * FROM medias WHERE type = ? ORDER BY
     <?php foreach ($medias as $m): $emplois = count(media_emplois((int) $m['id'])); ?>
       <a class="vignette" href="<?= e(url('media', ['id' => $m['id']])) ?>">
         <?php $externe = ($m['url_externe'] ?? '') !== ''; $yt = media_youtube($m); ?>
-        <span class="vignette__image"><?php if ($m['type'] === 'image'): ?><img src="<?= e(media_adresse((int) $m['id'])) ?>" alt="<?= e($m['alt_fr']) ?>" loading="lazy"><?php elseif ($yt !== ''): ?><img src="https://i.ytimg.com/vi/<?= e($yt) ?>/hqdefault.jpg" alt="" loading="lazy"><?php else: ?><?= e(TYPES_MEDIA[$m['type']]) ?><?php endif; ?></span>
+        <span class="vignette__image"><?php if ($m['type'] === 'image'): ?><img src="<?= e(media_adresse((int) $m['id'])) ?>" alt="<?= e($m['alt_en']) ?>" loading="lazy"><?php elseif ($yt !== ''): ?><img src="https://i.ytimg.com/vi/<?= e($yt) ?>/hqdefault.jpg" alt="" loading="lazy"><?php else: ?><?= e(TYPES_MEDIA[$m['type']]) ?><?php endif; ?></span>
         <span class="vignette__texte"><?= e(couper(media_nom($m), 44)) ?><br><span class="discret"><?= $externe ? ($yt !== '' ? 'YouTube' : 'adresse externe') : e(taille_lisible((int) $m['taille'])) ?> · <?= $emplois ? e(pluriel($emplois, 'emploi', 'emplois')) : 'pas employé' ?><?= (!$externe && empty($m['chemin_site'])) ? ' · pas encore sur le site' : '' ?><?= (int) ($m['droits_valides'] ?? 1) === 1 ? '' : ' · droits à confirmer' ?></span></span>
       </a>
     <?php endforeach; ?>
@@ -57,7 +57,7 @@ $medias = $type !== '' ? bd_lignes('SELECT * FROM medias WHERE type = ? ORDER BY
     <h2>Déposer un fichier</h2>
     <div class="champ"><label for="fichier">Fichier</label><input type="file" id="fichier" name="fichier" required aria-describedby="fichier-aide">
       <p class="aide" id="fichier-aide">Images (JPEG, PNG, WebP, SVG) jusqu'à <?= e(taille_lisible(taille_max('image'))) ?> ; sons (M4A, MP3), vidéos (MP4) et documents (PDF, ZIP, DOCX) jusqu'à <?= e(taille_lisible(taille_max('video'))) ?>.</p></div>
-    <?= champ_bi('alt', 'Texte alternatif', '', '', ['aide' => 'Pour une image : ce qu\'elle montre.']) ?>
+    <?= champ_tr('alt', 'Texte alternatif', '', ['aide' => 'Pour une image : ce qu\'elle montre.']) ?>
     <?= champ('credit', 'Crédit', '', ['aide' => 'Photographe, auteur, source.']) ?>
     <?= champ_texte('droits', 'Droits d\'usage', '', ['aide' => 'En texte libre : usages permis, durée, territoires, mention obligatoire.']) ?>
     <div class="actions"><button type="submit" class="bouton bouton--plein">Déposer</button></div>

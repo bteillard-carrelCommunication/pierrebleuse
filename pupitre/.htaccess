@@ -7,3 +7,8 @@ Options -Indexes
 <FilesMatch "^\.|\.(md|sql|log|env|exemple|sh|py)$">
   Require all denied
 </FilesMatch>
+# le manifeste de l'application (ressources/marque/icones/site.webmanifest) sous son type
+<IfModule mod_mime.c>
+  AddType application/manifest+json .webmanifest
+  AddType font/woff2 .woff2
+</IfModule>

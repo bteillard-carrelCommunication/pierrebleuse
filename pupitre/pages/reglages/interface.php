@@ -11,15 +11,39 @@
 defined('PUPITRE') or exit;
 
 $titre = 'Bibliothèque d\'interface';
+// la palette de la charte (ressources/charteGraphique, version 1.0) : nom, jeton, valeur, usage
 $palette = [
-    'Indigo : la couleur de l\'interface' => ['indigo-50', 'indigo-100', 'indigo-200', 'indigo-300', 'indigo-400', 'indigo-500', 'indigo-600', 'indigo-700', 'indigo-800', 'indigo-900'],
-    'Gris : fonds, traits, textes' => ['gris-0', 'gris-25', 'gris-50', 'gris-100', 'gris-200', 'gris-300', 'gris-400', 'gris-500', 'gris-600', 'gris-700', 'gris-800', 'gris-900'],
-    'États : réservés à ce qu\'ils disent' => ['vert-100', 'vert-500', 'vert-700', 'ambre-100', 'ambre-500', 'ambre-700', 'rouge-100', 'rouge-500', 'rouge-700', 'bleu-100', 'bleu-500', 'bleu-700'],
+    'Les couleurs de la charte' => [
+        ['Marine', 'pp-marine', '#12263F', 'textes, navigation, fonds sombres'],
+        ['Lin', 'pp-lin', '#FAF6F0', 'fond des pages'],
+        ['Blanc', 'pp-blanc', '#FFFFFF', 'cartes, champs'],
+        ['Mandarine', 'pp-mandarine', '#FF8B3D', 'bouton principal, entrée active, repères'],
+        ['Cuivre', 'pp-cuivre', '#B84E0C', 'liens, accents'],
+        ['Abricot', 'pp-abricot', '#FFE4CC', 'aplats, survols, bandeaux'],
+        ['Ardoise', 'pp-ardoise', '#586273', 'textes secondaires'],
+        ['Trait', 'pp-trait', '#EAE3D9', 'bordures, séparateurs'],
+        ['Brume', 'pp-brume', '#B9C4D4', 'texte secondaire sur marine'],
+    ],
+    'Leurs mélanges, pour une interface dense' => [
+        ['Lin clair', 'pp-lin-clair', '#FCFAF8', 'survol d\'une ligne, barre d\'actions'],
+        ['Lin creux', 'pp-lin-creux', '#F2ECE4', 'compteurs, étiquettes neutres'],
+        ['Abricot clair', 'pp-abricot-clair', '#FFF3E8', 'repère discret'],
+        ['Trait fort', 'pp-trait-fort', '#D3CCC2', 'pointillés, séparateurs appuyés'],
+        ['Trait de champ', 'pp-trait-champ', '#868A92', 'bord d\'un champ (3:1)'],
+        ['Marine survol', 'pp-marine-survol', '#1E3552', 'survol dans la navigation'],
+    ],
+    'États (proposition de la charte, à valider)' => [
+        ['Succès', 'pp-succes-fond', '#DDF2E6', 'texte #17603D'],
+        ['Alerte', 'pp-alerte-fond', '#FFEFC2', 'texte #7A4F00'],
+        ['Erreur', 'pp-erreur-fond', '#FBE3E1', 'texte #8C1D18'],
+        ['Info', 'pp-info-fond', '#E3EAF3', 'texte #12263F'],
+    ],
 ];
 $roles = [
-    '--fond' => 'fond de la page', '--surface' => 'cartes, champs', '--surface-douce' => 'en-têtes de tableau, lignes', '--surface-creuse' => 'pastilles, pistes',
-    '--texte' => 'texte', '--texte-moyen' => 'libellés', '--texte-doux' => 'aides, précisions', '--trait' => 'séparations', '--trait-fort' => 'bords des champs',
-    '--primaire' => 'action principale, lien', '--primaire-doux' => 'élément actif', '--ok' => 'fait, publié', '--alerte' => 'à surveiller', '--erreur' => 'erreur, urgence', '--info' => 'information',
+    '--fond' => 'fond de la page', '--surface' => 'cartes, champs', '--surface-douce' => 'en-têtes de tableau, survols', '--surface-creuse' => 'compteurs, pistes',
+    '--texte' => 'texte', '--texte-doux' => 'aides, précisions', '--accent' => 'liens (un texte)', '--trait' => 'séparations', '--trait-champ' => 'bords des champs',
+    '--primaire' => 'action principale (un fond)', '--primaire-doux' => 'élément actif, bandeau', '--sombre-fond' => 'navigation, bouton sombre',
+    '--ok' => 'fait, publié', '--alerte-doux' => 'à surveiller', '--erreur' => 'erreur, urgence', '--info-doux' => 'information',
 ];
 $code = fn(string $html) => '<details class="repli"><summary>Balisage</summary><pre class="diff"><div>' . e($html) . '</div></pre></details>';
 ?>
@@ -27,17 +51,37 @@ $code = fn(string $html) => '<details class="repli"><summary>Balisage</summary><
   <h1>Bibliothèque d'interface</h1>
   <span class="titre__suite">ressources/css/pupitre.css · gabarits/composants.php · inclus/icones.php</span>
 </div>
-<p class="intro">Le design system de Pupitre : ce dont tout écran est fait. Trois étages de jetons (la palette, les rôles, les réglages d'un composant), puis les composants. Un écran se compose avec ces pièces ; une couleur ne s'écrit jamais en dur dans une page.</p>
+<p class="intro">Le design system de Pupitre : ce dont tout écran est fait, selon la charte graphique (<code>ressources/charteGraphique</code>, version 1.0). Trois étages de jetons (la palette, les rôles, les réglages d'un composant), puis les composants. Un écran se compose avec ces pièces ; une couleur ne s'écrit jamais en dur dans une page.</p>
+
+<section class="carte" aria-labelledby="ds-regles">
+  <h2 id="ds-regles">Les trois règles</h2>
+  <ol class="items">
+    <li><span class="item__titre">Jamais de texte blanc sur mandarine.</span><span class="discret">Sur mandarine, le texte est marine (contraste 6,6:1 ; le blanc n'atteint que 2,3:1).</span></li>
+    <li><span class="item__titre">La mandarine sert aux actions et aux repères.</span><span class="discret">Bouton principal, entrée de navigation active, pastille. Pas de texte courant, pas de grand aplat : un lien est cuivre, un aplat est abricot.</span></li>
+    <li><span class="item__titre">Outfit pour les titres, Manrope pour tout le reste.</span><span class="discret">Aplats, pas de dégradé, pas d'ombre portée, coins très arrondis, pictogrammes au trait.</span></li>
+  </ol>
+</section>
+
+<section class="carte" aria-labelledby="ds-marque">
+  <h2 id="ds-marque">Logotype et symbole</h2>
+  <p class="aide aide--haut">Le logotype ne se recompose jamais en texte : il vient de <code>ressources/marque/</code>, par <code>marque_logo()</code>. Jamais moins de 24 px de haut ; en dessous de 70 px de large, le symbole seul (<code>marque_symbole()</code>).</p>
+  <div class="deux">
+    <div class="exemple"><?= marque_logo('principal', 44, '') ?><?= marque_symbole('mandarine', 34, '') ?><?= marque_symbole('marine', 34, '') ?><?= marque_symbole('cuivre', 34, '') ?></div>
+    <div class="exemple exemple--sombre"><?= marque_logo('inverse', 44, '') ?><?= marque_symbole('blanc', 34, '') ?></div>
+  </div>
+  <?= $code('<?= marque_logo(\'inverse\', 34) ?>      // menu (fond marine)' . "\n" . '<?= marque_logo(\'principal\', 44) ?>    // connexion, pages publiques (fond clair)' . "\n" . '<?= marque_tete() ?>                  // dans le <head> : icônes, manifeste, polices, feuille de style') ?>
+</section>
 
 <section class="carte" aria-labelledby="ds-couleurs">
   <h2 id="ds-couleurs">Couleurs</h2>
   <?php foreach ($palette as $nom => $nuances): ?>
     <h3><?= e($nom) ?></h3>
-    <div class="nuancier" style="margin-bottom:1.2rem">
-      <?php foreach ($nuances as $n): ?><div class="nuance"><div class="nuance__couleur" style="background: var(--<?= e($n) ?>)"></div><code>--<?= e($n) ?></code></div><?php endforeach; ?>
+    <div class="nuancier" style="margin-bottom:1.5rem">
+      <?php foreach ($nuances as [$libelle, $jeton, $valeur, $usage]): ?><div class="nuance"><div class="nuance__couleur" style="background: var(--<?= e($jeton) ?>)"></div><strong><?= e($libelle) ?></strong><code><?= e($valeur) ?></code><span><?= e($usage) ?></span></div><?php endforeach; ?>
     </div>
   <?php endforeach; ?>
   <h3>Rôles : ce qu'un composant emploie</h3>
+  <p class="aide aide--haut"><code>--primaire</code> est un fond (le texte y est marine, <code>--sur-primaire</code>) ; <code>--accent</code> est une couleur de texte, sur lin ou sur blanc.</p>
   <div class="nuancier">
     <?php foreach ($roles as $jeton => $usage): ?><div class="nuance"><div class="nuance__couleur" style="background: var(<?= e($jeton) ?>)"></div><code><?= e($jeton) ?></code><span><?= e($usage) ?></span></div><?php endforeach; ?>
   </div>
@@ -47,28 +91,32 @@ $code = fn(string $html) => '<details class="repli"><summary>Balisage</summary><
   <h2 id="ds-typo">Typographie, espacements, rayons</h2>
   <div class="deux">
     <div>
-      <p style="font: 600 var(--t-2xl)/1.2 var(--police)">Titre de page · 28 px, 600</p>
-      <p style="font: 600 var(--t-lg)/1.3 var(--police); margin-top:.6rem">Titre de section · 18 px, 600</p>
-      <p style="font: 600 var(--t-md)/1.35 var(--police); margin-top:.6rem">Titre de carte · 16 px, 600</p>
-      <p style="margin-top:.6rem">Texte courant · 14 px, 400. Poppins, servie par Pupitre : aucune requête vers un service tiers.</p>
+      <p class="specimen-titre" style="font-size: var(--t-2xl); line-height:1.05">Titre de page · 44 px</p>
+      <p class="specimen-titre" style="font-size: var(--t-xl); line-height:1.15; margin-top:.8rem">Titre de section · 28 px</p>
+      <p class="specimen-titre" style="font-size: var(--t-lg); line-height:1.25; margin-top:.8rem">Titre de carte · 20 px</p>
+      <p class="discret" style="margin-top:.3rem">Outfit, 600, approche −0,02 em.</p>
+      <p style="font-size: var(--t-md); margin-top:.9rem">Texte de lecture · Manrope 16 px, 400.</p>
+      <p style="margin-top:.4rem">Texte d'interface · Manrope 15 px. Les deux polices sont servies par Pupitre : aucune requête vers un service tiers.</p>
       <p class="discret" style="margin-top:.4rem">Précision, aide · 13 px</p>
-      <p style="font: 500 var(--t-xs) var(--police); letter-spacing:.05em; text-transform:uppercase; color: var(--texte-doux); margin-top:.4rem">En-tête de tableau · 12 px, capitales</p>
+      <p class="libelle" style="margin-top:.5rem">Libellé · 13 px, 600, capitales espacées</p>
     </div>
     <div>
       <p class="discret">Espacements : <code>--e-1</code> 4 px · <code>--e-2</code> 8 · <code>--e-3</code> 12 · <code>--e-4</code> 16 · <code>--e-5</code> 20 · <code>--e-6</code> 24 · <code>--e-8</code> 32.</p>
-      <p class="discret" style="margin-top:.5rem">Rayons : <code>--r-sm</code> 6 px (petites pièces) · <code>--r-md</code> 10 (boutons, champs) · <code>--r-lg</code> 14 (cartes) · <code>--r-xl</code> 20 (menu, connexion).</p>
-      <p class="discret" style="margin-top:.5rem">Ombres : <code>--ombre-1</code> (cartes) · <code>--ombre-2</code> (menu, survol) · <code>--ombre-3</code> (fenêtres flottantes).</p>
+      <p class="discret" style="margin-top:.5rem">Rayons : <code>--r-sm</code> 8 px (petites pièces) · <code>--r-md</code> 12 (champs, encarts) · <code>--r-lg</code> 20 (cartes) · <code>--r-xl</code> 24 (connexion) · <code>--r-nav</code> 22 (entrées de menu) · <code>--r-rond</code> (boutons, étiquettes).</p>
+      <p class="discret" style="margin-top:.5rem">Hauteur des contrôles : 44 px (<code>--hauteur-controle</code>) pour un bouton, un champ, une entrée de menu ; 36 px pour un petit bouton.</p>
+      <p class="discret" style="margin-top:.5rem">Pas d'ombre : une carte se détache par son fond blanc et son trait ; une fenêtre flottante, par un trait plus fort.</p>
     </div>
   </div>
 </section>
 
 <section class="carte" aria-labelledby="ds-boutons">
   <h2 id="ds-boutons">Boutons</h2>
-  <p class="aide aide--haut">Un seul bouton plein par zone : l'action principale. Le bouton doux accompagne, le bouton neutre fait le reste, le bouton de danger détruit et demande confirmation.</p>
+  <p class="aide aide--haut">Une pilule de 44 px. Un seul bouton plein (mandarine, texte marine) par zone : l'action principale. Le bouton secondaire (bordure marine) fait le reste, le bouton doux accompagne, le bouton sombre se pose sur un aplat abricot, le bouton de danger détruit et demande confirmation.</p>
   <div class="exemple">
     <button type="button" class="bouton bouton--plein"><?= icone('plus') ?>Action principale</button>
+    <button type="button" class="bouton">Action secondaire</button>
     <button type="button" class="bouton bouton--doux">Action d'appui</button>
-    <button type="button" class="bouton">Action neutre</button>
+    <button type="button" class="bouton bouton--sombre">Sur un aplat</button>
     <button type="button" class="bouton bouton--danger"><?= icone('corbeille') ?>Supprimer</button>
     <button type="button" class="bouton" disabled>Indisponible</button>
     <button type="button" class="bouton bouton--petit">Petit</button>
@@ -102,18 +150,18 @@ $code = fn(string $html) => '<details class="repli"><summary>Balisage</summary><
 
 <section class="carte" aria-labelledby="ds-champs">
   <h2 id="ds-champs">Champs de formulaire</h2>
-  <p class="aide aide--haut">Toujours par les fonctions de <code>gabarits/composants.php</code> : libellé relié au champ, aide reliée par <code>aria-describedby</code>, langues côte à côte.</p>
+  <p class="aide aide--haut">Toujours par les fonctions de <code>gabarits/composants.php</code> : libellé relié au champ, aide reliée par <code>aria-describedby</code>. Un champ traduisible se saisit en anglais ; chaque autre langue est à un lien de là, sur l'écran « Traductions », à la ligne du texte.</p>
   <div class="exemple exemple--colonne">
     <div class="colonnes">
       <?= champ('ex_texte', 'Champ sur une ligne', 'Valeur', ['aide' => 'Une aide, sous le champ.', 'requis' => true]) ?>
       <?= champ_choix('ex_choix', 'Liste de choix', ['a' => 'Premier choix', 'b' => 'Second choix'], 'a') ?>
       <?= champ('ex_date', 'Date', '2026-11-27', ['type' => 'date']) ?>
     </div>
-    <?= champ_bi('ex_bi', 'Champ traduisible', 'Texte de référence', 'Reference text', ['valeurs' => ['en' => 'Reference text']]) ?>
+    <?= champ_tr('ex_tr', 'Champ traduisible', 'Reference text, written in English') ?>
     <?= champ_texte('ex_long', 'Zone de texte', "Plusieurs lignes.\nLa hauteur suit le contenu.") ?>
     <?= champ_case('ex_case', 'Case à cocher', true, ['aide' => 'Avec son aide.']) ?>
   </div>
-  <?= $code('<?= champ(\'titre\', \'Titre\', $valeur, [\'requis\' => true, \'aide\' => \'…\']) ?>' . "\n" . '<?= champ_bi(\'titre\', \'Titre\', $fr, \'\', [\'objet\' => [\'concerts\', $id, \'titre\']]) ?>') ?>
+  <?= $code('<?= champ(\'titre\', \'Titre\', $valeur, [\'requis\' => true, \'aide\' => \'…\']) ?>' . "\n" . '<?= champ_tr(\'titre\', \'Titre\', $c[\'titre_en\'], [\'objet\' => [\'concerts\', $id, \'titre\']]) ?>') ?>
 </section>
 
 <section class="carte" aria-labelledby="ds-tuiles">

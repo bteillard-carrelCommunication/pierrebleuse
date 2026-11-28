@@ -1,7 +1,7 @@
 <?php
 /**
  * Réglages (pilote) : nom et sous-titre, fuseau, saison, racine du site, maisons. Les langues ont
- * leur écran (Langues et traductions), la couleur de fond aussi (Apparence).
+ * leurs écrans (Langues, Traductions), la couleur de fond aussi (Apparence).
  * Rien de propre à l'artiste n'est écrit dans le code : tout est ici.
  */
 
@@ -11,7 +11,7 @@ $titre = 'Réglages';
 $maisons_liste = [
     'table' => 'maisons', 'ajout' => 'Ajouter une maison',
     'retenir' => fn(array $l) => bd_valeur('SELECT COUNT(*) FROM concerts WHERE maison_id = ?', [$l['id']])
-        ? 'La maison « ' . $l['nom_fr'] . ' » est employée par des concerts : elle ne peut pas être retirée.' : '',
+        ? 'La maison « ' . $l['nom_en'] . ' » est employée par des concerts : elle ne peut pas être retirée.' : '',
     'champs' => [
         ['cle', 'ligne', 'Clé', 'requis' => true, 'max' => 40, 'aide' => 'Identifiant court, sans espace : il figure dans les fichiers du site.'],
         ['nom', 'bi', 'Nom', 'requis' => true],
@@ -45,6 +45,27 @@ if (est_post() && recu('action') === 'reglages') {
         journaliser('modification', 'reglages', null, 'Réglages', $avant, $nouveaux);
         message('ok', 'Réglages enregistrés.');
         rediriger(url('reglages'));
+    }
+}
+if (est_post() && recu('action') === 'metricool') {
+    // les deux marques (vrais comptes, comptes de test) et le mode actif
+    $avant = ['reelle' => reglage('metricool_marque_reelle'), 'test' => reglage('metricool_marque_test'), 'mode' => metricool_mode()];
+    $noms = [];
+    foreach (is_array($_POST['noms'] ?? null) ? $_POST['noms'] : [] as $id => $nom) $noms[preg_replace('/\D/', '', (string) $id)] = mb_substr((string) $nom, 0, 120);
+    $apres = ['reelle' => preg_replace('/\D/', '', recu('marque_reelle')), 'test' => preg_replace('/\D/', '', recu('marque_test')), 'mode' => recu('mode') === 'test' ? 'test' : 'reel'];
+    if ($apres['mode'] === 'test' && $apres['test'] === '') $erreurs[] = 'Pour passer en mode test, choisissez d\'abord la marque des comptes de test.';
+    if ($apres['reelle'] !== '' && $apres['reelle'] === $apres['test']) $erreurs[] = 'La marque de test doit être une autre marque que celle des vrais comptes.';
+    if (!$erreurs) {
+        reglage_ecrire('metricool_marque_reelle', $apres['reelle']);
+        reglage_ecrire('metricool_marque_reelle_nom', $noms[$apres['reelle']] ?? (recu('marque_reelle') === $avant['reelle'] ? reglage('metricool_marque_reelle_nom') : ''));
+        reglage_ecrire('metricool_marque_test', $apres['test']);
+        reglage_ecrire('metricool_marque_test_nom', $noms[$apres['test']] ?? (recu('marque_test') === $avant['test'] ? reglage('metricool_marque_test_nom') : ''));
+        reglage_ecrire('metricool_mode', $apres['mode']);
+        journaliser('modification', 'reglages', null, 'Réglages : Metricool', $avant, $apres);
+        message('ok', $apres['mode'] !== $avant['mode']
+            ? ($apres['mode'] === 'test' ? 'Mode test : Pupitre lit désormais les comptes de test, pas ceux de l\'artiste.' : 'Retour aux vrais comptes de l\'artiste.')
+            : 'Réglages de Metricool enregistrés.');
+        rediriger(url('reglages') . '#metricool');
     }
 }
 if (est_post() && recu('action') === 'maisons') {
@@ -105,10 +126,46 @@ $analyse = analyse_possible();
       </ul>
       <p class="actions"><a class="bouton bouton--petit" href="<?= e(url('contenu', ['type' => 'contacts'])) ?>">Modifier les réseaux</a></p>
     </div>
+    <?php
+      $mc_mode = metricool_mode();
+      [$mc_marques, $mc_erreur] = metricool_configure() ? metricool_marques() : [[], ''];
+      $mc_choix = [];
+      foreach ($mc_marques as $m) $mc_choix[$m['id']] = $m['nom'] . ($m['reseaux'] ? ' · ' . implode(', ', array_map(fn($x) => RESEAUX_SOCIAUX[$x] ?? $x, $m['reseaux'])) : ' · aucun réseau connecté');
+      // une marque déjà réglée reste proposée même si la liste n'a pas pu être lue
+      foreach (['reelle', 'test'] as $k) { $id = reglage('metricool_marque_' . $k); if ($id !== '' && !isset($mc_choix[$id])) $mc_choix[$id] = (reglage('metricool_marque_' . $k . '_nom') ?: 'Marque') . ' · n° ' . $id; }
+    ?>
+    <form method="post" class="carte" id="metricool">
+      <?= champ_csrf() ?><input type="hidden" name="action" value="metricool">
+      <div class="carte__tete"><h2>Réseaux sociaux : Metricool</h2><?= $mc_mode === 'test' ? '<span class="puce puce--alerte">mode test</span>' : '<span class="puce puce--ok">vrais comptes</span>' ?></div>
+      <?php if (!metricool_configure()): ?>
+        <p class="message message--alerte">Metricool n'est pas relié : renseignez <code>METRICOOL_JETON</code> et <code>METRICOOL_UTILISATEUR</code> dans <code>pupitre/.env</code> (Metricool › Paramètres du compte › API). Les marques se choisiront ensuite dans une liste ; d'ici là, leur numéro peut être saisi.</p>
+      <?php elseif ($mc_erreur !== ''): ?>
+        <p class="message message--erreur" role="alert"><?= e($mc_erreur) ?></p>
+      <?php endif; ?>
+      <?php foreach ($mc_marques as $m): ?><input type="hidden" name="noms[<?= e($m['id']) ?>]" value="<?= e($m['nom']) ?>"><?php endforeach; ?>
+      <?php if ($mc_choix): ?>
+        <?= champ_choix('marque_reelle', 'Marque des vrais comptes de l\'artiste', $mc_choix, reglage('metricool_marque_reelle'), ['vide' => '— choisir —']) ?>
+        <?= champ_choix('marque_test', 'Marque des comptes de test', $mc_choix, reglage('metricool_marque_test'), ['vide' => '— aucune —', 'aide' => 'Une marque dont les comptes ne servent qu\'aux essais : rien de ce qui s\'y fait ne touche l\'artiste.']) ?>
+      <?php else: ?>
+        <div class="colonnes">
+          <?= champ('marque_reelle', 'Marque des vrais comptes (numéro)', reglage('metricool_marque_reelle'), ['max' => 20, 'indication' => '1234567']) ?>
+          <?= champ('marque_test', 'Marque des comptes de test (numéro)', reglage('metricool_marque_test'), ['max' => 20]) ?>
+        </div>
+      <?php endif; ?>
+      <fieldset class="champ"><legend>Mode actif</legend>
+        <div class="champ--case"><input type="radio" id="mc-reel" name="mode" value="reel"<?= $mc_mode === 'reel' ? ' checked' : '' ?>><label for="mc-reel">Vrais comptes : Pupitre lit (et, demain, publie sur) les comptes de l'artiste</label></div>
+        <div class="champ--case"><input type="radio" id="mc-test" name="mode" value="test"<?= $mc_mode === 'test' ? ' checked' : '' ?>><label for="mc-test">Comptes de test : tout passe par la marque de test, le temps d'un essai</label></div>
+      </fieldset>
+      <p class="aide">Basculer ne supprime rien : les publications relevées restent rangées avec leur marque, et l'écran « Résultats des publications » ne montre que celles du mode actif. Un bandeau rappelle le mode test tant qu'il est actif.</p>
+      <div class="actions"><button type="submit" class="bouton bouton--plein">Enregistrer</button>
+        <?php if (peut('communication')): ?><a class="bouton" href="<?= e(url('resultats')) ?>"><?= icone('mesures') ?>Résultats des publications</a><?php endif; ?></div>
+    </form>
     <div class="carte">
       <h2>Ce poste</h2>
       <ul class="items">
         <li><span class="item__titre">IA</span><span><?= ia_configuree() ? '<span class="puce puce--ok">clé renseignée</span> modèle ' . e(ia_modele()) : '<span class="puce puce--alerte">clé absente</span> ANTHROPIC_API_KEY dans pupitre/.env' ?></span></li>
+        <li><span class="item__titre">Boîte aux lettres</span><span><?= imap_configure() ? '<span class="puce puce--ok">reliée</span> ' . e(env('IMAP_UTILISATEUR')) : '<span class="puce puce--alerte">non reliée</span> IMAP_HOTE, IMAP_UTILISATEUR, IMAP_MOT_DE_PASSE dans pupitre/.env : les retours de mail ne sont pas suivis' ?></span></li>
+        <li><span class="item__titre">Metricool</span><span><?= metricool_configure() ? '<span class="puce puce--ok">jeton renseigné</span>' : '<span class="puce puce--alerte">non relié</span> METRICOOL_JETON et METRICOOL_UTILISATEUR dans pupitre/.env' ?></span></li>
         <li><span class="item__titre">Mails</span><span><?= env('MAILJET_CLE') !== '' && env('MAILJET_SECRET') !== '' && env('MAIL_EXPEDITEUR') !== '' ? '<span class="puce puce--ok">Mailjet configuré</span>' : '<span class="puce puce--alerte">Mailjet non configuré</span> les messages sont écrits dans stockage/journaux/mails.log' ?></span></li>
         <li><span class="item__titre">Analyse des bandes-son</span><span><?= $analyse === '' ? '<span class="puce puce--ok">possible</span> python3 et ffmpeg trouvés' : '<span class="puce puce--alerte">impossible ici</span> ' . e($analyse) ?></span></li>
         <li><span class="item__titre">Tâches de fond</span><span><?= php_cli() !== '' ? '<span class="puce puce--ok">lancement possible</span>' : '<span class="puce puce--alerte">PHP en ligne de commande introuvable</span> renseignez PHP_CLI' ?><br><span class="discret">Cron : toutes les cinq minutes, <code><?= e((php_cli() ?: 'php') . ' ' . RACINE . '/cron/taches.php') ?></code></span></span></li>

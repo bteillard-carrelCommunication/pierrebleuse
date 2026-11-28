@@ -25,10 +25,10 @@ try {
     // des dates que rien d'autre ne porte : l'an 2091
     $dates = ['connue' => '2091-03-01', 'embargo' => '2091-03-02', 'annoncee' => '2091-03-03', 'annulee' => '2091-03-04', 'publiee' => '2091-03-05'];
     [$id, $erreurs] = concert_enregistrer(null, [
-        'type' => 'concert', 'titre_fr' => 'Concert témoin du test', 'ensemble_fr' => 'Ensemble témoin',
-        'salle_fr' => 'Salle témoin', 'ville_fr' => 'Ville témoin', 'pays_fr' => 'France',
+        'type' => 'concert', 'titre_en' => 'Concert témoin du test', 'ensemble_en' => 'Ensemble témoin',
+        'salle_en' => 'Salle témoin', 'ville_en' => 'Ville témoin', 'pays_en' => 'France',
         'reps' => array_map(fn($d) => ['date' => $d, 'heure' => '20:00'], array_values($dates)),
-        'prog' => [['compositeur_fr' => 'Compositeur témoin', 'oeuvre_fr' => 'Œuvre témoin']],
+        'prog' => [['compositeur_en' => 'Compositeur témoin', 'oeuvre_en' => 'Œuvre témoin']],
     ]);
     if ($erreurs) throw new RuntimeException(implode(' ', $erreurs));
     $reps = [];

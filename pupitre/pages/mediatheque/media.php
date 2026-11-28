@@ -18,7 +18,7 @@ if (est_post()) {
         message('ok', 'Média supprimé de la médiathèque.' . (!empty($m['chemin_site']) ? ' Son fichier reste dans le site.' : ''));
         rediriger(url('medias'));
     }
-    objet_enregistrer('medias', $id, recu_bi($_POST, 'alt', 500) + [
+    objet_enregistrer('medias', $id, recu_tr($_POST, 'alt', 500) + [
         'titre' => mb_substr(recu('titre'), 0, 255),
         'credit' => mb_substr(recu('credit'), 0, 255), 'droits' => recu('droits'),
         'droits_valides' => empty($_POST['droits_valides']) ? 0 : 1,
@@ -42,7 +42,7 @@ $externe = ($m['url_externe'] ?? '') !== '';
     <form method="post" class="carte">
       <?= champ_csrf() ?>
       <?= champ('titre', 'Nom dans la médiathèque', $m['titre'] ?? '', ['max' => 255, 'aide' => 'Vide : le nom du fichier.']) ?>
-      <?= champ_bi('alt', 'Texte alternatif', $m['alt_fr'], $m['alt_en'], ['aide' => 'Pour une image : ce qu\'elle montre, pour qui ne la voit pas. Chaque emploi peut en donner un autre.', 'objet' => ['medias', $id, 'alt']]) ?>
+      <?= champ_tr('alt', 'Texte alternatif', $m['alt_en'], ['aide' => 'Pour une image : ce qu\'elle montre, pour qui ne la voit pas. Chaque emploi peut en donner un autre.', 'objet' => ['medias', $id, 'alt']]) ?>
       <?= champ('credit', 'Crédit', $m['credit'], ['aide' => 'Photographe, auteur, source.']) ?>
       <?= champ_texte('droits', 'Droits d\'usage', $m['droits'], ['aide' => 'En texte libre : usages permis, durée, territoires, mention obligatoire.']) ?>
       <?= champ_case('droits_valides', 'Droits d\'utilisation validés : ce média peut paraître sur le site', (int) ($m['droits_valides'] ?? 1) === 1) ?>

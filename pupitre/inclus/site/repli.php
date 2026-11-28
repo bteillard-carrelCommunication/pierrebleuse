@@ -2,7 +2,8 @@
 /**
  * Adaptateur du site, seconde moitié : les zones de repli du HTML.
  *
- * Le HTML du site garde le français en dur, pour se lire sans JavaScript. Chaque zone qui dépend
+ * Le HTML du site porte en dur les textes de sa langue par défaut (l'anglais), pour se lire sans
+ * JavaScript. Chaque zone qui dépend
  * des données est encadrée par deux repères (NOM-STATIQUE:DEBUT, NOM-STATIQUE:FIN). À la
  * publication, Pupitre réécrit le contenu entre les repères, et rien d'autre.
  *
@@ -52,18 +53,19 @@ const PICTOGRAMMES = [
  */
 function repli_contexte(?array $donnees = null): array
 {
-    static $c = ['libelles' => [], 'reference' => 'fr', 'langue' => null];
+    static $c = ['libelles' => [], 'reference' => 'en', 'langue' => null];
     if ($donnees !== null) {
+        // sans data/site.js (site d'avant les langues administrables), un champ écrit en chaîne est du français
         $c = ['libelles' => (array) ($donnees['LIBELLES'] ?? []), 'reference' => (string) ($donnees['SITE']['langues']['reference'] ?? 'fr'), 'langue' => $donnees['@langue'] ?? null];
     }
     return $c;
 }
 
-/** Champ écrit en chaîne ou en { fr, en, … } : la version demandée, sinon celle de la langue de référence. */
-function site_choisir($champ, string $langue = 'fr'): string
+/** Champ écrit en chaîne ou en { en, fr, … } : la version demandée, sinon celle de la langue de rédaction. */
+function site_choisir($champ, string $langue = 'en'): string
 {
     if ($champ === null) return '';
-    if (is_array($champ)) return (string) (($champ[$langue] ?? '') !== '' ? $champ[$langue] : ($champ[repli_contexte()['reference']] ?? ($champ['fr'] ?? '')));
+    if (is_array($champ)) return (string) (($champ[$langue] ?? '') !== '' ? $champ[$langue] : ($champ[repli_contexte()['reference']] ?? ($champ['en'] ?? ($champ['fr'] ?? ''))));
     return (string) $champ;
 }
 
@@ -95,7 +97,7 @@ function site_libelle(string $cle, string $langue): string
 {
     $t = site_choisir(repli_contexte()['libelles'][LIBELLES_SITE[$cle][0] ?? $cle] ?? null, $langue);
     if ($t !== '') return $t;
-    return LIBELLES_SITE[$cle][$langue] ?? (LIBELLES_SITE[$cle]['fr'] ?? '');
+    return LIBELLES_SITE[$cle][$langue] ?? (LIBELLES_SITE[$cle]['en'] ?? '');
 }
 
 /** Lien sortant, comme SiteContenu.lienSortant. */
@@ -443,22 +445,45 @@ function repli_contacts(array $groupes, string $langue): array
     return $l;
 }
 
+/** Chemin, dans le site, de la feuille de style que Pupitre génère. */
+const REGLAGES_CSS = 'css/reglages.css';
+
 /**
- * Réglages généraux, dans le <head> de chaque page : la couleur de fond (variables CSS --bg et
- * --bg-rvb) et les blocs masqués, qui n'occupent ainsi aucune place dès le premier affichage, avec
- * ou sans JavaScript. Leur entrée de menu disparaît avec eux.
+ * css/reglages.css : ce que Pupitre règle dans l'apparence du site, en un seul fichier. La couleur
+ * de fond (variables CSS --bg et --bg-rvb, d'où découlent tous les arrière-plans) et les blocs
+ * masqués, qui n'occupent ainsi aucune place dès le premier affichage, avec ou sans JavaScript ;
+ * leur entrée de menu disparaît avec eux.
+ *
+ * Chaque page charge ce fichier dans son <head>, après css/site.css. Changer la couleur de fond ne
+ * modifie donc que lui : ni les pages, ni data/site.js n'en portent de copie.
  */
-function repli_site(array $site): array
+function site_reglages_css(string $fond, array $blocs): string
 {
-    $fond = couleur_lire((string) ($site['fond'] ?? '')) ?: '#000000';
+    $fond = couleur_lire($fond) ?: '#000000';
     $regles = [':root { --bg: ' . $fond . '; --bg-rvb: ' . couleur_rvb($fond) . '; }'];
-    $masques = array_keys(array_filter($site['blocs'] ?? [], fn($visible) => $visible === false));
-    foreach ($masques as $cle) {
-        if (!preg_match('/^[a-z0-9-]+$/', $cle)) continue;
+    foreach (array_keys(array_filter($blocs, fn($visible) => $visible === false)) as $cle) {
+        if (!preg_match('/^[a-z0-9-]+$/', (string) $cle)) continue;
         $regles[] = '#' . $cle . ', [data-menu-liste] a[href="#' . $cle . '"] { display: none !important; }';
         $regles[] = '[data-menu-liste] li:has(> a[href="#' . $cle . '"]) { display: none !important; }';
     }
-    return array_merge(['<style data-site>'], array_map(fn($r) => '  ' . $r, $regles), ['</style>']);
+    return "/* reglages.css · généré par Pupitre (écrans « Apparence » et « Blocs du site ») : ne pas modifier à la main.\n"
+        . "   La couleur de fond générale du site et les blocs masqués. Chargé par chaque page, après site.css. */\n"
+        . implode("\n", $regles) . "\n";
+}
+
+/**
+ * Une page d'avant css/reglages.css porte encore, dans son <head>, la zone « SITE-STATIQUE » : un bloc
+ * <style> où la couleur de fond et les blocs masqués étaient recopiés, page par page. Elle est remplacée,
+ * une fois pour toutes, par le lien vers la feuille de style générée. Une page déjà convertie ne change pas.
+ */
+function repli_convertir_reglages(string $page): string
+{
+    $i = strpos($page, '<!-- SITE-STATIQUE:DEBUT');
+    $fin = '<!-- SITE-STATIQUE:FIN -->';
+    $j = $i === false ? false : strpos($page, $fin, $i);
+    if ($i === false || $j === false) return $page;
+    $version = preg_match('/\?v=([0-9A-Za-z]+)/', $page, $m) ? '?v=' . $m[1] : '';
+    return substr($page, 0, $i) . '<link rel="stylesheet" href="' . REGLAGES_CSS . $version . '">' . substr($page, $j + strlen($fin));
 }
 
 /** Bascule de langue de la barre du haut : un lien par langue du site, la langue de la page marquée. */
@@ -482,14 +507,13 @@ function repli_zones(array $exports, ?string $langue = null): array
 {
     $d = json_decode(json_encode($exports), true);          // objets et tableaux : tout en tableaux
     $site = $d['SITE'] ?? [];
-    $langue = $langue ?? (string) ($site['langues']['defaut'] ?? 'fr');
+    $langue = $langue ?? (string) ($site['langues']['defaut'] ?? ($site['langues']['reference'] ?? 'fr'));
     // la langue du HTML statique n'est posée que si le site publie ses libellés (data/libelles.js) : sans eux, les pages restent telles quelles
     repli_contexte($d + ['@langue' => !empty($d['LIBELLES']) ? $langue : null]);
     $t = $d['TEXTES'] ?? [];
     $v = $d['VISUELS'] ?? [];
     $description = site_choisir($t['description'] ?? '', $langue);
     $z = [
-        'SITE' => $site ? repli_site($site) : [],
         'LANGUES' => $site ? repli_langues($site, $langue) : [],
         'DESCRIPTION' => $description !== '' ? ['<meta name="description" content="' . site_attribut($description) . '">'] : [],
         'CITATION' => repli_texte('blockquote', 'ouverture__citation', 'ouverture.citation', $t['citation'] ?? '', $langue),
@@ -522,6 +546,7 @@ function repli_zones(array $exports, ?string $langue = null): array
  */
 function repli_appliquer(string $page, array $zones, array &$trouves = []): string
 {
+    $page = repli_convertir_reglages($page);
     foreach ($zones as $nom => $lignes) {
         $debut = '<!-- ' . $nom . '-STATIQUE:DEBUT';
         $fin = '<!-- ' . $nom . '-STATIQUE:FIN -->';

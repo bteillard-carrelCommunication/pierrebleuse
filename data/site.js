@@ -1,22 +1,21 @@
 /* Généré par Pupitre, ne pas modifier à la main. */
 window.SITE = {
   "langues": {
-    "reference": "fr",
+    "reference": "en",
     "defaut": "en",
     "liste": [
-      {
-        "code": "fr",
-        "nom": "Français",
-        "locale": "fr-FR"
-      },
       {
         "code": "en",
         "nom": "English",
         "locale": "en-GB"
+      },
+      {
+        "code": "fr",
+        "nom": "Français",
+        "locale": "fr-FR"
       }
     ]
   },
-  "fond": "#04070d",
   "blocs": {
     "parcours": true,
     "ouverture": true,

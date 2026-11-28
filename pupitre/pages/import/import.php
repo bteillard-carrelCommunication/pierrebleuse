@@ -22,7 +22,7 @@ if (est_post()) {
     if ($action === 'traduire' && ia_configuree() && langues_autres()) {
         $tache = tache_creer('traduction', ['langues' => langues_autres(), 'objets' => ['concerts', 'representations', 'programme', 'participants']]);
         if (!taches_lancer_en_fond()) message('alerte', 'Les propositions attendent le prochain passage des tâches de fond (cron).');
-        rediriger(url('langues', ['onglet' => 'traductions', 'langue' => langues_autres()[0], 'statut' => 'proposee', 'tache' => $tache]));
+        rediriger(url('traductions', ['langue' => langues_autres()[0], 'section' => 'concerts', 'statut' => 'proposee', 'tache' => $tache]));
     }
     if ($action === 'lancer') {
         message(taches_lancer_en_fond() ? 'ok' : 'alerte', 'Lecture lancée.');
@@ -79,7 +79,7 @@ $aides_natures = [
 ];
 $decisions = ['validee' => ['validée', 'puce--ok'], 'refusee' => ['refusée', '']];
 $champs_fr = ['heure' => 'heure', 'salle' => 'salle', 'ville' => 'ville', 'pays' => 'pays', 'date' => 'date'];
-$programme = fn(array $p) => implode(' · ', array_map(fn($x) => trim(($x['compositeur'] ?? $x['compositeur_fr'] ?? '') . ', ' . ($x['oeuvre'] ?? $x['oeuvre_fr'] ?? ''), ', '), $p));
+$programme = fn(array $p) => implode(' · ', array_map(fn($x) => trim(($x['compositeur'] ?? $x['compositeur_en'] ?? '') . ', ' . ($x['oeuvre'] ?? $x['oeuvre_en'] ?? ''), ', '), $p));
 ?>
 <p class="fil"><a href="<?= e(url('imports')) ?>">Extrait de l'agence</a></p>
 <div class="titre"><h1><?= e($titre) ?></h1><span class="titre__suite"><?= e($imp['nom_origine']) ?></span></div>
@@ -153,8 +153,8 @@ $programme = fn(array $p) => implode(' · ', array_map(fn($x) => trim(($x['compo
           <?php if ($nature === 'douteuse' && $attente): ?>
             <div class="champ" style="margin-top:.4rem"><label for="choix-<?= $lid ?>">C'est…</label>
               <select id="choix-<?= $lid ?>" name="choix[<?= $lid ?>]"><option value="">— à trancher —</option><option value="nouvelle">une nouvelle date</option>
-              <?php foreach ($l['candidats'] as $cid): $r = bd_ligne('SELECT r.id, r.date, r.heure, c.titre_fr FROM representations r JOIN concerts c ON c.id = r.concert_id WHERE r.id = ?', [$cid]); if (!$r) continue; ?>
-                <option value="<?= (int) $r['id'] ?>">la date du <?= e(date_fr($r['date'])) ?> de « <?= e(couper($r['titre_fr'], 50)) ?> », à mettre à jour</option>
+              <?php foreach ($l['candidats'] as $cid): $r = bd_ligne('SELECT r.id, r.date, r.heure, c.titre_en FROM representations r JOIN concerts c ON c.id = r.concert_id WHERE r.id = ?', [$cid]); if (!$r) continue; ?>
+                <option value="<?= (int) $r['id'] ?>">la date du <?= e(date_fr($r['date'])) ?> de « <?= e(couper($r['titre_en'], 50)) ?> », à mettre à jour</option>
               <?php endforeach; ?></select></div>
           <?php endif; ?>
         </td>
@@ -204,7 +204,7 @@ $programme = fn(array $p) => implode(' · ', array_map(fn($x) => trim(($x['compo
 <?php if ($validees && langues_autres() && ia_configuree()): ?>
 <form method="post" class="carte ia-carte">
   <?= champ_csrf() ?><input type="hidden" name="action" value="traduire">
-  <p><strong>Traductions.</strong> Les concerts entrés par cet extrait sont rédigés en <?= e(mb_strtolower(langue_nom(langue_reference()))) ?>. L'IA peut proposer leurs traductions (titres, lieux, programmes, rôles) : elles attendront votre validation dans « Langues et traductions », et rien ne paraîtra d'ici là.</p>
+  <p><strong>Traductions.</strong> Les concerts entrés par cet extrait sont rédigés en <?= e(mb_strtolower(langue_nom(langue_reference()))) ?>. L'IA peut proposer leurs traductions (titres, lieux, programmes, rôles) : elles attendront votre validation sur l'écran « Traductions », et rien ne paraîtra d'ici là.</p>
   <button type="submit" class="bouton">Proposer les traductions des concerts</button>
 </form>
 <?php endif; ?>

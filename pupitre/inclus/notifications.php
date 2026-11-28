@@ -27,7 +27,8 @@ function notifications_lire(): array
     $n = [];
     $base = chemin_pupitre() . '/index.php?';
     $icones = ['technique' => 'alerte', 'embargo' => 'embargo', 'proche' => 'concerts', 'publication' => 'brouillon', 'communication' => 'communication', 'source' => 'lien',
-        'lieu' => 'lieu', 'connue' => 'horloge', 'doublon' => 'copier', 'orchestre' => 'orchestres', 'site' => 'publier', 'echeance' => 'horloge', 'extrait' => 'import', 'vide' => 'textes'];
+        'lieu' => 'lieu', 'connue' => 'horloge', 'doublon' => 'copier', 'orchestre' => 'orchestres', 'site' => 'publier', 'echeance' => 'horloge', 'extrait' => 'import', 'vide' => 'textes',
+        'apercu' => 'oeil', 'depot' => 'depot', 'veille' => 'veille', 'courrier' => 'courrier', 'social' => 'mesures'];
     try {
         foreach (alertes_lire() as $a) {
             $n[] = ['niveau' => isset(NIVEAUX_ALERTE[$a['niveau'] ?? '']) ? $a['niveau'] : 'action', 'type' => TYPES_ALERTE[$a['type']] ?? $a['type'], 'message' => $a['message'],
@@ -40,9 +41,9 @@ function notifications_lire(): array
             $n[] = ['niveau' => 'action', 'type' => 'Extrait de l\'agence à valider', 'message' => 'Extrait' . ($i['date_extrait'] ? ' du ' . date_fr($i['date_extrait']) : '') . ' : '
                 . pluriel((int) $i['attente'], 'changement attend', 'changements attendent') . ' une décision.', 'lien' => url('import', ['id' => $i['id']]), 'quand' => $i['cree_le'], 'icone' => 'import', 'alerte' => null];
         }
-        foreach (bd_lignes("SELECT n.id, n.texte, n.cree_le, n.concert_id, c.titre_fr, k.nom FROM notes_artiste n JOIN concerts c ON c.id = n.concert_id JOIN comptes k ON k.id = n.compte_id
+        foreach (bd_lignes("SELECT n.id, n.texte, n.cree_le, n.concert_id, c.titre_en, k.nom FROM notes_artiste n JOIN concerts c ON c.id = n.concert_id JOIN comptes k ON k.id = n.compte_id
                             WHERE n.statut = 'a_traiter' ORDER BY n.id DESC") as $x) {
-            $n[] = ['niveau' => 'action', 'type' => 'Note de l\'artiste', 'message' => $x['nom'] . ', sur « ' . $x['titre_fr'] . ' » : ' . couper(preg_replace('/\s+/u', ' ', (string) $x['texte']), 140),
+            $n[] = ['niveau' => 'action', 'type' => 'Note de l\'artiste', 'message' => $x['nom'] . ', sur « ' . $x['titre_en'] . ' » : ' . couper(preg_replace('/\s+/u', ' ', (string) $x['texte']), 140),
                 'lien' => url('bord') . '#b-valider', 'quand' => $x['cree_le'], 'icone' => 'artiste', 'alerte' => null];
         }
         $proposes = (int) bd_valeur("SELECT COUNT(*) FROM annuaire_comptes WHERE etat = 'propose'");

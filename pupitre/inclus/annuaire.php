@@ -15,7 +15,7 @@ const CATEGORIES = [
 const ETATS_COMPTE = ['propose' => 'Proposé', 'verifie' => 'Vérifié', 'a_revoir' => 'À revoir'];
 
 const RESEAUX_CONNUS = ['instagram' => 'Instagram', 'facebook' => 'Facebook', 'x' => 'X', 'youtube' => 'YouTube',
-    'linkedin' => 'LinkedIn', 'tiktok' => 'TikTok', 'bluesky' => 'Bluesky', 'threads' => 'Threads'];
+    'linkedin' => 'LinkedIn', 'tiktok' => 'TikTok', 'bluesky' => 'Bluesky', 'threads' => 'Threads', 'site' => 'Site officiel'];
 
 const ZONES_PARCOURS = ['' => 'Déduite de la longitude', 'ameriques' => 'Amériques', 'europe-afrique' => 'Europe et Afrique', 'asie-oceanie' => 'Asie, Russie et Océanie'];
 
@@ -82,7 +82,7 @@ function annuaire_noms(array $categories): array
  */
 function fiches_doublons(?int $id = null): array
 {
-    $fiches = bd_lignes('SELECT id, categorie, nom, autres_noms, ville_fr FROM annuaire ORDER BY id');
+    $fiches = bd_lignes('SELECT id, categorie, nom, autres_noms, ville_en FROM annuaire ORDER BY id');
     $noms = [];
     foreach ($fiches as $f) $noms[$f['id']] = fiche_noms($f);
     $paires = [];
@@ -109,7 +109,7 @@ function fiches_doublons(?int $id = null): array
 /** Concerts liés à une fiche : comme ensemble, salle, participant ou compositeur. */
 function fiche_concerts(int $id): array
 {
-    $sql = "SELECT c.id, c.titre_fr, c.type, x.lien,
+    $sql = "SELECT c.id, c.titre_en, c.type, x.lien,
                    (SELECT MIN(r.date) FROM representations r WHERE r.concert_id = c.id) AS premiere
             FROM concerts c JOIN (
                 SELECT id AS concert_id, 'ensemble' AS lien FROM concerts WHERE ensemble_id = ?
@@ -126,42 +126,45 @@ function fiche_concerts(int $id): array
 function fiche_usages(int $id): array
 {
     $u = [];
-    foreach (fiche_concerts($id) as $c) $u[] = 'concert « ' . $c['titre_fr'] . ' » (' . $c['lien'] . ')';
-    foreach (bd_colonne('SELECT ville_fr FROM parcours_orchestres WHERE fiche_id = ?', [$id]) as $v) $u[] = 'carte du monde (' . $v . ')';
+    foreach (fiche_concerts($id) as $c) $u[] = 'concert « ' . $c['titre_en'] . ' » (' . $c['lien'] . ')';
+    foreach (bd_colonne('SELECT ville_en FROM parcours_orchestres WHERE fiche_id = ?', [$id]) as $v) $u[] = 'carte du monde (' . $v . ')';
     foreach (bd_colonne('SELECT titre FROM disques WHERE maison_id = ?', [$id]) as $t) $u[] = 'disque « ' . $t . ' »';
-    foreach (bd_colonne('SELECT titre_fr FROM articles WHERE media_id = ?', [$id]) as $t) $u[] = 'article « ' . $t . ' »';
+    foreach (bd_colonne('SELECT titre_en FROM articles WHERE media_id = ?', [$id]) as $t) $u[] = 'article « ' . $t . ' »';
     return $u;
 }
 
 /**
  * Fuseau probable d'un lieu, d'après son pays et sa ville : celui du pays s'il n'en a qu'un (ou
- * si tous marquent la même heure à cette date), sinon celui qui porte le nom de la ville.
+ * si tous marquent la même heure à cette date), sinon celui qui porte le nom de la ville. Le pays
+ * se reconnaît à son nom anglais (la langue de rédaction) ou français.
  * Rend '' quand on ne peut pas le dire : rien n'est inventé.
  */
-function fuseau_deviner(string $pays_fr, string $ville_fr, string $ville_en = '', ?string $date = null): string
+function fuseau_deviner(string $pays, string $ville, ?string $date = null): string
 {
     static $codes = null;
-    if (!class_exists('Locale') || trim($pays_fr) === '') return '';
+    if (!class_exists('Locale') || trim($pays) === '') return '';
     if ($codes === null) {
         $codes = [];
         foreach (range('A', 'Z') as $a) {
             foreach (range('A', 'Z') as $b) {
-                $nom = Locale::getDisplayRegion('-' . $a . $b, 'fr');
-                $n = normaliser($nom);
                 // un même nom peut revenir sous un code périmé, sans fuseau : seul compte le code qui en a
-                if ($nom === '' || $nom === $a . $b || isset($codes[$n])) continue;
-                if (DateTimeZone::listIdentifiers(DateTimeZone::PER_COUNTRY, $a . $b)) $codes[$n] = $a . $b;
+                if (!DateTimeZone::listIdentifiers(DateTimeZone::PER_COUNTRY, $a . $b)) continue;
+                foreach (['en', 'fr'] as $langue) {
+                    $nom = Locale::getDisplayRegion('-' . $a . $b, $langue);
+                    $n = normaliser($nom);
+                    if ($nom !== '' && $nom !== $a . $b && !isset($codes[$n])) $codes[$n] = $a . $b;
+                }
             }
         }
+        $codes += ['usa' => 'US', 'uk' => 'GB', 'great britain' => 'GB', 'england' => 'GB', 'scotland' => 'GB', 'wales' => 'GB', 'holland' => 'NL', 'south korea' => 'KR', 'russia' => 'RU', 'czech republic' => 'CZ'];
     }
-    $code = $codes[normaliser($pays_fr)] ?? '';
+    $code = $codes[normaliser($pays)] ?? '';
     if ($code === '') return '';
     $zones = DateTimeZone::listIdentifiers(DateTimeZone::PER_COUNTRY, $code);
     if (!$zones) return '';
     if (count($zones) === 1) return $zones[0];
-    foreach ([$ville_en, $ville_fr] as $ville) {
-        $v = normaliser($ville);
-        if ($v === '') continue;
+    $v = normaliser($ville);
+    if ($v !== '') {
         foreach ($zones as $z) {
             if (normaliser(str_replace('_', ' ', substr($z, strrpos($z, '/') + 1))) === $v) return $z;
         }

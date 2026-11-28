@@ -12,8 +12,8 @@ $titre = 'Parcours';
 function concerts_choix(): array
 {
     $c = [];
-    foreach (bd_lignes("SELECT c.id, c.titre_fr, c.ensemble_fr, (SELECT MIN(r.date) FROM representations r WHERE r.concert_id = c.id) AS premiere FROM concerts c WHERE c.type <> 'disque' ORDER BY premiere DESC, c.id") as $x) {
-        $c[(int) $x['id']] = annee_de((string) $x['premiere']) . ' · ' . $x['titre_fr'] . ($x['ensemble_fr'] !== '' && stripos($x['titre_fr'], $x['ensemble_fr']) === false ? ' (' . $x['ensemble_fr'] . ')' : '');
+    foreach (bd_lignes("SELECT c.id, c.titre_en, c.ensemble_en, (SELECT MIN(r.date) FROM representations r WHERE r.concert_id = c.id) AS premiere FROM concerts c WHERE c.type <> 'disque' ORDER BY premiere DESC, c.id") as $x) {
+        $c[(int) $x['id']] = annee_de((string) $x['premiere']) . ' · ' . $x['titre_en'] . ($x['ensemble_en'] !== '' && stripos($x['titre_en'], $x['ensemble_en']) === false ? ' (' . $x['ensemble_en'] . ')' : '');
     }
     return $c;
 }
@@ -34,7 +34,7 @@ $listes = [
         ]],
     'collaborations' => ['titre' => 'Grands débuts et collaborations', 'table' => 'collaborations', 'ajout' => 'Ajouter une collaboration',
         'controle' => function (array $d) {
-            if (empty($d['concert_id']) && empty($d['fiche_id']) && trim((string) ($d['intitule_fr'] ?? '')) === '') return 'Choisissez un concert, un orchestre, ou donnez un intitulé.';
+            if (empty($d['concert_id']) && empty($d['fiche_id']) && trim((string) ($d['intitule_en'] ?? '')) === '') return 'Choisissez un concert, un orchestre, ou donnez un intitulé.';
             if (!date_souple_valide((string) ($d['annee'] ?? ''))) return 'Année ou date : AAAA, AAAA-MM ou AAAA-MM-JJ.';
             if (!empty($d['publie']) && empty($d['verifiee'])) return 'Une collaboration ne se publie qu\'une fois confirmée : cochez « collaboration confirmée », ou laissez-la non publiée.';
             return '';
@@ -88,7 +88,7 @@ $archives = bd_lignes("SELECT * FROM parcours_lignes WHERE liste = 'opera' ORDER
   <h2>Archives : « Opéra et création »</h2>
   <p class="aide aide--haut">Ces lignes ne sortent plus sur le site depuis le remplacement de la rubrique par « Grands débuts et collaborations ». Elles sont gardées telles quelles dans la base.</p>
   <ul class="items">
-    <?php foreach ($archives as $l): ?><li><span><?= e(preg_replace('/\*/', '', $l['texte_fr'])) ?></span><?php $en = traduction_publiee('parcours_lignes', $l['id'], 'texte', 'en'); if ($en !== ''): ?><span class="discret" lang="en"><?= e(preg_replace('/\*/', '', $en)) ?></span><?php endif; ?></li><?php endforeach; ?>
+    <?php foreach ($archives as $l): ?><li><span><?= e(preg_replace('/\*/', '', $l['texte_en'])) ?></span><?php $autres = traductions_noms('parcours_lignes', $l['id'], 'texte'); if ($autres): ?><span class="discret"><?= e(preg_replace('/\*/', '', implode(' · ', $autres))) ?></span><?php endif; ?></li><?php endforeach; ?>
   </ul>
 </div>
 <?php endif; ?>

@@ -11,7 +11,6 @@ $periode = array_key_exists(recu('periode'), $periodes) ? recu('periode') : 'sai
 $filtres = [
     'statut' => array_key_exists(recu('statut'), STATUTS) ? recu('statut') : '',
     'maison' => recu_entier('maison'),
-    'type' => array_key_exists(recu('type'), TYPES_CONCERT) ? recu('type') : '',
     'q' => recu('q'),
 ];
 if ($periode === 'saison') { $filtres['du'] = $saison_debut; $filtres['au'] = $saison_fin; }
@@ -23,7 +22,7 @@ elseif ($periode === 'dates') {
 }
 $reps = agenda_representations($filtres);
 $maisons = [];
-foreach (bd_lignes('SELECT * FROM maisons ORDER BY ordre, id') as $m) $maisons[(int) $m['id']] = $m['nom_fr'];
+foreach (bd_lignes('SELECT * FROM maisons ORDER BY ordre, id') as $m) $maisons[(int) $m['id']] = $m['nom_en'];
 $par_mois = [];
 foreach ($reps as $r) $par_mois[substr($r['date'], 0, 7)][] = $r;
 $decompte = array_count_values(array_column($reps, 'statut'));
@@ -46,7 +45,6 @@ $decompte = array_count_values(array_column($reps, 'statut'));
   <?php endif; ?>
   <?= champ_choix('statut', 'Statut', STATUTS, $filtres['statut'], ['vide' => 'Tous']) ?>
   <?= champ_choix('maison', 'Maison', $maisons, $filtres['maison'], ['vide' => 'Toutes']) ?>
-  <?= champ_choix('type', 'Type', TYPES_CONCERT, $filtres['type'], ['vide' => 'Tous']) ?>
   <?= champ('q', 'Chercher', $filtres['q'], ['type' => 'search', 'indication' => 'titre, ensemble, ville']) ?>
   <button type="submit" class="bouton">Filtrer</button>
 </form>
@@ -66,11 +64,11 @@ $decompte = array_count_values(array_column($reps, 'statut'));
         <td role="cell" class="date"><strong><?= e(date_fr($r['date'], false, false)) ?></strong><br><span class="discret"><?= e(JOURS_FR[(int) date('w', strtotime($r['date'] . ' 12:00'))]) ?></span></td>
         <td role="cell" class="nombre"><?= e(heure_fr($r['heure'])) ?: '<span class="discret">—</span>' ?></td>
         <th scope="row" role="rowheader">
-          <a href="<?= e(url('concert', ['id' => $r['concert_id']])) ?>"><?= e($r['titre_fr']) ?></a>
-          <?php if ($r['type'] !== 'concert'): ?> <span class="puce"><?= e(TYPES_CONCERT[$r['type']]) ?></span><?php endif; ?>
+          <a href="<?= e(url('concert', ['id' => $r['concert_id']])) ?>"><?= e($r['titre_en']) ?></a>
+          <?php if ($r['type'] !== 'concert'): ?> <span class="puce"<?= $r['type'] === 'tournee' ? ' title="Plusieurs dates dans des villes différentes : Pupitre y voit une tournée."' : '' ?>><?= e(TYPES_CONCERT[$r['type']] ?? $r['type']) ?></span><?php endif; ?>
           <?php if (!$r['publie']): ?> <span class="puce puce--alerte">dépublié</span><?php endif; ?>
           <?php if ($r['temps_fort']): ?> <span class="puce puce--accent">à la une</span><?php endif; ?>
-          <?php if ($r['ensemble_fr'] !== '' && stripos($r['titre_fr'], $r['ensemble_fr']) === false): ?><br><span class="discret"><?= e($r['ensemble_fr']) ?></span><?php endif; ?>
+          <?php if ($r['ensemble_en'] !== '' && stripos($r['titre_en'], $r['ensemble_en']) === false): ?><br><span class="discret"><?= e($r['ensemble_en']) ?></span><?php endif; ?>
         </th>
         <td role="cell"><?= e(implode(', ', array_filter([$r['lieu_ville'], $r['lieu_pays']], 'strlen'))) ?><?php if ($r['lieu_salle'] !== ''): ?><br><span class="discret"><?= e($r['lieu_salle']) ?></span><?php endif; ?></td>
         <td role="cell" class="discret"><?= e($maisons[(int) $r['maison_id']] ?? '') ?></td>

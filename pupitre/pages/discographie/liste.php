@@ -44,7 +44,7 @@ $disques = bd_lignes('SELECT d.*, a.nom AS maison FROM disques d LEFT JOIN annua
         <th scope="row"><a href="<?= e(url('disque', ['id' => $id])) ?>"><?= e(preg_replace('/\*/', '', $d['titre'])) ?></a></th>
         <td><?= e(implode(' · ', array_filter([(string) $d['annee'], (string) $d['maison']], 'strlen'))) ?></td>
         <td class="discret"><?= e(implode(', ', array_filter([
-            trim((string) $d['presentation_fr']) !== '' ? 'présentation' : '', trim((string) $d['mot_fr']) !== '' ? 'mot de l\'artiste' : '',
+            trim((string) $d['presentation_en']) !== '' ? 'présentation' : '', trim((string) $d['mot_en']) !== '' ? 'mot de l\'artiste' : '',
             $n['distinctions'] ? pluriel($n['distinctions'], 'distinction', 'distinctions') : '', $n['critiques'] ? pluriel($n['critiques'], 'critique', 'critiques') : '',
             $n['visuels'] ? pluriel($n['visuels'], 'visuel', 'visuels') : '', $n['liens'] ? pluriel($n['liens'], 'lien', 'liens') : '']))) ?: '—' ?></td>
         <td><?= $d['publie'] ? '<span class="puce puce--ok">publié</span>' : '<span class="puce puce--alerte">dépublié</span>' ?></td>

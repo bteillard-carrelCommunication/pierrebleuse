@@ -16,7 +16,7 @@ defined('PUPITRE') or exit;
 /** Statuts qui sortent sur le site. */
 const STATUTS_SUR_LE_SITE = ['annoncee', 'publiee'];
 
-const NOTE_AGENDA = 'Uniquement des représentations annoncées par leur organisateur, de concerts publiés. Tout champ texte est soit une chaîne, soit un objet {fr, en}. Une tournée porte ville, pays, salle et lien dans chaque représentation. Dates et heures locales de la salle.';
+const NOTE_AGENDA = 'Uniquement des représentations annoncées par leur organisateur, de concerts publiés. Tout champ texte est soit une chaîne (le texte anglais, qui vaut pour toutes les langues), soit un objet {en, fr, …}. Une tournée porte ville, pays, salle et lien dans chaque représentation. Dates et heures locales de la salle.';
 
 /**
  * Champ en deux langues : une chaîne si l'anglais est vide ou identique, sinon { fr, en }.
@@ -79,8 +79,9 @@ function multi_lignes(string $objet, array $ligne, string $champ): array
 // ---------- Un fichier, une fonction ----------
 
 /**
- * Réglages généraux du site : langues, couleur de fond, blocs visibles. Lu par js/contenu.js,
- * dans le <head> de chaque page, avant tout le reste.
+ * Réglages généraux du site : langues, blocs visibles. Lu par js/contenu.js, dans le <head> de
+ * chaque page, avant tout le reste. La couleur de fond n'est pas ici : elle n'a qu'une place,
+ * css/reglages.css (site_reglages_css()).
  */
 function export_site(): array
 {
@@ -90,7 +91,6 @@ function export_site(): array
     }
     return [
         'langues' => ['reference' => langue_reference(), 'defaut' => langue_defaut(), 'liste' => $langues],
-        'fond' => couleur_fond(),
         'blocs' => (object) blocs_visibilite(),
     ];
 }
@@ -160,14 +160,14 @@ function export_agenda(array $statuts = STATUTS_SUR_LE_SITE): array
                 'maison' => $cles_maisons[(int) $c['maison_id']] ?? '',
             ];
             foreach (['ville', 'pays', 'salle'] as $k) {
-                if ($c[$k . '_fr'] !== '') $e[$k] = multi('concerts', $c, $k);
+                if ($c[$k . '_en'] !== '') $e[$k] = multi('concerts', $c, $k);
             }
             $e['representations'] = [];
             foreach ($par_concert[$id] as $r) {
                 $l = ['date' => $r['date']];
                 if ($r['heure']) $l['heure'] = $r['heure'];
                 foreach (['ville', 'pays', 'salle'] as $k) {
-                    if ($r[$k . '_fr'] !== '') $l[$k] = multi('representations', $r, $k);
+                    if ($r[$k . '_en'] !== '') $l[$k] = multi('representations', $r, $k);
                 }
                 if ($r['lien_billetterie'] !== '') $l['lien'] = $r['lien_billetterie'];
                 $e['representations'][] = $l;
@@ -181,12 +181,12 @@ function export_agenda(array $statuts = STATUTS_SUR_LE_SITE): array
             $programme = [];
             foreach (bd_lignes('SELECT * FROM programme WHERE concert_id = ? ORDER BY ordre, id', [$id]) as $p) {
                 $l = ['compositeur' => multi('programme', $p, 'compositeur'), 'oeuvre' => multi('programme', $p, 'oeuvre')];
-                if ($p['mention_fr'] !== '') $l['mention'] = multi('programme', $p, 'mention');
+                if ($p['mention_en'] !== '') $l['mention'] = multi('programme', $p, 'mention');
                 $programme[] = $l;
             }
             if ($programme) $e['programme'] = $programme;
-            if (trim((string) $c['mentions_fr']) !== '') $e['mentions'] = multi('concerts', $c, 'mentions');
-            if (trim((string) $c['description_fr']) !== '') $e['description'] = multi('concerts', $c, 'description');
+            if (trim((string) $c['mentions_en']) !== '') $e['mentions'] = multi('concerts', $c, 'mentions');
+            if (trim((string) $c['description_en']) !== '') $e['description'] = multi('concerts', $c, 'description');
             $e['tempsFort'] = (bool) $c['temps_fort'];
             $e['lien'] = $c['lien_billetterie'] !== '' ? $c['lien_billetterie'] : $c['page_organisateur'];
             $evenements[] = $e;
@@ -222,7 +222,7 @@ function export_playlist(): array
             'mention' => multi('musiques', $t, 'mention'),
         ];
         foreach (['compositeur', 'oeuvre', 'mouvement', 'interpretes'] as $k) {
-            if (trim((string) $t[$k . '_fr']) !== '') $e[$k] = multi('musiques', $t, $k);
+            if (trim((string) $t[$k . '_en']) !== '') $e[$k] = multi('musiques', $t, $k);
         }
         if (trim((string) $t['orchestre']) !== '') $e['orchestre'] = $t['orchestre'];
         if ($t['nature'] !== '') $e['nature'] = $t['nature'];
@@ -286,23 +286,23 @@ function export_disques(): array
             'maison' => (string) $d['maison'],
             'descriptif' => count($descriptif) === 1 ? $descriptif[0] : ($descriptif ?: ''),
         ];
-        if (trim((string) $d['sous_titre_fr']) !== '') $e['sousTitre'] = multi('disques', $d, 'sous_titre');
+        if (trim((string) $d['sous_titre_en']) !== '') $e['sousTitre'] = multi('disques', $d, 'sous_titre');
         if ($d['date_sortie'] !== '') $e['sortie'] = $d['date_sortie'];
         if (($x = lignes_simples($d['compositeurs']))) $e['compositeurs'] = $x;
         if (($x = multi_lignes('disques', $d, 'oeuvres'))) $e['oeuvres'] = $x;
         if (trim((string) $d['ensemble']) !== '') $e['ensemble'] = $d['ensemble'];
         if (($x = multi_lignes('disques', $d, 'interpretes'))) $e['interpretes'] = $x;
-        foreach (['presentation', 'contexte', 'mot', 'infos'] as $k) {
-            if (trim((string) $d[$k . '_fr']) !== '') $e[$k] = multi('disques', $d, $k);
+        // deux textes : la présentation de la rédaction, et la note de l'artiste (présentée comme telle)
+        foreach (['presentation', 'mot'] as $k) {
+            if (trim((string) ($d[$k . '_en'] ?? '')) !== '') $e[$k] = multi('disques', $d, $k);
         }
-        if (($x = multi_lignes('disques', $d, 'citations'))) $e['citations'] = $x;
         // distinctions publiées ; « une » : montrée dès la vignette
         $distinctions = [];
         foreach (bd_lignes('SELECT * FROM distinctions WHERE disque_id = ? AND publie = 1 ORDER BY ordre, id', [$id]) as $x) {
             $ligne = ['intitule' => multi('distinctions', $x, 'intitule')];
             if ($x['organisme'] !== '') $ligne['organisme'] = $x['organisme'];
             if ($x['annee'] !== '') $ligne['annee'] = annee_de($x['annee']);
-            if (trim((string) $x['description_fr']) !== '') $ligne['description'] = multi('distinctions', $x, 'description');
+            if (trim((string) $x['description_en']) !== '') $ligne['description'] = multi('distinctions', $x, 'description');
             if ($x['url'] !== '') $ligne['url'] = $x['url'];
             $logo = $m[(int) $x['logo_id']] ?? null;
             if (media_publiable($logo)) $ligne['logo'] = media_chemin_site($logo);
@@ -359,7 +359,7 @@ function export_presse(): array
         foreach (bd_lignes('SELECT * FROM articles_citations WHERE article_id = ? ORDER BY principale DESC, ordre, id', [$id]) as $c) {
             $x = ['texte' => trim($c['texte']), 'langue' => $c['langue'] !== '' ? $c['langue'] : $a['langue']];
             $traductions = [];
-            if (trim((string) $c['traduction_fr']) !== '') $traductions[langue_reference()] = trim($c['traduction_fr']);
+            if (trim((string) $c['traduction_en']) !== '') $traductions[langue_reference()] = trim($c['traduction_en']);
             foreach (langues_autres() as $langue) {
                 $t = traduction_publiee('articles_citations', $c['id'], 'traduction', $langue);
                 if ($t !== '') $traductions[$langue] = $t;
@@ -371,7 +371,7 @@ function export_presse(): array
         }
         $e['citations'] = $citations;
         foreach (['chapeau', 'resume', 'infos'] as $k) {
-            $e[$k] = trim((string) $a[$k . '_fr']) !== '' ? multi('articles', $a, $k) : '';
+            $e[$k] = trim((string) $a[$k . '_en']) !== '' ? multi('articles', $a, $k) : '';
         }
         $e['lien'] = $a['lien'];
         if (($x = visuels_exporter('articles', $id))) $e['visuels'] = $x;
@@ -415,9 +415,9 @@ function export_parcours(): array
 {
     $fonctions = [];
     foreach (bd_lignes('SELECT * FROM fonctions WHERE publie = 1 ORDER BY ordre, id') as $f) {
-        if (trim($f['intitule_fr']) === '') continue;
+        if (trim($f['intitule_en']) === '') continue;
         $e = ['intitule' => multi('fonctions', $f, 'intitule'), 'institution' => multi('fonctions', $f, 'institution'), 'debut' => annee_de($f['debut']), 'fin' => annee_de($f['fin']), 'actuelle' => (bool) $f['actuelle']];
-        if (trim((string) $f['description_fr']) !== '') $e['description'] = multi('fonctions', $f, 'description');
+        if (trim((string) $f['description_en']) !== '') $e['description'] = multi('fonctions', $f, 'description');
         if ($f['lien'] !== '') $e['lien'] = $f['lien'];
         if ($f['une']) $e['une'] = true;
         $fonctions[] = $e;
@@ -425,11 +425,11 @@ function export_parcours(): array
     $collaborations = [];
     foreach (bd_lignes('SELECT * FROM collaborations WHERE publie = 1 ORDER BY ordre, id LIMIT ' . COLLABORATIONS_MAX) as $c) {
         $r = collaboration_resoudre($c);
-        if ($r['intitule_fr'] === '') continue;
-        $e = ['intitule' => multi_valeurs($r['intitule_fr'], trim((string) $c['intitule_fr']) !== '' ? traductions_publiees('collaborations', $c['id'], 'intitule') : [])];
-        if ($r['orchestre'] !== '' && $r['orchestre'] !== $r['intitule_fr']) $e['orchestre'] = $r['orchestre'];
+        if ($r['intitule_en'] === '') continue;
+        $e = ['intitule' => multi_valeurs($r['intitule_en'], trim((string) $c['intitule_en']) !== '' ? traductions_publiees('collaborations', $c['id'], 'intitule') : [])];
+        if ($r['orchestre'] !== '' && $r['orchestre'] !== $r['intitule_en']) $e['orchestre'] = $r['orchestre'];
         if ($r['annee'] !== '') $e['annee'] = $r['annee'];
-        if (trim((string) $c['description_fr']) !== '') $e['description'] = multi('collaborations', $c, 'description');
+        if (trim((string) $c['description_en']) !== '') $e['description'] = multi('collaborations', $c, 'description');
         if ($r['concert'] && concert_sur_le_site((int) $r['concert']['id'])) {
             $e['concert'] = $r['concert']['cle'];
             if (bd_valeur('SELECT COUNT(*) FROM articles_concerts x JOIN articles p ON p.id = x.article_id WHERE x.concert_id = ? AND p.publie = 1', [$r['concert']['id']])) $e['presse'] = true;
@@ -512,6 +512,8 @@ function site_exports(): array
 {
     $e = [];
     foreach (FICHIERS_DU_SITE as [$variable, $fonction]) $e[$variable] = $fonction();
+    // ce qui ne part pas dans un fichier de données : la couleur de fond, pour css/reglages.css
+    $e['@reglages'] = ['fond' => couleur_fond()];
     return $e;
 }
 
@@ -534,6 +536,11 @@ function site_fichiers(array $exports): array
     $f = [];
     foreach (FICHIERS_DU_SITE as $chemin => [$variable]) $f[$chemin] = fichier_donnees($variable, $exports[$variable]);
     $f['data/agenda.json'] = json_site($exports['AGENDA_DONNEES']) . "\n";
+    // la feuille de style générée : la couleur de fond et les blocs masqués, en un seul fichier
+    if (isset($exports['@reglages']['fond'])) {
+        $site = json_decode(json_encode($exports['SITE'] ?? []), true);
+        $f[REGLAGES_CSS] = site_reglages_css((string) $exports['@reglages']['fond'], (array) ($site['blocs'] ?? []));
+    }
     return $f;
 }
 

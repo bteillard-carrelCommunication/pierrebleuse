@@ -56,12 +56,9 @@ $icones_message = ['ok' => 'ok', 'alerte' => 'alerte', 'erreur' => 'erreur'];
   <meta name="robots" content="noindex, nofollow">
   <meta name="csrf" content="<?= e(jeton_csrf()) ?>">
   <meta name="base" content="<?= e($base) ?>">
-  <meta name="theme-color" content="#f5f6fc">
   <title><?= e($titre ?? 'Pupitre') ?> · Pupitre<?= $sous_titre !== '' ? ' · ' . e($sous_titre) : '' ?></title>
-  <link rel="icon" href="data:,">
-  <link rel="preload" href="<?= e($base) ?>/ressources/polices/poppins-400-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="<?= e($base) ?>/ressources/polices/poppins-600-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="<?= e($base) ?>/ressources/css/pupitre.css?v=<?= e(VERSION_PUPITRE) ?>-<?= (int) @filemtime(RACINE . '/ressources/css/pupitre.css') ?>">
+  <?= marque_tete() ?>
+
   <script src="<?= e($base) ?>/ressources/js/pupitre.js?v=<?= e(VERSION_PUPITRE) ?>-<?= (int) @filemtime(RACINE . '/ressources/js/pupitre.js') ?>" defer></script>
 </head>
 <body class="<?= $artiste_seul ? 'vue-artiste' : ($compte_courant ? 'avec-menu' : 'sans-menu') ?><?= $menu_reduit ? ' menu-reduit' : '' ?>">
@@ -71,8 +68,8 @@ $icones_message = ['ok' => 'ok', 'alerte' => 'alerte', 'erreur' => 'erreur'];
 <aside class="lateral" id="menu">
   <div class="lateral__tete">
     <a class="marque" href="<?= e($base) ?>/index.php" title="Tableau de bord">
-      <span class="marque__logo" aria-hidden="true">P</span>
-      <span class="marque__textes"><span class="marque__nom">Pupitre</span><?php if ($sous_titre !== ''): ?><span class="marque__sous-titre"><?= e($sous_titre) ?></span><?php endif; ?></span>
+      <?= marque_logo('inverse', 34) ?><?= marque_symbole('mandarine', 26) ?>
+      <?php if ($sous_titre !== ''): ?><span class="marque__sous-titre"><?= e($sous_titre) ?></span><?php endif; ?>
     </a>
     <button type="button" class="outil lateral__replier" data-replier-menu aria-pressed="<?= $menu_reduit ? 'true' : 'false' ?>" aria-label="Réduire le menu à ses pictogrammes" title="Réduire ou déplier le menu"><?= icone($menu_reduit ? 'menu-ouvrir' : 'menu-reduire') ?></button>
   </div>
@@ -178,8 +175,8 @@ $icones_message = ['ok' => 'ok', 'alerte' => 'alerte', 'erreur' => 'erreur'];
     </div>
   <?php else: ?>
     <a class="marque" href="<?= e($base) ?>/index.php">
-      <span class="marque__logo" aria-hidden="true">P</span>
-      <span class="marque__textes"><span class="marque__nom">Pupitre</span><?php if ($sous_titre !== ''): ?><span class="marque__sous-titre"><?= e($sous_titre) ?></span><?php endif; ?></span>
+      <?= marque_logo('principal', 30) ?>
+      <?php if ($sous_titre !== ''): ?><span class="marque__sous-titre"><?= e($sous_titre) ?></span><?php endif; ?>
     </a>
     <?php if ($compte_courant): ?>
     <div class="tete__outils">

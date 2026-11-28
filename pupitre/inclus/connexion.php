@@ -50,6 +50,33 @@ function compte(): ?array
     return $compte;
 }
 
+/**
+ * Préférences d'interface du compte courant (colonne comptes.preferences, en JSON) : la mise en page de son
+ * tableau de bord. Une base d'avant la migration 012 n'en a pas : la valeur par défaut est rendue.
+ */
+function preference(string $cle, $defaut = null)
+{
+    $c = compte();
+    if (!$c) return $defaut;
+    try {
+        $p = json_decode((string) bd_valeur('SELECT preferences FROM comptes WHERE id = ?', [$c['id']]), true);
+    } catch (Throwable $e) {
+        return $defaut;
+    }
+    return is_array($p) && array_key_exists($cle, $p) ? $p[$cle] : $defaut;
+}
+
+/** Enregistre une préférence du compte courant ; null la retire. */
+function preference_ecrire(string $cle, $valeur): void
+{
+    $c = compte();
+    if (!$c) return;
+    $p = json_decode((string) bd_valeur('SELECT preferences FROM comptes WHERE id = ?', [$c['id']]), true);
+    if (!is_array($p)) $p = [];
+    if ($valeur === null) unset($p[$cle]); else $p[$cle] = $valeur;
+    bd_requete('UPDATE comptes SET preferences = ? WHERE id = ?', [$p ? json_encode($p, JSON_UNESCAPED_UNICODE) : null, $c['id']]);
+}
+
 function peut(string $droit): bool
 {
     $c = compte();
@@ -217,5 +244,9 @@ function lien_envoyer(string $email): void
         . ($artiste ? "Voici votre lien de connexion à Pupitre" : "Voici le lien pour choisir votre mot de passe Pupitre")
         . ($nom !== '' ? " ($nom)" : '') . " :\n\n$lien\n\n"
         . "Il est valable quinze minutes et ne sert qu'une fois.\nSi vous n'avez rien demandé, ignorez ce message.\n";
-    envoyer_mail($c['email'], $c['nom'], $sujet, $texte);
+    envoyer_mail($c['email'], $c['nom'], $sujet, $texte, [
+        'titre' => $artiste ? 'Votre lien de connexion' : 'Choisir votre mot de passe',
+        'bouton' => [$artiste ? 'Entrer dans Pupitre' : 'Choisir mon mot de passe', $lien],
+        'nature' => 'connexion', 'objet' => ['comptes', (int) $c['id']], 'secret' => true,
+    ]);
 }

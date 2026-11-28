@@ -84,9 +84,11 @@ $fond = $erreurs ? (couleur_lire(recu('fond')) ?: couleur_fond()) : couleur_fond
       <p>Le texte du site, blanc, sur la couleur choisie.</p>
       <div class="couleur__apercu-voile"><p>Une section à 80 % : la nuée se devine derrière.</p></div>
     </div>
-    <p class="aide">L'aperçu montre la couleur et son contraste avec le texte. Pour juger du rendu de la nuée, enregistrez, publiez (écran « Le site ») et regardez le site.</p>
+    <p class="aide">L'aperçu montre la couleur et son contraste avec le texte. Pour juger du rendu de la nuée, enregistrez, puis ouvrez un aperçu du site (écran « Le site ») ou publiez.</p>
+    <p class="aide">Cette couleur n'a qu'une place sur le site : le fichier <code>css/reglages.css</code>, que chaque page charge. La changer ne modifie que lui.</p>
     <ul class="items">
-      <li><span class="item__titre">Sur le site aujourd'hui</span><span><code><?= e(couleur_fond()) ?></code></span></li>
+      <li><span class="item__titre">Dans Pupitre</span><span><code><?= e(couleur_fond()) ?></code></span></li>
+      <li><span class="item__titre">Sur le site aujourd'hui</span><span><?php $publiee = couleur_fond_publiee(); ?><?= $publiee !== '' ? '<code>' . e($publiee) . '</code>' : '<span class="discret">pas encore publiée</span>' ?><?= ($publiee !== '' && $publiee !== couleur_fond()) ? ' <span class="puce puce--accent">à publier</span>' : '' ?></span></li>
       <li><span class="item__titre">Couleur d'origine</span><span><code><?= e($initiale) ?></code></span></li>
     </ul>
   </div>

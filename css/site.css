@@ -10,7 +10,8 @@
       (.fond-0 à .fond-100, de 5 en 5). Voir aussi l'en-tête d'etourneaux.css.
    3. Couleur de fond : tous les arrière-plans du site (page, sections, barre,
       halos sous les textes, volets) prennent la couleur réglée dans Pupitre,
-      par --bg et --bg-rvb (etourneaux.css les définit, le <head> les pose).
+      par --bg et --bg-rvb (etourneaux.css les définit, css/reglages.css,
+      généré par Pupitre, leur donne leur valeur).
    Les règles du moteur (canvas, HUD, panneau) sont dans etourneaux.css.
    ========================================================================== */
 

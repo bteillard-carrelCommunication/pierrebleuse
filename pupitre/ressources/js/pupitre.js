@@ -26,6 +26,18 @@
      data-carte            carte du monde : en édition (data-carte-edition), le point [data-carte-point] se place
                            au clic ou se fait glisser, accordé aux champs latitude et longitude du formulaire
                            [data-carte-champs]
+     data-annuaire         champ relié à l'annuaire : dit, au fil de la saisie, si le nom est celui d'une fiche
+                           ou un nom nouveau (dont la fiche sera créée à l'enregistrement)
+     data-glisser          conteneur dont les éléments [data-glisser-element] se réordonnent : à la souris ou au
+                           doigt (par [data-poignee] s'il y en a une, sinon par l'élément), au clavier par
+                           [data-glisser-avant] et [data-glisser-apres]. Les conteneurs d'un même groupe (la valeur
+                           de l'attribut) s'échangent leurs éléments. [data-glisser-fige] : rien ne bouge.
+                           Événements : « glisser:ordre » à chaque déplacement, « glisser:fin » au lâcher.
+     data-composition      composition de l'accueil de la revue de presse : l'ordre et la largeur se règlent sur
+                           la grille, le numéro d'ordre suit, tout s'enregistre aussitôt (ajax/presse.php)
+     data-bord             tableau de bord : « mise en page » ([data-bord-edition]) rend ses blocs déplaçables ;
+                           la disposition est enregistrée pour le compte (ajax/preferences.php)
+     data-copier           copie dans le presse-papiers le texte désigné (une adresse à partager)
    ========================================================================== */
 (function () {
   'use strict';
@@ -456,5 +468,230 @@
     });
     forme.addEventListener('input', placer);
     placer();
+  });
+  /* ---------- Champ relié à l'annuaire : fiche existante, ou nom nouveau ---------- */
+  function etatAnnuaire(champ) {
+    var boite = plusProche(champ, '[data-annuaire]');
+    var etat = boite && boite.querySelector('[data-annuaire-etat]');
+    var liste = champ.getAttribute('list') && document.getElementById(champ.getAttribute('list'));
+    if (!etat || !liste) return;
+    var saisie = champ.value.trim().toLowerCase();
+    var connu = saisie !== '' && Array.prototype.some.call(liste.options, function (o) { return o.value.trim().toLowerCase() === saisie; });
+    etat.textContent = saisie === '' ? '' : champ.getAttribute(connu ? 'data-annuaire-connu' : 'data-annuaire-nouveau');
+    etat.classList.toggle('champ__etat--nouveau', saisie !== '' && !connu);
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('[data-annuaire] input[list]'), etatAnnuaire);
+  document.addEventListener('input', function (e) {
+    if (e.target && e.target.matches && e.target.matches('[data-annuaire] input[list]')) etatAnnuaire(e.target);
+  });
+
+  /* ---------- Glisser-déposer : réordonner des éléments, à la souris, au doigt ou au clavier ---------- */
+  /* L'élément saisi reste dans la page et prend la place de celui qu'il survole : ce que l'on voit pendant
+     le geste est déjà le résultat. Rien n'est flottant, rien n'est cloné. */
+  var glisse = null;
+  function signaler(conteneur, nom) { if (conteneur) conteneur.dispatchEvent(new CustomEvent(nom, { bubbles: true })); }
+  function conteneurDe(element) { return element && element.parentNode && element.parentNode.closest ? element.parentNode.closest('[data-glisser]') : null; }
+  function memeGroupe(a, b) { return !!a && !!b && a.getAttribute('data-glisser') === b.getAttribute('data-glisser'); }
+  function figee(conteneur) { return !conteneur || conteneur.hasAttribute('data-glisser-fige') || !!plusProche(conteneur, '[data-glisser-fige]'); }
+
+  document.addEventListener('pointerdown', function (e) {
+    if (e.button) return;
+    var element = plusProche(e.target, '[data-glisser-element]');
+    var conteneur = conteneurDe(element);
+    if (!element || figee(conteneur)) return;
+    var poignee = element.querySelector('[data-poignee]');
+    // avec une poignée, elle seule saisit ; sans poignée, tout l'élément, hors de ses commandes ; au doigt, la poignée seulement
+    if (poignee ? !plusProche(e.target, '[data-poignee]') : (e.pointerType !== 'mouse' || plusProche(e.target, 'a, button, input, select, textarea, label, summary'))) return;
+    glisse = { element: element, depart: conteneur, x: e.clientX, y: e.clientY, cx: e.clientX, cy: e.clientY, actif: false, pointeur: e.pointerId, dernier: { x: 0, y: 0 }, bouge: false, vitesse: 0, defile: null };
+    if (poignee) e.preventDefault();
+  });
+  /* Où poser l'élément saisi, le pointeur étant en (x, y) : à la place de l'élément survolé, ou au bout d'une zone. */
+  function placer(x, y) {
+    // après un déplacement, il faut avoir bougé un peu (ou fait défiler la page) avant le suivant :
+    // deux éléments de tailles différentes ne s'échangent pas sans fin
+    var px = x + window.pageXOffset, py = y + window.pageYOffset;
+    if (glisse.bouge && Math.abs(px - glisse.dernier.x) + Math.abs(py - glisse.dernier.y) < 10) return;
+    var dessous = document.elementFromPoint(x, y);
+    var sur = plusProche(dessous, '[data-glisser-element]');
+    while (sur && !memeGroupe(conteneurDe(sur), glisse.depart)) sur = plusProche(sur.parentNode, '[data-glisser-element]');
+    var cible = null, repere = null;
+    if (sur && sur !== glisse.element && !glisse.element.contains(sur)) {
+      cible = conteneurDe(sur);
+      var r = sur.getBoundingClientRect(), g = glisse.element.getBoundingClientRect();
+      // sur la même rangée, c'est l'axe horizontal qui dit avant ou après ; sinon le vertical
+      var memeRangee = glisse.element.parentNode === cible && g.top < r.bottom - 4 && r.top < g.bottom - 4;
+      var avant = memeRangee ? x < r.left + r.width / 2 : y < r.top + r.height / 2;
+      repere = avant ? sur : sur.nextElementSibling;
+      // déjà à cette place : rien à faire
+      if (glisse.element.parentNode === cible && (repere === glisse.element || (avant ? sur.previousElementSibling : sur) === glisse.element)) return;
+    } else if (!sur) {
+      // un conteneur du groupe, vide ou survolé sous son dernier élément : l'élément y prend la dernière place
+      cible = plusProche(dessous, '[data-glisser]');
+      if (!cible || !memeGroupe(cible, glisse.depart) || figee(cible) || glisse.element.parentNode === cible || glisse.element.contains(cible)) return;
+    } else return;
+    if (figee(cible)) return;
+    cible.insertBefore(glisse.element, repere);
+    glisse.dernier = { x: px, y: py };
+    glisse.bouge = true;
+    signaler(cible, 'glisser:ordre');
+  }
+  /* Près du haut ou du bas de la fenêtre, la page défile d'elle-même : on peut porter un élément plus loin que l'écran. */
+  function defiler() {
+    if (!glisse || !glisse.actif || !glisse.vitesse) { if (glisse) glisse.defile = null; return; }
+    window.scrollBy(0, glisse.vitesse);
+    placer(glisse.cx, glisse.cy);
+    glisse.defile = window.requestAnimationFrame(defiler);
+  }
+  document.addEventListener('pointermove', function (e) {
+    if (!glisse || e.pointerId !== glisse.pointeur) return;
+    if (!glisse.actif) {
+      if (Math.abs(e.clientX - glisse.x) + Math.abs(e.clientY - glisse.y) < 6) return;
+      glisse.actif = true;
+      glisse.element.classList.add('est-saisi');
+      corps.classList.add('glisse-en-cours');
+      try { glisse.element.setPointerCapture(glisse.pointeur); } catch (x) { /* pointeur déjà relâché */ }
+    }
+    e.preventDefault();
+    glisse.cx = e.clientX;
+    glisse.cy = e.clientY;
+    var marge = 90, h = window.innerHeight;
+    glisse.vitesse = e.clientY < marge ? -Math.ceil((marge - e.clientY) / 5) : (e.clientY > h - marge ? Math.ceil((e.clientY - (h - marge)) / 5) : 0);
+    if (glisse.vitesse && !glisse.defile) glisse.defile = window.requestAnimationFrame(defiler);
+    placer(e.clientX, e.clientY);
+  }, { passive: false });
+  function lacher(e) {
+    if (!glisse || (e && e.pointerId !== glisse.pointeur)) return;
+    var g = glisse;
+    glisse = null;
+    if (g.defile) window.cancelAnimationFrame(g.defile);
+    if (!g.actif) return;
+    g.element.classList.remove('est-saisi');
+    corps.classList.remove('glisse-en-cours');
+    try { g.element.releasePointerCapture(g.pointeur); } catch (x) { /* déjà relâché */ }
+    if (g.bouge) signaler(conteneurDe(g.element), 'glisser:fin');
+  }
+  document.addEventListener('pointerup', lacher);
+  document.addEventListener('pointercancel', lacher);
+  // le clic qui suit un glissement ne doit rien déclencher (un lien de l'élément, par exemple)
+  document.addEventListener('click', function (e) {
+    if (corps.classList.contains('glisse-en-cours')) { e.preventDefault(); e.stopPropagation(); }
+  }, true);
+  // au clavier : une place avant, une place après
+  document.addEventListener('click', function (e) {
+    var bouton = plusProche(e.target, '[data-glisser-avant], [data-glisser-apres]');
+    var element = bouton && plusProche(bouton, '[data-glisser-element]');
+    var conteneur = conteneurDe(element);
+    if (!element || figee(conteneur)) return;
+    var freres = function (n, sens) { do { n = sens < 0 ? n.previousElementSibling : n.nextElementSibling; } while (n && !n.hasAttribute('data-glisser-element')); return n; };
+    if (bouton.hasAttribute('data-glisser-avant')) { var p = freres(element, -1); if (!p) return; conteneur.insertBefore(element, p); }
+    else { var n = freres(element, 1); if (!n) return; conteneur.insertBefore(element, n.nextElementSibling); }
+    bouton.focus();
+    signaler(conteneur, 'glisser:ordre');
+    signaler(conteneur, 'glisser:fin');
+  });
+
+  /* Envoi d'un réglage au fil des gestes : le dernier état gagne, l'écran dit où en est l'enregistrement. */
+  function enregistreur(adresse, lire, dire) {
+    var minuterie = null, enCours = false, attente = false;
+    function envoyer() {
+      if (enCours) { attente = true; return; }
+      enCours = true;
+      dire('Enregistrement…', '');
+      fetch(base + adresse, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-CSRF': csrf }, body: JSON.stringify(lire()) })
+        .then(function (r) { return r.json().catch(function () { return { erreur: 'Réponse illisible.' }; }); })
+        .then(function (r) { dire(r.erreur || r.message || 'Enregistré.', r.erreur ? 'erreur' : 'ok'); })
+        .catch(function () { dire('Enregistrement impossible : vérifiez la connexion, puis recommencez le geste.', 'erreur'); })
+        .then(function () { enCours = false; if (attente) { attente = false; envoyer(); } });
+    }
+    return function () { window.clearTimeout(minuterie); minuterie = window.setTimeout(envoyer, 350); };
+  }
+
+  /* ---------- Revue de presse : composition de l'accueil sur la grille ---------- */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-composition]'), function (zone) {
+    var grille = zone.querySelector('[data-composition-grille]');
+    var etat = zone.querySelector('[data-composition-etat]');
+    if (!grille) return;
+    function cases() { return Array.prototype.slice.call(grille.querySelectorAll(':scope > [data-glisser-element]')); }
+    function numeroter() {
+      cases().forEach(function (c, i) { var r = c.querySelector('[data-rang]'); if (r) r.textContent = String(i + 1); });
+    }
+    var enregistrer = enregistreur('/ajax/presse.php', function () {
+      var largeurs = {};
+      cases().forEach(function (c) { var s = c.querySelector('[data-largeur]'); largeurs[c.getAttribute('data-id')] = s ? parseInt(s.value, 10) : 1; });
+      return { ordre: cases().map(function (c) { return parseInt(c.getAttribute('data-id'), 10); }), largeurs: largeurs };
+    }, function (texte, issue) {
+      if (!etat) return;
+      etat.textContent = texte;
+      etat.classList.toggle('requis', issue === 'erreur');
+    });
+    grille.addEventListener('glisser:ordre', numeroter);
+    grille.addEventListener('glisser:fin', function () { numeroter(); enregistrer(); });
+    grille.addEventListener('change', function (e) {
+      var choix = e.target && e.target.hasAttribute && e.target.hasAttribute('data-largeur') ? e.target : null;
+      var c = choix && plusProche(choix, '[data-glisser-element]');
+      if (!c) return;
+      ['1', '2', '4'].forEach(function (n) { c.classList.toggle('grille-presse__case--' + n, choix.value === n); });
+      enregistrer();
+    });
+  });
+
+  /* ---------- Tableau de bord : mise en page ---------- */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-bord]'), function (bord) {
+    var bouton = document.querySelector('[data-bord-edition]');
+    var aide = document.querySelector('[data-bord-aide]');
+    var etat = document.querySelector('[data-bord-etat]');
+    var zones = Array.prototype.slice.call(bord.querySelectorAll('[data-zone]'));
+    function edition(oui) {
+      bord.classList.toggle('bord--edition', oui);
+      zones.forEach(function (z) { if (oui) z.removeAttribute('data-glisser-fige'); else z.setAttribute('data-glisser-fige', ''); });
+      if (aide) aide.hidden = !oui;
+      if (bouton) {
+        bouton.setAttribute('aria-pressed', oui ? 'true' : 'false');
+        var libelle = bouton.querySelector('[data-bord-libelle]');
+        if (libelle) libelle.textContent = oui ? 'Terminer la mise en page' : 'Mise en page';
+        bouton.classList.toggle('bouton--sombre', oui);
+      }
+    }
+    var enregistrer = enregistreur('/ajax/preferences.php', function () {
+      var d = {};
+      zones.forEach(function (z) {
+        d[z.getAttribute('data-zone')] = Array.prototype.map.call(z.querySelectorAll(':scope > [data-bloc]'), function (b) { return b.getAttribute('data-bloc'); });
+      });
+      return { cle: 'bord', valeur: d };
+    }, function (texte, issue) { if (etat) { etat.textContent = issue === 'ok' ? 'Disposition enregistrée pour votre compte.' : texte; } });
+    // une zone sans bloc s'efface ; en mise en page, elle montre où déposer
+    function vides() { zones.forEach(function (z) { z.classList.toggle('est-vide', !z.querySelector(':scope > [data-bloc]')); }); }
+    if (bouton) bouton.addEventListener('click', function () { edition(!bord.classList.contains('bord--edition')); });
+    bord.addEventListener('glisser:ordre', vides);
+    bord.addEventListener('glisser:fin', function () { vides(); enregistrer(); });
+    // au clavier : changer un bloc de zone
+    bord.addEventListener('click', function (e) {
+      var b = plusProche(e.target, '[data-bord-zone]');
+      var bloc = b && plusProche(b, '[data-bloc]');
+      if (!bloc || !bord.classList.contains('bord--edition')) return;
+      var i = zones.indexOf(bloc.parentNode);
+      var cible = zones[(i + 1) % zones.length];
+      cible.insertBefore(bloc, cible.firstElementChild);
+      b.focus();
+      vides();
+      enregistrer();
+    });
+    vides();
+    edition(false);
+  });
+
+  /* ---------- Imprimer (un procès-verbal) ---------- */
+  document.addEventListener('click', function (e) { if (plusProche(e.target, '[data-imprimer]')) window.print(); });
+
+  /* ---------- Copier une adresse ---------- */
+  document.addEventListener('click', function (e) {
+    var b = plusProche(e.target, '[data-copier]');
+    if (!b) return;
+    var source = document.querySelector(b.getAttribute('data-copier'));
+    var texte = source ? (source.value !== undefined ? source.value : source.textContent) : '';
+    if (!texte) return;
+    var fait = function () { var t = b.getAttribute('data-copie') || 'Copié'; var avant = b.textContent; b.textContent = t; window.setTimeout(function () { b.textContent = avant; }, 1600); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(texte).then(fait, function () { if (source.select) source.select(); });
+    else if (source.select) { source.select(); try { document.execCommand('copy'); fait(); } catch (x) { /* la sélection reste : Ctrl+C */ } }
   });
 })();

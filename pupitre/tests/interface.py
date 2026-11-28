@@ -130,7 +130,7 @@ AUDIT = r'''(function(){
     deborde: document.documentElement.scrollWidth > window.innerWidth + 1}); })()'''
 
 PAGES_AUDIT = [('bord', {}), ('agenda', {}), ('concert', {'id': 'nouveau'}), ('blocs', {}), ('bloc', {'cle': 'bio'}), ('visuels', {}), ('presse', {}), ('article', {'id': 'nouveau'}),
-               ('disques', {}), ('musiques', {}), ('langues', {'onglet': 'traductions'}), ('site', {}), ('parcours', {}), ('orchestres', {}), ('carte', {'nouvelle': '1'}), ('annuaire', {}),
+               ('disques', {}), ('musiques', {}), ('traductions', {}), ('traductions', {'section': 'concerts'}), ('site', {}), ('parcours', {}), ('orchestres', {}), ('carte', {'nouvelle': '1'}), ('annuaire', {}),
                ('medias', {}), ('editorial', {}), ('social', {}), ('newsletter', {}), ('communication', {'id': 'nouvelle'}), ('notifications', {}), ('recherche', {'q': 'paris'}),
                ('comptes', {}), ('reglages', {}), ('base', {}), ('journal', {}), ('interface', {}), ('apparence', {}), ('imports', {})]
 
@@ -327,7 +327,7 @@ TABLEAUX = r'''
 })()
 '''
 PAGES_TABLEAUX = [('agenda', {}), ('editorial', {}), ('social', {}), ('newsletter', {}), ('presse', {}), ('disques', {}), ('orchestres', {}), ('carte', {}),
-                  ('annuaire', {}), ('langues', {}), ('comptes', {}), ('journal', {}), ('base', {}), ('imports', {}), ('bord', {}), ('concert', {'id': 'nouveau'})]
+                  ('annuaire', {}), ('langues', {}), ('traductions', {'section': 'presse'}), ('apercus', {}), ('depots', {}), ('resultats', {}), ('veille', {}), ('courrier', {}), ('courrier', {'vue': 'envois'}), ('comptes', {}), ('journal', {}), ('base', {}), ('imports', {}), ('bord', {}), ('concert', {'id': 'nouveau'})]
 
 
 def tableaux():

@@ -2,8 +2,10 @@
 /**
  * Fiche concert : un écran. Publication, représentations et statuts, salle, ville, pays, ensemble et
  * orchestres associés, maison, programme, participants, description, informations complémentaires,
- * lien de billetterie, page de l'organisateur, notes internes, journal. Champs traduisibles dans
- * chaque langue des contenus, côte à côte. Indicateur de ce qui manque pour annoncer.
+ * lien de billetterie, page de l'organisateur, notes internes, journal. Les textes se saisissent en
+ * anglais ; chaque champ mène à sa ligne sur l'écran « Traductions ». Un concert est un concert :
+ * il n'a pas de type à choisir ; plusieurs dates dans des lieux différents en font une tournée.
+ * Indicateur de ce qui manque pour annoncer.
  * Si l'orchestre du concert n'est pas référencé, l'écran le dit et propose de l'ajouter.
  */
 
@@ -47,7 +49,7 @@ if (est_post()) {
         }
         rediriger(url('concert', ['id' => $id]));
     } elseif ($c && $action === 'associer' && ($fiche = fiche_lire(recu_entier('fiche') ?? 0)) && in_array($fiche['categorie'], CATEGORIES_ORCHESTRE, true)) {
-        concert_orchestres_poser($id, array_merge(array_column($c['orchestres'], 'id'), [(int) $fiche['id']]), $c['titre_fr']);
+        concert_orchestres_poser($id, array_merge(array_column($c['orchestres'], 'id'), [(int) $fiche['id']]), $c['titre_en']);
         if (!$c['ensemble_id']) bd_modifier('concerts', ['ensemble_id' => (int) $fiche['id']], ['id' => $id]);
         message('ok', '« ' . $fiche['nom'] . ' » est associé à ce concert.');
         rediriger(url('concert', ['id' => $id]));
@@ -60,7 +62,7 @@ if (est_post()) {
         }
         rediriger(url('concert', ['id' => $id]));
     } elseif ($c && $action === 'fiche' && array_key_exists(recu('categorie'), CATEGORIES)) {
-        fiche_assurer(recu('categorie'), recu('nom'), ['ville_fr' => recu('ville_fr'), 'pays_fr' => recu('pays_fr')]);
+        fiche_assurer(recu('categorie'), recu('nom'), ['ville_en' => recu('ville_en'), 'pays_en' => recu('pays_en')]);
         concert_relier_tout($id);
         message('ok', 'Fiche créée dans l\'annuaire et reliée au concert.');
         rediriger(url('concert', ['id' => $id]));
@@ -68,10 +70,22 @@ if (est_post()) {
         $note = bd_ligne('SELECT * FROM notes_artiste WHERE id = ? AND concert_id = ?', [recu_entier('note') ?? 0, $id]);
         if ($note) {
             bd_modifier('notes_artiste', ['statut' => 'traitee', 'traitee_par' => compte()['id'], 'traitee_le' => date('Y-m-d H:i:s')], ['id' => $note['id']]);
-            journaliser('note', 'concert', $id, $c['titre_fr'] . ', note de l\'artiste traitée', ['statut' => 'a_traiter'], ['statut' => 'traitee']);
+            journaliser('note', 'concert', $id, $c['titre_en'] . ', note de l\'artiste traitée', ['statut' => 'a_traiter'], ['statut' => 'traitee']);
             message('ok', 'Note marquée comme traitée.');
         }
         rediriger(url('concert', ['id' => $id]));
+    } elseif ($c && str_starts_with($action, 'depot_') && peut('communication')) {
+        // zone de dépôt : l'ouvrir, inviter le contact, la fermer, la rouvrir
+        if ($action === 'depot_ouvrir') { depot_de_concert($id, true); message('ok', 'Zone de dépôt ouverte : son adresse est à droite.'); }
+        elseif ($action === 'depot_inviter') { $e = depot_inviter($id); message($e === '' ? 'ok' : 'alerte', $e === '' ? 'Invitation envoyée à ' . $c['contact_com_email'] . '.' : $e); }
+        elseif (($zone = depot_de_concert($id)) && in_array($action, ['depot_fermer', 'depot_rouvrir'], true)) {
+            $ferme = $action === 'depot_fermer';
+            [, $derniere] = depot_dates($id);
+            bd_modifier('depots', $ferme ? ['ferme' => 1] : ['ferme' => 0, 'expire_le' => date('Y-m-d 23:59:59', strtotime(max($derniere ?: aujourdhui(), aujourdhui()) . ' +' . DEPOT_JOURS_APRES . ' days'))], ['id' => $zone['id']]);
+            journaliser('modification', 'depot', $id, $c['titre_en'] . ' : zone de dépôt', ['etat' => $ferme ? 'ouverte' : 'fermée'], ['etat' => $ferme ? 'fermée' : 'ouverte']);
+            message('ok', $ferme ? 'Zone de dépôt fermée : son adresse ne reçoit plus rien.' : 'Zone de dépôt rouverte.');
+        }
+        rediriger(url('concert', ['id' => $id]) . '#depot');
     } elseif ($c && $action === 'supprimer') {
         concert_supprimer($id);
         message('ok', 'Concert supprimé. S\'il était sur le site, il en sortira à la prochaine publication.');
@@ -80,7 +94,7 @@ if (est_post()) {
 }
 
 // ce qu'on affiche : la fiche en base, ou ce qui vient d'être saisi si l'enregistrement a échoué
-$f = $c ?? ['type' => 'concert', 'maison_id' => null, 'temps_fort' => 0, 'representations' => [[]], 'programme' => [], 'participants' => [], 'orchestres' => []];
+$f = $c ?? ['maison_id' => null, 'temps_fort' => 0, 'representations' => [[]], 'programme' => [], 'participants' => [], 'orchestres' => []];
 $saisie = est_post() && (bool) $erreurs;         // on réaffiche ce qui vient d'être saisi
 if ($saisie) {
     foreach ($_POST as $k => $v) if (is_string($v)) $f[$k] = $v;
@@ -90,50 +104,50 @@ if ($saisie) {
     $f['participants'] = array_values(array_filter($_POST['avec'] ?? [], 'is_array'));
 }
 $v = fn(string $k) => (string) ($f[$k] ?? '');
-// traductions d'un champ : celles de la base (propositions de l'IA comprises), ou ce qui vient d'être saisi
-$lg = fn(string $objet, $cle, string $champ, ?array $saisi = null) => ($saisi !== null || !$cle) ? ['valeurs' => saisie_bi($saisi ?? [], $champ)] : ['objet' => [$objet, $cle, $champ]];
-$lgc = fn(string $champ) => $lg('concerts', $saisie ? null : $id, $champ, $saisie ? $_POST : null);
-$titre = $nouveau ? 'Nouveau concert' : $c['titre_fr'];
+// la ligne dont un champ montre l'état des traductions : rien tant qu'elle n'est pas enregistrée
+$lg = fn(string $objet, $cle, string $champ) => ctype_digit((string) $cle) ? ['objet' => [$objet, (int) $cle, $champ]] : [];
+$lgc = fn(string $champ) => $lg('concerts', $id, $champ);
+$titre = $nouveau ? 'Nouveau concert' : $c['titre_en'];
 $maisons = [];
-foreach (bd_lignes('SELECT * FROM maisons ORDER BY ordre, id') as $m) $maisons[(int) $m['id']] = $m['nom_fr'];
+foreach (bd_lignes('SELECT * FROM maisons ORDER BY ordre, id') as $m) $maisons[(int) $m['id']] = $m['nom_en'];
 $manques = $c ? concert_incomplet($c) : [];
 $pour_annoncer = $c ? concert_manques($c) : [];
 $jour = aujourdhui();
 
 /* Une ligne de représentation, de programme ou de participant. $i : rang, ou __i__ pour le modèle. */
-$ligne_rep = function (array $r, string $i) use ($lg, $saisie): string {
+$ligne_rep = function (array $r, string $i) use ($lg): string {
     $p = 'reps[' . $i . ']';
-    $t = fn(string $champ) => $lg('representations', $saisie ? null : ($r['id'] ?? null), $champ, $saisie ? $r : null);
-    $propre = trim(($r['salle_fr'] ?? '') . ($r['ville_fr'] ?? '') . ($r['pays_fr'] ?? '') . ($r['lien_billetterie'] ?? '')) !== '';
+    $t = fn(string $champ) => $lg('representations', $r['id'] ?? null, $champ);
+    $propre = trim(($r['salle_en'] ?? '') . ($r['ville_en'] ?? '') . ($r['pays_en'] ?? '') . ($r['lien_billetterie'] ?? '')) !== '';
     return '<div class="ligne ligne--compacte" data-ligne><input type="hidden" name="' . $p . '[id]" value="' . e($r['id'] ?? '') . '">'
         . '<div class="rangee rangee--rep">'
         . champ('date', 'Date', $r['date'] ?? '', ['prefixe' => $p, 'type' => 'date', 'requis' => true])
         . champ('heure', 'Heure', isset($r['heure']) ? substr((string) $r['heure'], 0, 5) : '', ['prefixe' => $p, 'indication' => '19:30', 'max' => 5])
         . champ('lien_source', 'Lien source', $r['lien_source'] ?? '', ['prefixe' => $p, 'type' => 'url', 'indication' => 'page où l\'organisateur annonce la date'])
         . boutons_ligne('cette représentation') . '</div>'
-        . '<details' . ($propre ? ' open' : '') . '><summary>Lieu propre à cette date (tournée)</summary><div class="colonnes">'
-        . champ_bi('salle', 'Salle', $r['salle_fr'] ?? '', $r['salle_en'] ?? '', ['prefixe' => $p, 'liste' => 'liste-salles'] + $t('salle'))
-        . champ_bi('ville', 'Ville', $r['ville_fr'] ?? '', $r['ville_en'] ?? '', ['prefixe' => $p] + $t('ville'))
-        . champ_bi('pays', 'Pays', $r['pays_fr'] ?? '', $r['pays_en'] ?? '', ['prefixe' => $p] + $t('pays'))
+        . '<details' . ($propre ? ' open' : '') . '><summary>Lieu propre à cette date, si elle se tient ailleurs (tournée)</summary><div class="colonnes">'
+        . champ_tr('salle', 'Salle', $r['salle_en'] ?? '', ['prefixe' => $p, 'liste' => 'liste-salles'] + $t('salle'))
+        . champ_tr('ville', 'Ville', $r['ville_en'] ?? '', ['prefixe' => $p] + $t('ville'))
+        . champ_tr('pays', 'Pays', $r['pays_en'] ?? '', ['prefixe' => $p] + $t('pays'))
         . champ('lien_billetterie', 'Billetterie de cette date', $r['lien_billetterie'] ?? '', ['prefixe' => $p, 'type' => 'url', 'indication' => 'https://…'])
         . '</div></details></div>';
 };
-$ligne_prog = function (array $r, string $i) use ($lg, $saisie): string {
+$ligne_prog = function (array $r, string $i) use ($lg): string {
     $p = 'prog[' . $i . ']';
-    $t = fn(string $champ) => $lg('programme', $saisie ? null : ($r['id'] ?? null), $champ, $saisie ? $r : null);
-    return '<div class="ligne ligne--compacte" data-ligne><div class="rangee rangee--prog">'
-        . champ_bi('compositeur', 'Compositeur', $r['compositeur_fr'] ?? '', $r['compositeur_en'] ?? '', ['prefixe' => $p, 'liste' => 'liste-compositeurs'] + $t('compositeur'))
-        . champ_bi('oeuvre', 'Œuvre', $r['oeuvre_fr'] ?? '', $r['oeuvre_en'] ?? '', ['prefixe' => $p] + $t('oeuvre'))
+    $t = fn(string $champ) => $lg('programme', $r['id'] ?? null, $champ);
+    return '<div class="ligne ligne--compacte" data-ligne><input type="hidden" name="' . $p . '[id]" value="' . e($r['id'] ?? '') . '"><div class="rangee rangee--prog">'
+        . champ_tr('compositeur', 'Compositeur', $r['compositeur_en'] ?? '', ['prefixe' => $p, 'liste' => 'liste-compositeurs'] + $t('compositeur'))
+        . champ_tr('oeuvre', 'Œuvre', $r['oeuvre_en'] ?? '', ['prefixe' => $p] + $t('oeuvre'))
         . '</div><div class="rangee rangee--prog2">'
-        . champ_bi('mention', 'Mention (création, commande…)', $r['mention_fr'] ?? '', $r['mention_en'] ?? '', ['prefixe' => $p] + $t('mention'))
+        . champ_tr('mention', 'Mention (création, commande…)', $r['mention_en'] ?? '', ['prefixe' => $p] + $t('mention'))
         . boutons_ligne('cette œuvre') . '</div></div>';
 };
-$ligne_avec = function (array $r, string $i) use ($lg, $saisie): string {
+$ligne_avec = function (array $r, string $i) use ($lg): string {
     $p = 'avec[' . $i . ']';
-    $t = fn(string $champ) => $lg('participants', $saisie ? null : ($r['id'] ?? null), $champ, $saisie ? $r : null);
-    $s = '<div class="ligne ligne--compacte" data-ligne><div class="rangee rangee--avec">'
+    $t = fn(string $champ) => $lg('participants', $r['id'] ?? null, $champ);
+    $s = '<div class="ligne ligne--compacte" data-ligne><input type="hidden" name="' . $p . '[id]" value="' . e($r['id'] ?? '') . '"><div class="rangee rangee--avec">'
         . champ('nom', 'Nom', $r['nom'] ?? '', ['prefixe' => $p, 'liste' => 'liste-participants'])
-        . champ_bi('role', 'Rôle, instrument, voix', $r['role_fr'] ?? '', $r['role_en'] ?? '', ['prefixe' => $p] + $t('role'))
+        . champ_tr('role', 'Rôle, instrument, voix', $r['role_en'] ?? '', ['prefixe' => $p] + $t('role'))
         . boutons_ligne('ce participant') . '</div>';
     if (!empty($r['id']) && ($r['nom'] ?? '') !== '') {
         $s .= '<p class="aide">' . (!empty($r['fiches'])
@@ -178,7 +192,7 @@ $hors_annuaire = function (string $cle, string $nom, ?int $fiche_id, string $cat
 <div class="titre">
   <h1><?= e($titre) ?></h1>
   <?php if ($c): ?>
-    <span class="titre__suite"><?= e(TYPES_CONCERT[$c['type']]) ?> · <?= e($c['cle']) ?>
+    <span class="titre__suite"><?= $c['type'] !== 'concert' ? e(TYPES_CONCERT[$c['type']]) . ' · ' : '' ?><?= e($c['cle']) ?>
       <?= $c['publie'] ? '<span class="puce puce--ok">publié</span>' : '<span class="puce puce--alerte">dépublié</span>' ?>
       <?= $c['temps_fort'] ? '<span class="puce puce--accent">à la une</span>' : '' ?></span>
     <div class="titre__actions">
@@ -199,13 +213,12 @@ $hors_annuaire = function (string $cle, string $nom, ?int $fiche_id, string $cat
   <form method="post" class="carte" id="fiche">
     <?= champ_csrf() ?><input type="hidden" name="action" value="enregistrer">
     <div class="colonnes">
-      <?= champ_choix('type', 'Type', TYPES_CONCERT, $v('type') ?: 'concert') ?>
       <?= champ_choix('maison_id', 'Maison', $maisons, $v('maison_id'), ['vide' => '— aucune —']) ?>
       <div class="champ"><span class="sr">Mise en avant</span><?= champ_case('temps_fort', 'À la une', !empty($f['temps_fort'])) ?>
         <p class="aide">Marque éditoriale, indépendante de la publication.</p></div>
     </div>
-    <?= champ_bi('titre', 'Titre', $v('titre_fr'), $v('titre_en'), ['requis' => true] + $lgc('titre')) ?>
-    <?= champ_bi('ensemble', 'Orchestre ou ensemble', $v('ensemble_fr'), $v('ensemble_en'), ['liste' => 'liste-ensembles', 'aide' => 'Tel qu\'il s\'affiche sur le site. Choisi dans la collection Orchestres, il est associé au concert de lui-même.'] + $lgc('ensemble')) ?>
+    <?= champ_tr('titre', 'Titre', $v('titre_en'), ['requis' => true] + $lgc('titre')) ?>
+    <?= champ_tr('ensemble', 'Orchestre ou ensemble', $v('ensemble_en'), ['liste' => 'liste-ensembles', 'aide' => 'Tel qu\'il s\'affiche sur le site. Choisi dans la collection Orchestres, il est associé au concert de lui-même.'] + $lgc('ensemble')) ?>
     <?php
       // orchestres associés : ceux de la base, ou ceux qui viennent d'être envoyés
       $associes = $saisie ? array_map('intval', is_array($_POST['orchestres'] ?? null) ? $_POST['orchestres'] : []) : array_map('intval', array_column($f['orchestres'] ?? [], 'id'));
@@ -230,16 +243,16 @@ $hors_annuaire = function (string $cle, string $nom, ?int $fiche_id, string $cat
     </fieldset>
 
     <h2>Lieu</h2>
-    <?= champ_bi('salle', 'Salle', $v('salle_fr'), $v('salle_en'), ['liste' => 'liste-salles', 'aide' => 'Pour une tournée, laissez vide : chaque date porte son lieu.'] + $lgc('salle')) ?>
-    <?= $c ? $hors_annuaire('salle', $c['salle_fr'], $c['salle_id'] ? (int) $c['salle_id'] : null, 'salle', ['ville_fr' => $c['ville_fr'], 'pays_fr' => $c['pays_fr']]) : '' ?>
+    <?= champ_tr('salle', 'Salle', $v('salle_en'), ['liste' => 'liste-salles', 'aide' => 'Pour une tournée, laissez vide : chaque date porte son lieu.'] + $lgc('salle')) ?>
+    <?= $c ? $hors_annuaire('salle', $c['salle_en'], $c['salle_id'] ? (int) $c['salle_id'] : null, 'salle', ['ville_en' => $c['ville_en'], 'pays_en' => $c['pays_en']]) : '' ?>
     <div class="colonnes">
-      <?= champ_bi('ville', 'Ville', $v('ville_fr'), $v('ville_en'), $lgc('ville')) ?>
-      <?= champ_bi('pays', 'Pays', $v('pays_fr'), $v('pays_en'), $lgc('pays')) ?>
+      <?= champ_tr('ville', 'Ville', $v('ville_en'), $lgc('ville')) ?>
+      <?= champ_tr('pays', 'Pays', $v('pays_en'), $lgc('pays')) ?>
     </div>
     <?= champ_choix('fuseau', 'Fuseau de la salle', array_combine(timezone_identifiers_list(), timezone_identifiers_list()), $v('fuseau'), ['vide' => '— à déduire du pays et de la ville —', 'aide' => 'Ne sert qu\'à calculer l\'heure de l\'artiste sur le tableau de bord. Les heures saisies restent celles de la salle.']) ?>
 
     <h2>Représentations</h2>
-    <p class="aide">Date et heure locales de la salle. Le statut se règle à droite, date par date, une fois la fiche enregistrée.</p>
+    <p class="aide">Date et heure locales de la salle. Un concert est un concert : il n'y a pas de type à choisir. Si ses dates se tiennent dans des lieux différents (une autre ville, une autre salle), Pupitre y voit de lui-même une tournée, et le site donne son lieu à chaque date. Le statut se règle à droite, date par date, une fois la fiche enregistrée.</p>
     <div class="fiche-concert__reps"><?= $liste('reps', $f['representations'], $ligne_rep, 'Ajouter une représentation') ?></div>
 
     <h2>Programme</h2>
@@ -250,14 +263,22 @@ $hors_annuaire = function (string $cle, string $nom, ?int $fiche_id, string $cat
     <?= $liste('avec', $f['participants'], $ligne_avec, 'Ajouter un participant') ?>
 
     <h2>Présentation et liens</h2>
-    <?= champ_bi('description', 'Description', $v('description_fr'), '', ['texte' => true, 'aide' => 'Présentation du concert, montrée dans sa fiche sur la page des concerts. Facultative.'] + $lgc('description')) ?>
-    <?= champ_bi('mentions', 'Informations complémentaires', $v('mentions_fr'), $v('mentions_en'), ['texte' => true, 'aide' => 'Débuts avec l\'orchestre, enregistrement, partenaire… Une ligne discrète sous la fiche.'] + $lgc('mentions')) ?>
+    <?= champ_tr('description', 'Description', $v('description_en'), ['texte' => true, 'aide' => 'Présentation du concert, montrée dans sa fiche sur la page des concerts. Facultative.'] + $lgc('description')) ?>
+    <?= champ_tr('mentions', 'Informations complémentaires', $v('mentions_en'), ['texte' => true, 'aide' => 'Débuts avec l\'orchestre, enregistrement, partenaire… Une ligne discrète sous la fiche.'] + $lgc('mentions')) ?>
     <div class="colonnes">
       <?= champ('lien_billetterie', 'Adresse externe : billetterie', $v('lien_billetterie'), ['type' => 'url', 'indication' => 'https://…']) ?>
       <?= champ('page_organisateur', 'Adresse externe : page de l\'organisateur', $v('page_organisateur'), ['type' => 'url', 'indication' => 'https://…']) ?>
     </div>
     <p class="aide">Sur le site, « En savoir plus » mène à la billetterie, sinon à la page de l'organisateur. Sans aucune de ces adresses, il mène à la fiche du concert sur la page des concerts : jamais de lien mort.</p>
     <?= champ_texte('notes_internes', 'Notes internes', $v('notes_internes'), ['aide' => 'Ne sortent jamais sur le site.']) ?>
+
+    <h2 id="contact-com">Contact communication</h2>
+    <p class="aide aide--haut">La personne qui, chez l'organisateur, partagera les photos et les vidéos du concert. La veille de la première date, Pupitre lui envoie de lui-même l'adresse de la zone de dépôt du concert.</p>
+    <div class="colonnes">
+      <?= champ('contact_com_nom', 'Nom', $v('contact_com_nom'), ['max' => 190]) ?>
+      <?= champ('contact_com_email', 'Adresse e-mail', $v('contact_com_email'), ['type' => 'email', 'max' => 190, 'indication' => 'communication@…']) ?>
+      <?= champ_choix('contact_com_langue', 'Langue du mail', ['en' => 'Anglais', 'fr' => 'Français'], $v('contact_com_langue') ?: 'en') ?>
+    </div>
     <div class="actions actions--bas">
       <button type="submit" class="bouton bouton--plein"><?= $nouveau ? 'Créer le concert' : 'Enregistrer la fiche' ?></button>
       <a class="bouton" href="<?= e(url('agenda')) ?>">Retour à l'agenda</a>
@@ -267,7 +288,7 @@ $hors_annuaire = function (string $cle, string $nom, ?int $fiche_id, string $cat
   <?php if ($c): ?>
   <form method="post" class="actions">
     <?= champ_csrf() ?><input type="hidden" name="action" value="supprimer">
-    <button type="submit" class="bouton bouton--danger bouton--petit" data-confirmer="Supprimer ce concert, ses représentations, son programme et ses notes ?">Supprimer ce concert</button>
+    <button type="submit" class="bouton bouton--danger bouton--petit" data-confirmer="Supprimer ce concert, ses représentations, son programme, ses notes et les images déposées dans sa zone de dépôt ?">Supprimer ce concert</button>
   </form>
   <?php endif; ?>
 </div>
@@ -292,7 +313,43 @@ $hors_annuaire = function (string $cle, string $nom, ?int $fiche_id, string $cat
       <a class="bouton bouton--petit" href="<?= e(url('editorial')) ?>#concerts">Tableau de bord éditorial</a></p>
   </div>
   <?php endif; ?>
-  <?php if ($c['type'] !== 'disque' && trim($c['ensemble_fr']) !== ''): $trouve = $c['orchestres'] ? null : orchestre_chercher($c['ensemble_fr'], (string) traduction_publiee('concerts', $id, 'ensemble', 'en')); ?>
+  <?php if (peut('communication') && $c['type'] !== 'disque'):
+      $zone = depot_de_concert($id);
+      $recus = $zone ? depot_fichiers((int) $zone['id']) : [];
+      $nouveaux = count(array_filter($recus, fn($x) => $x['statut'] === 'recu'));
+      [$premiere_date] = depot_dates($id);
+      $contact = trim((string) $c['contact_com_email']) !== '';
+  ?>
+  <div class="carte" id="depot">
+    <div class="carte__tete"><h2>Images du concert</h2><span class="carte__compte"><?= count($recus) ?></span><?php if ($nouveaux): ?><span class="puce puce--accent"><?= e(pluriel($nouveaux, 'nouveau', 'nouveaux')) ?></span><?php endif; ?></div>
+    <?php if (!$contact): ?>
+      <p class="rien">Pas de contact communication : renseignez-le <a href="#contact-com">dans la fiche</a> pour que l'adresse de la zone de dépôt lui soit envoyée la veille du concert.</p>
+    <?php else: ?>
+      <p><span class="item__titre"><?= e($c['contact_com_nom'] ?: $c['contact_com_email']) ?></span><br><span class="discret"><?= e($c['contact_com_email']) ?> · mail en <?= $c['contact_com_langue'] === 'fr' ? 'français' : 'anglais' ?></span></p>
+      <p class="discret">
+        <?php if ($zone && $zone['invite_le']): ?>Invitation envoyée le <?= e(horodatage_fr($zone['invite_le'])) ?><?= $zone['invite_a'] !== $c['contact_com_email'] ? ' à ' . e($zone['invite_a']) : '' ?>.
+        <?php elseif ($premiere_date && $premiere_date > aujourdhui()): ?>L'invitation partira d'elle-même le <?= e(date_fr(ajouter_jours($premiere_date, -1))) ?>, la veille de la première date.
+        <?php elseif ($premiere_date): ?>La première date est passée ou a lieu aujourd'hui : envoyez l'invitation à la main.
+        <?php else: ?>Aucune date : l'invitation ne partira pas d'elle-même.<?php endif; ?>
+      </p>
+    <?php endif; ?>
+    <?php if ($zone): ?>
+      <div class="champ"><label for="lien-depot">Adresse de la zone de dépôt</label><input type="text" id="lien-depot" value="<?= e(depot_adresse($zone)) ?>" readonly></div>
+      <p><?= depot_ouvert($zone) ? '<span class="puce puce--ok">ouverte jusqu\'au ' . e(date_fr(substr((string) $zone['expire_le'], 0, 10))) . '</span>' : '<span class="puce puce--alerte">fermée</span>' ?></p>
+      <div class="actions">
+        <button type="button" class="bouton bouton--petit" data-copier="#lien-depot" data-copie="Adresse copiée"><?= icone('copier') ?>Copier</button>
+        <?php if ($recus): ?><a class="bouton bouton--petit bouton--doux" href="<?= e(url('depot', ['concert' => $id])) ?>"><?= icone('medias') ?>Voir les fichiers déposés</a><?php endif; ?>
+      </div>
+    <?php endif; ?>
+    <form method="post" class="actions"><?= champ_csrf() ?>
+      <?php if (!$zone): ?><button type="submit" name="action" value="depot_ouvrir" class="bouton bouton--petit"><?= icone('depot') ?>Ouvrir la zone de dépôt</button><?php endif; ?>
+      <?php if ($contact && (!$zone || depot_ouvert($zone))): ?><button type="submit" name="action" value="depot_inviter" class="bouton bouton--petit" data-confirmer="Envoyer maintenant à <?= e($c['contact_com_email']) ?> l'adresse de la zone de dépôt ?"><?= icone('envoyer') ?><?= $zone && $zone['invite_le'] ? 'Renvoyer l\'invitation' : 'Envoyer l\'invitation maintenant' ?></button><?php endif; ?>
+      <?php if ($zone && depot_ouvert($zone)): ?><button type="submit" name="action" value="depot_fermer" class="bouton bouton--petit" data-confirmer="Fermer la zone de dépôt ? Son adresse ne recevra plus rien ; les fichiers déjà déposés restent.">Fermer la zone</button>
+      <?php elseif ($zone): ?><button type="submit" name="action" value="depot_rouvrir" class="bouton bouton--petit">Rouvrir la zone</button><?php endif; ?>
+    </form>
+  </div>
+  <?php endif; ?>
+  <?php if ($c['type'] !== 'disque' && trim($c['ensemble_en']) !== ''): $trouve = $c['orchestres'] ? null : orchestre_chercher($c['ensemble_en'], (string) (traductions_noms('concerts', $id, 'ensemble')[0] ?? '')); ?>
   <div class="carte<?= $c['orchestres'] ? '' : ' carte--alerte' ?>" id="orchestre">
     <h2>Orchestre</h2>
     <?php if ($c['orchestres']): ?>
@@ -304,7 +361,7 @@ $hors_annuaire = function (string $cle, string $nom, ?int $fiche_id, string $cat
       <?php endforeach; ?>
       </ul>
     <?php elseif ($trouve && $trouve['candidats']): ?>
-      <p>« <?= e($c['ensemble_fr']) ?> » ne correspond exactement à aucun orchestre de la collection. Est-ce l'un de ceux-ci ?</p>
+      <p>« <?= e($c['ensemble_en']) ?> » ne correspond exactement à aucun orchestre de la collection. Est-ce l'un de ceux-ci ?</p>
       <ul class="items">
       <?php foreach (array_slice($trouve['candidats'], 0, 4) as $cand): ?>
         <li><span class="item__titre"><?= e($cand['nom']) ?></span>
@@ -314,7 +371,7 @@ $hors_annuaire = function (string $cle, string $nom, ?int $fiche_id, string $cat
       <form method="post" class="actions"><?= champ_csrf() ?><input type="hidden" name="action" value="orchestre"><button type="submit" class="bouton bouton--petit">Non : l'ajouter comme nouvel orchestre</button></form>
     <?php else: ?>
       <p><strong>Cet orchestre n'est pas encore référencé. Souhaitez-vous l'ajouter à la carte mondiale ?</strong></p>
-      <p class="aide">« <?= e($c['ensemble_fr']) ?> » entrera dans la collection Orchestres, avec la ville et le pays de ce concert comme proposition à confirmer. Il ne paraîtra sur la carte qu'une fois sa position vérifiée et son affichage décidé.</p>
+      <p class="aide">« <?= e($c['ensemble_en']) ?> » entrera dans la collection Orchestres, avec la ville et le pays de ce concert comme proposition à confirmer. Il ne paraîtra sur la carte qu'une fois sa position vérifiée et son affichage décidé.</p>
       <form method="post" class="actions"><?= champ_csrf() ?><input type="hidden" name="action" value="orchestre"><button type="submit" class="bouton bouton--plein">Ajouter cet orchestre</button></form>
     <?php endif; ?>
   </div>
@@ -350,7 +407,7 @@ $hors_annuaire = function (string $cle, string $nom, ?int $fiche_id, string $cat
           <?php if ($r['statut'] === 'embargo' && $r['embargo_le']): ?> <span class="discret">annonce prévue le <?= e(date_fr($r['embargo_le'])) ?></span><?php endif; ?>
           <?php if ($r['statut'] === 'annulee'): ?> <span class="discret"><?= e($r['raison']) ?></span><?php endif; ?>
         </span>
-        <?php if (lieu($r, $c, 'ville') !== '' && $r['ville_fr'] !== ''): ?><span class="discret"><?= e(implode(', ', array_filter([lieu($r, $c, 'ville'), lieu($r, $c, 'salle')], 'strlen'))) ?></span><?php endif; ?>
+        <?php if (lieu($r, $c, 'ville') !== '' && $r['ville_en'] !== ''): ?><span class="discret"><?= e(implode(', ', array_filter([lieu($r, $c, 'ville'), lieu($r, $c, 'salle')], 'strlen'))) ?></span><?php endif; ?>
         <?php if ($r['lien_source'] !== ''): ?><span class="discret">Source : <a href="<?= e($r['lien_source']) ?>" target="_blank" rel="noopener"><?= e(couper(preg_replace('#^https?://#', '', $r['lien_source']), 44)) ?></a></span><?php endif; ?>
         <?php if (($h = heure_artiste($r['date'], $r['heure'], $c['fuseau'])) !== '' && $c['fuseau'] !== reglage('fuseau')): ?><span class="discret">Heure de l'artiste : <?= e($h) ?></span><?php endif; ?>
         <details>

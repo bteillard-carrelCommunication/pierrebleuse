@@ -81,6 +81,16 @@ def envoyer(c, selecteur):
     c.attendre(0.4)
 
 
+def ecarts_en_attente():
+    """Les fichiers du site que Pupitre modifierait s'il publiait maintenant."""
+    code = ('require "%s/pupitre/inclus/amorce.php"; $e = publication_etat();'
+            ' echo json_encode(array_merge(array_keys(array_filter($e["fichiers"], fn($f) => in_array($f["etat"], ["modifie", "nouveau"], true))), array_values($e["medias"])));' % RACINE)
+    r = subprocess.run([PHP, '-r', code], capture_output=True, text=True)
+    if r.returncode != 0:
+        raise SystemExit('écarts : ' + r.stderr.strip() + r.stdout.strip())
+    return json.loads(r.stdout)
+
+
 def connecter(c, role):
     c.ouvrir(P + 'connexion.php', 0.5)
     remplir(c, {'email': '%s@essai.pupitre.test' % role, 'mot_de_passe': MDP})
@@ -115,11 +125,13 @@ def main():
             verifier('incorrect' in message(c), 'un mauvais mot de passe est refusé')
 
             print('Pilote : chaque écran')
+            ecarts_depart = ecarts_en_attente()
             connecter(c, 'pilote')
             verifier('index.php' in c.js('location.href') and 'Tableau de bord' in c.js('document.title'), 'le pilote entre et arrive sur le tableau de bord')
-            verifier(c.js('document.querySelector(".marque__nom").textContent') == 'Pupitre' and c.js('(document.querySelector(".marque__sous-titre")||{}).textContent') == 'Pierre Bleuse',
-                     'titre « Pupitre », sous-titre lu dans les réglages')
-            ecrans = [('bord', {}), ('agenda', {}), ('agenda', {'periode': 'tout', 'statut': 'publiee'}), ('concert', {'id': 'nouveau'}), ('annuaire', {}),
+            verifier(c.js('(function(){var l=document.querySelector(".lateral .marque__logo"); return !!l && l.alt === "Pupitre" && l.naturalWidth > 0;})()')
+                     and c.js('(document.querySelector(".marque__sous-titre")||{}).textContent') == 'Pierre Bleuse',
+                     'logotype de Pupitre (image chargée, texte de remplacement « Pupitre »), sous-titre lu dans les réglages')
+            ecrans = [('bord', {}), ('apercus', {}), ('depots', {}), ('resultats', {}), ('veille', {}), ('courrier', {}), ('courrier', {'vue': 'envois'}), ('agenda', {}), ('agenda', {'periode': 'tout', 'statut': 'publiee'}), ('concert', {'id': 'nouveau'}), ('annuaire', {}),
                       ('annuaire', {'categorie': 'salle'}), ('fiche', {'id': 'nouvelle'}), ('imports', {}),
                       ('blocs', {}), ('bloc', {'cle': 'general'}), ('bloc', {'cle': 'ouverture'}), ('bloc', {'cle': 'bio'}), ('bloc', {'cle': 'agenda'}), ('bloc', {'cle': 'disques'}),
                       ('bloc', {'cle': 'parcours-fonctions'}), ('bloc', {'cle': 'parcours-collaborations'}), ('bloc', {'cle': 'parcours-monde'}), ('bloc', {'cle': 'presse'}),
@@ -127,7 +139,7 @@ def main():
                       ('orchestres', {}), ('orchestres', {'nouvelle': '1'}), ('disques', {}), ('disque', {'id': 1}), ('disque', {'id': 'nouveau'}), ('distinctions', {}), ('parcours', {}),
                       ('presse', {}), ('article', {'id': 1}), ('article', {'id': 'nouveau'}), ('musiques', {}),
                       ('contenu', {'type': 'telechargements'}), ('contenu', {'type': 'contacts'}), ('medias', {}), ('media', {'id': 1}), ('site', {}),
-                      ('apparence', {}), ('langues', {}), ('langues', {'onglet': 'traductions'}), ('langues', {'onglet': 'libelles'}), ('base', {}),
+                      ('apparence', {}), ('langues', {}), ('traductions', {}), ('traductions', {'section': 'concerts'}), ('langues', {'onglet': 'libelles'}), ('base', {}),
                       ('journal', {}), ('comptes', {}), ('reglages', {}), ('artiste', {}), ('carte', {}), ('carte', {'nouvelle': '1'}),
                       ('editorial', {}), ('social', {}), ('newsletter', {}), ('communication', {'id': 'nouvelle'}), ('communication', {'id': 'nouvelle', 'famille': 'lettre'}),
                       ('notifications', {}), ('recherche', {'q': 'paris'}), ('interface', {}), ('avenir', {'quoi': 'publications'})]
@@ -157,8 +169,8 @@ def main():
 
             print('Parcours complet')
             aller(c, 'bloc', cle='ouverture')
-            citation = c.js('document.querySelector(\'[name="citation_fr"]\').value')
-            remplir(c, {'citation_fr': '« Citation d\'essai de Pupitre »'})
+            citation = c.js('document.querySelector(\'[name="citation_en"]\').value')
+            remplir(c, {'citation_en': '« Citation d\'essai de Pupitre »'})
             envoyer(c, 'form.carte .actions--bas button[type="submit"]')
             verifier('enregistr' in message(c).lower(), 'la citation est modifiée (bloc « Hero »)')
 
@@ -169,8 +181,8 @@ def main():
             verifier('nregistr' in message(c), 'un album est modifié (son année)')
 
             aller(c, 'concert', id='nouveau')
-            remplir(c, {'titre_fr': 'Concert d\'essai de Pupitre', 'ensemble_fr': 'Ensemble intercontemporain', 'salle_fr': 'Salle d\'essai',
-                        'ville_fr': 'Paris', 'pays_fr': 'France', 'reps[0][date]': '2027-06-30', 'reps[0][heure]': '20:00'})
+            remplir(c, {'titre_en': 'Concert d\'essai de Pupitre', 'ensemble_en': 'Ensemble intercontemporain', 'salle_en': 'Salle d\'essai',
+                        'ville_en': 'Paris', 'pays_en': 'France', 'reps[0][date]': '2027-06-30', 'reps[0][heure]': '20:00'})
             envoyer(c, '#fiche button[type="submit"]')
             concert = urllib.parse.parse_qs(urllib.parse.urlparse(c.js('location.href')).query).get('id', [''])[0]
             verifier(concert.isdigit() and 'connues' in message(c), 'un concert est créé, sa représentation est « connue »')
@@ -199,9 +211,14 @@ def main():
             verifier(c.js('!!document.querySelector(".statut--publiee")'), 'la représentation annoncée est passée à « Publiée »')
 
             print('Le site, après publication')
-            c.ouvrir(SITE + '?lang=fr&muet=1&aimant=0&date=2026-11-12', 2.5)
-            verifier('Citation d\'essai de Pupitre' in c.js('document.querySelector(".ouverture__citation").textContent'), 'la nouvelle citation est sur le site')
+            # les textes se rédigent en anglais : c'est le site anglais qui change ; le français garde sa traduction, « à revoir »
+            c.ouvrir(SITE + '?lang=en&muet=1&aimant=0&date=2026-11-12', 2.5)
+            verifier('Citation d\'essai de Pupitre' in c.js('document.querySelector(".ouverture__citation").textContent'), 'la nouvelle citation est sur le site, en anglais (langue de rédaction)')
             verifier(c.js('JSON.stringify(SiteContenu.ecarts)') == '[]' and not c.erreurs, 'SiteContenu.ecarts vide, console sans erreur')
+            verifier(c.js('Array.prototype.map.call(document.querySelectorAll("[data-langues] [data-langue]"), function (a) { return a.getAttribute("data-langue"); }).join(",")').startswith('en'), 'le sélecteur de langue du site commence par l\'anglais')
+            c.erreurs.clear()
+            c.ouvrir(SITE + '?lang=fr&muet=1&aimant=0&date=2026-11-12', 2.5)
+            verifier('Citation d\'essai' not in c.js('document.querySelector(".ouverture__citation").textContent') and c.js('document.querySelector(".ouverture__citation").textContent.trim().length') > 0, 'en français, la citation garde sa traduction')
             verifier('1987' in c.js('document.querySelector("[data-disques]").textContent'), 'l\'année de l\'album est sur le site')
             c.erreurs.clear()
             c.ouvrir(SITE + 'concerts.html?lang=fr&date=2026-11-12', 1.2)
@@ -213,7 +230,7 @@ def main():
             envoyer(c, 'form button[data-confirmer^="Remettre"]')
             verifier('revenu' in message(c), 'le retour en arrière se fait : ' + message(c)[:80])
             verifier(git_site() == depart_git, 'les fichiers du site sont exactement ceux d\'avant la publication (git)')
-            c.ouvrir(SITE + '?lang=fr&muet=1&aimant=0&date=2026-11-12', 2)
+            c.ouvrir(SITE + '?lang=en&muet=1&aimant=0&date=2026-11-12', 2)
             verifier('Citation d\'essai' not in c.js('document.querySelector(".ouverture__citation").textContent'), 'le site a retrouvé sa citation')
             c.erreurs.clear()
             aller(c, 'concert', id=concert)
@@ -223,7 +240,7 @@ def main():
 
             print('Remise en état des contenus')
             aller(c, 'bloc', cle='ouverture')
-            remplir(c, {'citation_fr': citation})
+            remplir(c, {'citation_en': citation})
             envoyer(c, 'form.carte .actions--bas button[type="submit"]')
             aller(c, 'disque', id=1)
             remplir(c, {'annee': annee_avant})
@@ -231,7 +248,8 @@ def main():
             aller(c, 'concert', id=concert)
             envoyer(c, 'button[data-confirmer^="Supprimer ce concert"]')
             aller(c, 'site')
-            verifier('aucun écart' in c.js('document.body.innerText'), 'contenus remis comme ils étaient : plus aucun écart')
+            # ce qui attendait d'être publié avant l'essai (des modifications du pilote, par exemple) attend toujours : ni plus, ni moins
+            verifier(ecarts_en_attente() == ecarts_depart, 'contenus remis comme ils étaient : les écarts sont ceux d\'avant l\'essai (%s)' % (', '.join(ecarts_depart) or 'aucun'))
 
             print('Dépôt d\'un extrait et tâche de fond')
             if php('ia') == 'oui':
@@ -281,7 +299,7 @@ def main():
             corps = c.js('document.body.innerText')
             verifier(all(t in corps for t in ('PROCHAIN CONCERT', 'CETTE SEMAINE', 'LA SAISON À VENIR', 'Site mis à jour')) or all(t in corps for t in ('Prochain concert', 'Cette semaine', 'La saison à venir', 'Site mis à jour')),
                      'prochain concert, cette semaine, la saison par mois, date de mise à jour du site')
-            verifier(c.js('document.querySelectorAll(".mois-artiste .statut").length') >= 20, 'chaque date de la saison porte son statut')
+            verifier(c.js('(function(){var d=document.querySelectorAll(".mois-artiste .concert"); return d.length > 0 && d.length === document.querySelectorAll(".mois-artiste .concert .statut").length;})()'), 'chaque date de la saison porte son statut')
             c.capture(os.path.join(CAPTURES, 'vue-artiste-390.png'))
             c.js('(function(){var s=document.createElement("style"); s.id="essai-fige"; s.textContent="' + SANS_TRANSITION + '"; document.head.appendChild(s);})()')
             c.capture(os.path.join(CAPTURES, 'vue-artiste-390-pleine.png'), pleine=True)
@@ -307,7 +325,7 @@ def main():
             aller(c, 'agenda')
             verifier('Accès refusé' in c.js('document.body.innerText'), 'l\'artiste n\'ouvre pas l\'agenda')
             statut = c.js('fetch(%s, {method:"POST", credentials:"same-origin", headers:{"Content-Type":"application/x-www-form-urlencoded"},'
-                          ' body:"action=contenus&citation_fr=x&csrf=" + encodeURIComponent(document.querySelector(\'meta[name="csrf"]\').content)}).then(function(r){return r.status})' % json.dumps(P + 'index.php?page=bloc&cle=ouverture'))
+                          ' body:"action=contenus&citation_en=x&csrf=" + encodeURIComponent(document.querySelector(\'meta[name="csrf"]\').content)}).then(function(r){return r.status})' % json.dumps(P + 'index.php?page=bloc&cle=ouverture'))
             verifier(statut == 403, 'une modification envoyée par l\'artiste est refusée par le serveur (403)')
             statut = c.js('fetch(%s, {credentials:"same-origin"}).then(function(r){return r.status})' % json.dumps(P + 'media.php?id=1'))
             verifier(statut == 403, 'l\'artiste n\'a pas accès aux fichiers de la médiathèque (403)')

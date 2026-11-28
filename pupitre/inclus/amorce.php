@@ -14,6 +14,7 @@ require_once __DIR__ . '/sauvegarde.php';
 require_once __DIR__ . '/migrations.php';
 require_once __DIR__ . '/journal.php';
 require_once __DIR__ . '/mail.php';
+require_once __DIR__ . '/courrier.php';
 require_once __DIR__ . '/connexion.php';
 require_once __DIR__ . '/annuaire.php';
 require_once __DIR__ . '/agenda.php';
@@ -29,11 +30,16 @@ require_once __DIR__ . '/parcours.php';
 require_once __DIR__ . '/site/export.php';
 require_once __DIR__ . '/site/repli.php';
 require_once __DIR__ . '/publication.php';
+require_once __DIR__ . '/apercu.php';
+require_once __DIR__ . '/depot.php';
 require_once __DIR__ . '/taches.php';
 require_once __DIR__ . '/ia.php';
 require_once __DIR__ . '/ia_services.php';
+require_once __DIR__ . '/ia_recherche.php';
+require_once __DIR__ . '/veille.php';
 require_once __DIR__ . '/import.php';
 require_once __DIR__ . '/communication.php';
+require_once __DIR__ . '/metricool.php';
 require_once __DIR__ . '/alertes.php';
 require_once __DIR__ . '/notifications.php';
 require_once __DIR__ . '/icones.php';
@@ -68,9 +74,14 @@ set_exception_handler(function (Throwable $e) {
         exit;
     }
     while (ob_get_level() > 0) ob_end_clean();
-    echo '<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="robots" content="noindex, nofollow"><title>Pupitre</title>'
-        . '<style>body{font:16px/1.5 system-ui,sans-serif;max-width:36rem;margin:15vh auto;padding:0 1.5rem;color:#1c1b19}</style></head>'
-        . '<body><h1>Pupitre</h1><p>' . e($detail) . '</p></body></html>';
+    // la page d'erreur ne dépend de rien qui puisse être en panne (ni base, ni réglage) : le logotype et la feuille de style, c'est tout
+    $base = e(chemin_pupitre());
+    echo '<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex, nofollow"><title>Pupitre</title>'
+        . '<link rel="icon" href="' . $base . '/ressources/marque/icones/favicon.svg" type="image/svg+xml">'
+        . '<link rel="stylesheet" href="' . $base . '/ressources/css/pupitre.css?v=' . e(VERSION_PUPITRE) . '"></head>'
+        . '<body class="porte"><main class="porte__carte"><h1 class="marque marque--grande"><img class="marque__logo" src="' . $base . '/ressources/marque/logo/pupitre-logo-principal.svg" alt="Pupitre" width="127" height="44"></h1>'
+        . '<p class="message message--erreur" role="alert">' . e($detail) . '</p>'
+        . '<p><a class="bouton" href="' . $base . '/index.php">Revenir au tableau de bord</a></p></main></body></html>';
     exit;
 });
 

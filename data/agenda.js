@@ -1,7 +1,7 @@
 /* Généré par Pupitre, ne pas modifier à la main. */
 window.AGENDA_DONNEES = {
-  "version": "2026-11-13",
-  "note": "Uniquement des représentations annoncées par leur organisateur, de concerts publiés. Tout champ texte est soit une chaîne, soit un objet {fr, en}. Une tournée porte ville, pays, salle et lien dans chaque représentation. Dates et heures locales de la salle.",
+  "version": "2026-11-28",
+  "note": "Uniquement des représentations annoncées par leur organisateur, de concerts publiés. Tout champ texte est soit une chaîne (le texte anglais, qui vaut pour toutes les langues), soit un objet {en, fr, …}. Une tournée porte ville, pays, salle et lien dans chaque représentation. Dates et heures locales de la salle.",
   "maisons": {
     "eic": "Ensemble intercontemporain",
     "odense": "Orchestre symphonique d'Odense",
@@ -17,8 +17,8 @@ window.AGENDA_DONNEES = {
       "maison": "invite",
       "ville": "Malmö",
       "pays": {
-        "fr": "Suède",
-        "en": "Sweden"
+        "en": "Sweden",
+        "fr": "Suède"
       },
       "salle": "Malmö Live Konserthus",
       "representations": [
@@ -45,8 +45,8 @@ window.AGENDA_DONNEES = {
         {
           "compositeur": "Béla Bartók",
           "oeuvre": {
-            "fr": "Concerto pour piano n° 3",
-            "en": "Piano Concerto No. 3"
+            "en": "Piano Concerto No. 3",
+            "fr": "Concerto pour piano n° 3"
           }
         },
         {
@@ -84,8 +84,8 @@ window.AGENDA_DONNEES = {
         {
           "compositeur": "Gustav Mahler",
           "oeuvre": {
-            "fr": "Symphonie n° 10, Adagio",
-            "en": "Symphony No. 10, Adagio"
+            "en": "Symphony No. 10, Adagio",
+            "fr": "Symphonie n° 10, Adagio"
           }
         },
         {
@@ -99,14 +99,14 @@ window.AGENDA_DONNEES = {
         {
           "compositeur": "Claude Debussy",
           "oeuvre": {
-            "fr": "Images pour orchestre",
-            "en": "Images for orchestra"
+            "en": "Images for orchestra",
+            "fr": "Images pour orchestre"
           }
         }
       ],
       "mentions": {
-        "fr": "Débuts avec l'orchestre",
-        "en": "Debut with the orchestra"
+        "en": "Debut with the orchestra",
+        "fr": "Débuts avec l'orchestre"
       },
       "tempsFort": false,
       "lien": ""
@@ -118,16 +118,16 @@ window.AGENDA_DONNEES = {
       "ensemble": "Filarmonica George Enescu",
       "maison": "invite",
       "ville": {
-        "fr": "Bucarest",
-        "en": "Bucharest"
+        "en": "Bucharest",
+        "fr": "Bucarest"
       },
       "pays": {
-        "fr": "Roumanie",
-        "en": "Romania"
+        "en": "Romania",
+        "fr": "Roumanie"
       },
       "salle": {
-        "fr": "Athénée roumain",
-        "en": "Romanian Athenaeum"
+        "en": "Romanian Athenaeum",
+        "fr": "Athénée roumain"
       },
       "representations": [
         {
@@ -143,8 +143,8 @@ window.AGENDA_DONNEES = {
         {
           "nom": "Veronika Eberle",
           "role": {
-            "fr": "violon",
-            "en": "violin"
+            "en": "violin",
+            "fr": "violon"
           }
         }
       ],
@@ -152,22 +152,22 @@ window.AGENDA_DONNEES = {
         {
           "compositeur": "Anton Bruckner",
           "oeuvre": {
-            "fr": "Psaume 150",
-            "en": "Psalm 150"
+            "en": "Psalm 150",
+            "fr": "Psaume 150"
           }
         },
         {
           "compositeur": "Jean Sibelius",
           "oeuvre": {
-            "fr": "Concerto pour violon",
-            "en": "Violin Concerto"
+            "en": "Violin Concerto",
+            "fr": "Concerto pour violon"
           }
         },
         {
           "compositeur": "Johannes Brahms",
           "oeuvre": {
-            "fr": "Symphonie n° 4",
-            "en": "Symphony No. 4"
+            "en": "Symphony No. 4",
+            "fr": "Symphonie n° 4"
           }
         }
       ],
@@ -179,8 +179,8 @@ window.AGENDA_DONNEES = {
       "type": "disque",
       "titre": "Ravel Abroad",
       "ensemble": {
-        "fr": "Orchestre symphonique d'Odense",
-        "en": "Odense Symphony Orchestra"
+        "en": "Odense Symphony Orchestra",
+        "fr": "Orchestre symphonique d'Odense"
       },
       "maison": "odense",
       "representations": [
@@ -189,8 +189,8 @@ window.AGENDA_DONNEES = {
         }
       ],
       "mentions": {
-        "fr": "Parution du disque, OUR Recordings",
-        "en": "Album release, OUR Recordings"
+        "en": "Album release, OUR Recordings",
+        "fr": "Parution du disque, OUR Recordings"
       },
       "tempsFort": true,
       "lien": "https://www.ourrecordings.com/albums/ravel-abroad"
@@ -202,12 +202,12 @@ window.AGENDA_DONNEES = {
       "ensemble": "Kammerorchester Basel",
       "maison": "invite",
       "ville": {
-        "fr": "Bâle",
-        "en": "Basel"
+        "en": "Basel",
+        "fr": "Bâle"
       },
       "pays": {
-        "fr": "Suisse",
-        "en": "Switzerland"
+        "en": "Switzerland",
+        "fr": "Suisse"
       },
       "salle": "Stadtcasino Basel",
       "representations": [
@@ -226,22 +226,22 @@ window.AGENDA_DONNEES = {
         {
           "compositeur": "Beat Furrer",
           "oeuvre": {
-            "fr": "Nouvelle œuvre pour orchestre",
-            "en": "New work for orchestra"
+            "en": "New work for orchestra",
+            "fr": "Nouvelle œuvre pour orchestre"
           }
         },
         {
           "compositeur": "Béla Bartók",
           "oeuvre": {
-            "fr": "Musique pour cordes, percussion et célesta",
-            "en": "Music for Strings, Percussion and Celesta"
+            "en": "Music for Strings, Percussion and Celesta",
+            "fr": "Musique pour cordes, percussion et célesta"
           }
         },
         {
           "compositeur": "Ludwig van Beethoven",
           "oeuvre": {
-            "fr": "Concerto pour piano n° 5 « L'Empereur »",
-            "en": "Piano Concerto No. 5 “Emperor”"
+            "en": "Piano Concerto No. 5 “Emperor”",
+            "fr": "Concerto pour piano n° 5 « L'Empereur »"
           }
         }
       ],
@@ -275,8 +275,8 @@ window.AGENDA_DONNEES = {
         {
           "nom": "Hae-Sun Kang",
           "role": {
-            "fr": "violon",
-            "en": "violin"
+            "en": "violin",
+            "fr": "violon"
           }
         }
       ],
@@ -288,8 +288,8 @@ window.AGENDA_DONNEES = {
         {
           "compositeur": "Alban Berg",
           "oeuvre": {
-            "fr": "Concerto de chambre",
-            "en": "Chamber Concerto"
+            "en": "Chamber Concerto",
+            "fr": "Concerto de chambre"
           }
         },
         {
@@ -299,12 +299,12 @@ window.AGENDA_DONNEES = {
         {
           "compositeur": "Farnaz Modarresifar",
           "oeuvre": {
-            "fr": "Nouvelle œuvre",
-            "en": "New work"
+            "en": "New work",
+            "fr": "Nouvelle œuvre"
           },
           "mention": {
-            "fr": "création",
-            "en": "premiere"
+            "en": "premiere",
+            "fr": "création"
           }
         },
         {
@@ -314,12 +314,12 @@ window.AGENDA_DONNEES = {
         {
           "compositeur": "Hristina Šušak",
           "oeuvre": {
-            "fr": "Nouvelle œuvre",
-            "en": "New work"
+            "en": "New work",
+            "fr": "Nouvelle œuvre"
           },
           "mention": {
-            "fr": "création",
-            "en": "premiere"
+            "en": "premiere",
+            "fr": "création"
           }
         }
       ],
@@ -331,18 +331,18 @@ window.AGENDA_DONNEES = {
       "type": "concert",
       "titre": "Au revoir, Pierre",
       "ensemble": {
-        "fr": "Orchestre symphonique d'Odense",
-        "en": "Odense Symphony Orchestra"
+        "en": "Odense Symphony Orchestra",
+        "fr": "Orchestre symphonique d'Odense"
       },
       "maison": "odense",
       "ville": "Odense",
       "pays": {
-        "fr": "Danemark",
-        "en": "Denmark"
+        "en": "Denmark",
+        "fr": "Danemark"
       },
       "salle": {
-        "fr": "Odense Koncerthus, salle Carl Nielsen",
-        "en": "Odense Concert Hall, Carl Nielsen Hall"
+        "en": "Odense Concert Hall, Carl Nielsen Hall",
+        "fr": "Odense Koncerthus, salle Carl Nielsen"
       },
       "representations": [
         {
@@ -360,22 +360,22 @@ window.AGENDA_DONNEES = {
         {
           "compositeur": "Claude Debussy",
           "oeuvre": {
-            "fr": "Images pour orchestre",
-            "en": "Images for orchestra"
+            "en": "Images for orchestra",
+            "fr": "Images pour orchestre"
           }
         },
         {
           "compositeur": "Richard Strauss",
           "oeuvre": {
-            "fr": "Quatre derniers Lieder",
-            "en": "Four Last Songs"
+            "en": "Four Last Songs",
+            "fr": "Quatre derniers Lieder"
           }
         },
         {
           "compositeur": "Gustav Mahler",
           "oeuvre": {
-            "fr": "Symphonie n° 10, Adagio",
-            "en": "Symphony No. 10, Adagio"
+            "en": "Symphony No. 10, Adagio",
+            "fr": "Symphonie n° 10, Adagio"
           }
         }
       ],
@@ -390,8 +390,8 @@ window.AGENDA_DONNEES = {
       "maison": "invite",
       "ville": "Madrid",
       "pays": {
-        "fr": "Espagne",
-        "en": "Spain"
+        "en": "Spain",
+        "fr": "Espagne"
       },
       "salle": "Auditorio Nacional de Música, Sala sinfónica",
       "representations": [
@@ -461,8 +461,8 @@ window.AGENDA_DONNEES = {
           "compositeur": "Bastien David",
           "oeuvre": "Nous sommes Orage",
           "mention": {
-            "fr": "création mondiale",
-            "en": "world premiere"
+            "en": "world premiere",
+            "fr": "création mondiale"
           }
         }
       ],
@@ -473,15 +473,15 @@ window.AGENDA_DONNEES = {
       "id": "2026-12-18-valladolid",
       "type": "concert",
       "titre": {
-        "fr": "Concert de Noël",
-        "en": "Christmas Concert"
+        "en": "Christmas Concert",
+        "fr": "Concert de Noël"
       },
       "ensemble": "Orquesta Sinfónica de Castilla y León",
       "maison": "invite",
       "ville": "Valladolid",
       "pays": {
-        "fr": "Espagne",
-        "en": "Spain"
+        "en": "Spain",
+        "fr": "Espagne"
       },
       "salle": "Centro Cultural Miguel Delibes, Sala Sinfónica Jesús López Cobos",
       "representations": [
@@ -510,8 +510,8 @@ window.AGENDA_DONNEES = {
         {
           "compositeur": "Alexandre Scriabine",
           "oeuvre": {
-            "fr": "Le Poème de l'extase",
-            "en": "The Poem of Ecstasy"
+            "en": "The Poem of Ecstasy",
+            "fr": "Le Poème de l'extase"
           }
         }
       ],
@@ -537,15 +537,15 @@ window.AGENDA_DONNEES = {
         {
           "nom": "Emmanuelle Ophèle",
           "role": {
-            "fr": "flûte MIDI",
-            "en": "MIDI flute"
+            "en": "MIDI flute",
+            "fr": "flûte MIDI"
           }
         },
         {
           "nom": "Sophie Cherrier, Marion Ralincourt",
           "role": {
-            "fr": "flûtes",
-            "en": "flutes"
+            "en": "flutes",
+            "fr": "flûtes"
           }
         }
       ],
@@ -556,19 +556,19 @@ window.AGENDA_DONNEES = {
         },
         {
           "compositeur": {
-            "fr": "Œuvre collective de cinquante compositeurs",
-            "en": "Collective work by fifty composers"
+            "en": "Collective work by fifty composers",
+            "fr": "Œuvre collective de cinquante compositeurs"
           },
           "oeuvre": "Cinquante fragments pour un portrait",
           "mention": {
-            "fr": "création mondiale",
-            "en": "world premiere"
+            "en": "world premiere",
+            "fr": "création mondiale"
           }
         }
       ],
       "mentions": {
-        "fr": "Les 50 ans de l'Ensemble intercontemporain, en partenariat avec l'Ircam",
-        "en": "The Ensemble intercontemporain at 50, in partnership with Ircam"
+        "en": "The Ensemble intercontemporain at 50, in partnership with Ircam",
+        "fr": "Les 50 ans de l'Ensemble intercontemporain, en partenariat avec l'Ircam"
       },
       "tempsFort": true,
       "lien": ""
@@ -601,22 +601,22 @@ window.AGENDA_DONNEES = {
           "compositeur": "Erkki-Sven Tüür",
           "oeuvre": "Oxymoron",
           "mention": {
-            "fr": "création française",
-            "en": "French premiere"
+            "en": "French premiere",
+            "fr": "création française"
           }
         },
         {
           "compositeur": "Milica Djordjević",
           "oeuvre": "Nalet",
           "mention": {
-            "fr": "création française",
-            "en": "French premiere"
+            "en": "French premiere",
+            "fr": "création française"
           }
         }
       ],
       "mentions": {
-        "fr": "Concert enregistré par France Musique",
-        "en": "Recorded by France Musique"
+        "en": "Recorded by France Musique",
+        "fr": "Concert enregistré par France Musique"
       },
       "tempsFort": false,
       "lien": ""
@@ -629,8 +629,8 @@ window.AGENDA_DONNEES = {
       "maison": "invite",
       "ville": "Amsterdam",
       "pays": {
-        "fr": "Pays-Bas",
-        "en": "Netherlands"
+        "en": "Netherlands",
+        "fr": "Pays-Bas"
       },
       "salle": "Dutch National Opera & Ballet",
       "representations": [
@@ -659,8 +659,8 @@ window.AGENDA_DONNEES = {
         {
           "nom": "Barrie Kosky",
           "role": {
-            "fr": "mise en scène",
-            "en": "stage director"
+            "en": "stage director",
+            "fr": "mise en scène"
           }
         },
         {
@@ -673,14 +673,14 @@ window.AGENDA_DONNEES = {
           "compositeur": "Du Yun",
           "oeuvre": "Red Fox",
           "mention": {
-            "fr": "création mondiale",
-            "en": "world premiere"
+            "en": "world premiere",
+            "fr": "création mondiale"
           }
         }
       ],
       "mentions": {
-        "fr": "Débuts au Dutch National Opera",
-        "en": "Debut at Dutch National Opera"
+        "en": "Debut at Dutch National Opera",
+        "fr": "Débuts au Dutch National Opera"
       },
       "tempsFort": true,
       "lien": ""
@@ -704,8 +704,8 @@ window.AGENDA_DONNEES = {
         {
           "nom": "Chœur de chambre Les Éléments",
           "role": {
-            "fr": "direction Joël Suhubiette",
-            "en": "Joël Suhubiette, chorus master"
+            "en": "Joël Suhubiette, chorus master",
+            "fr": "direction Joël Suhubiette"
           }
         }
       ],
@@ -725,12 +725,12 @@ window.AGENDA_DONNEES = {
         {
           "compositeur": "Joan Magrané Figuera",
           "oeuvre": {
-            "fr": "Nouvelle œuvre",
-            "en": "New work"
+            "en": "New work",
+            "fr": "Nouvelle œuvre"
           },
           "mention": {
-            "fr": "création",
-            "en": "premiere"
+            "en": "premiere",
+            "fr": "création"
           }
         }
       ],
@@ -741,8 +741,8 @@ window.AGENDA_DONNEES = {
       "id": "2027-04-11-tournee-sumino",
       "type": "tournee",
       "titre": {
-        "fr": "Kirschblüte : tournée avec Hayato Sumino",
-        "en": "Kirschblüte: on tour with Hayato Sumino"
+        "en": "Kirschblüte: on tour with Hayato Sumino",
+        "fr": "Kirschblüte : tournée avec Hayato Sumino"
       },
       "ensemble": "Kammerorchester Basel",
       "maison": "invite",
@@ -752,8 +752,8 @@ window.AGENDA_DONNEES = {
           "heure": "20:00",
           "ville": "Cologne",
           "pays": {
-            "fr": "Allemagne",
-            "en": "Germany"
+            "en": "Germany",
+            "fr": "Allemagne"
           },
           "salle": "Kölner Philharmonie",
           "lien": "https://www.koelner-philharmonie.de/en/events/kammerorchester-basel/9226"
@@ -762,12 +762,12 @@ window.AGENDA_DONNEES = {
           "date": "2027-04-14",
           "heure": "19:30",
           "ville": {
-            "fr": "Bâle",
-            "en": "Basel"
+            "en": "Basel",
+            "fr": "Bâle"
           },
           "pays": {
-            "fr": "Suisse",
-            "en": "Switzerland"
+            "en": "Switzerland",
+            "fr": "Suisse"
           },
           "salle": "Stadtcasino Basel"
         },
@@ -776,8 +776,8 @@ window.AGENDA_DONNEES = {
           "heure": "19:30",
           "ville": "Munich",
           "pays": {
-            "fr": "Allemagne",
-            "en": "Germany"
+            "en": "Germany",
+            "fr": "Allemagne"
           },
           "salle": "Isarphilharmonie",
           "lien": "https://www.gasteig.de/en/events/basel-chamber-orchestra-ravel-schumann/"
@@ -797,28 +797,28 @@ window.AGENDA_DONNEES = {
         {
           "compositeur": "Hayato Sumino",
           "oeuvre": {
-            "fr": "Nouvelle œuvre pour piano et orchestre",
-            "en": "New work for piano and orchestra"
+            "en": "New work for piano and orchestra",
+            "fr": "Nouvelle œuvre pour piano et orchestre"
           }
         },
         {
           "compositeur": "Maurice Ravel",
           "oeuvre": {
-            "fr": "Concerto en sol",
-            "en": "Piano Concerto in G"
+            "en": "Piano Concerto in G",
+            "fr": "Concerto en sol"
           }
         },
         {
           "compositeur": "Robert Schumann",
           "oeuvre": {
-            "fr": "Symphonie n° 1 « Le Printemps »",
-            "en": "Symphony No. 1 “Spring”"
+            "en": "Symphony No. 1 “Spring”",
+            "fr": "Symphonie n° 1 « Le Printemps »"
           }
         }
       ],
       "mentions": {
-        "fr": "Programme variable selon les villes",
-        "en": "Programme varies by city"
+        "en": "Programme varies by city",
+        "fr": "Programme variable selon les villes"
       },
       "tempsFort": true,
       "lien": ""
@@ -842,8 +842,8 @@ window.AGENDA_DONNEES = {
         {
           "nom": "Pierre Jodlowski",
           "role": {
-            "fr": "conception, composition, vidéo, lumières",
-            "en": "concept, composition, video, lighting"
+            "en": "concept, composition, video, lighting",
+            "fr": "conception, composition, vidéo, lumières"
           }
         }
       ],
@@ -851,27 +851,27 @@ window.AGENDA_DONNEES = {
         {
           "compositeur": "Anton Webern",
           "oeuvre": {
-            "fr": "Symphonie op. 21",
-            "en": "Symphony, Op. 21"
+            "en": "Symphony, Op. 21",
+            "fr": "Symphonie op. 21"
           }
         },
         {
           "compositeur": "Yana Shliabanska",
           "oeuvre": {
-            "fr": "Nouvelle œuvre",
-            "en": "New work"
+            "en": "New work",
+            "fr": "Nouvelle œuvre"
           },
           "mention": {
-            "fr": "création",
-            "en": "premiere"
+            "en": "premiere",
+            "fr": "création"
           }
         },
         {
           "compositeur": "Pierre Jodlowski",
           "oeuvre": "Archive Z.",
           "mention": {
-            "fr": "création",
-            "en": "premiere"
+            "en": "premiere",
+            "fr": "création"
           }
         }
       ],
@@ -882,21 +882,21 @@ window.AGENDA_DONNEES = {
       "id": "2027-04-28-goteborg",
       "type": "concert",
       "titre": {
-        "fr": "Mahler, Symphonie n° 5",
-        "en": "Mahler, Symphony No. 5"
+        "en": "Mahler, Symphony No. 5",
+        "fr": "Mahler, Symphonie n° 5"
       },
       "ensemble": {
-        "fr": "Orchestre symphonique de Göteborg",
-        "en": "Gothenburg Symphony Orchestra"
+        "en": "Gothenburg Symphony Orchestra",
+        "fr": "Orchestre symphonique de Göteborg"
       },
       "maison": "invite",
       "ville": {
-        "fr": "Göteborg",
-        "en": "Gothenburg"
+        "en": "Gothenburg",
+        "fr": "Göteborg"
       },
       "pays": {
-        "fr": "Suède",
-        "en": "Sweden"
+        "en": "Sweden",
+        "fr": "Suède"
       },
       "salle": "Göteborgs Konserthus",
       "representations": [
@@ -921,14 +921,14 @@ window.AGENDA_DONNEES = {
         {
           "compositeur": "Gustav Mahler",
           "oeuvre": {
-            "fr": "Symphonie n° 5",
-            "en": "Symphony No. 5"
+            "en": "Symphony No. 5",
+            "fr": "Symphonie n° 5"
           }
         }
       ],
       "mentions": {
-        "fr": "Débuts avec l'orchestre",
-        "en": "Debut with the orchestra"
+        "en": "Debut with the orchestra",
+        "fr": "Débuts avec l'orchestre"
       },
       "tempsFort": false,
       "lien": "https://www.gso.se/en/programme/concerts/mahlers-5a/"
@@ -937,15 +937,15 @@ window.AGENDA_DONNEES = {
       "id": "2027-05-16-scala",
       "type": "concert",
       "titre": {
-        "fr": "Teatro alla Scala, festival Milano Musica",
-        "en": "Teatro alla Scala, Milano Musica Festival"
+        "en": "Teatro alla Scala, Milano Musica Festival",
+        "fr": "Teatro alla Scala, festival Milano Musica"
       },
       "ensemble": "Orchestra Sinfonica Nazionale della Rai",
       "maison": "invite",
       "ville": "Milan",
       "pays": {
-        "fr": "Italie",
-        "en": "Italy"
+        "en": "Italy",
+        "fr": "Italie"
       },
       "salle": "Teatro alla Scala",
       "representations": [
@@ -962,8 +962,8 @@ window.AGENDA_DONNEES = {
         {
           "nom": "Francesco Dillon",
           "role": {
-            "fr": "violoncelle",
-            "en": "cello"
+            "en": "cello",
+            "fr": "violoncelle"
           }
         }
       ],
@@ -976,22 +976,22 @@ window.AGENDA_DONNEES = {
           "compositeur": "Vito Žuraj",
           "oeuvre": "Unveiled",
           "mention": {
-            "fr": "création italienne",
-            "en": "Italian premiere"
+            "en": "Italian premiere",
+            "fr": "création italienne"
           }
         },
         {
           "compositeur": "György Kurtág",
           "oeuvre": "Die Stechardin",
           "mention": {
-            "fr": "création italienne",
-            "en": "Italian premiere"
+            "en": "Italian premiere",
+            "fr": "création italienne"
           }
         }
       ],
       "mentions": {
-        "fr": "Débuts avec l'orchestre. Hommage à Luciana Pestalozza et Claudio Abbado",
-        "en": "Debut with the orchestra. Homage to Luciana Pestalozza and Claudio Abbado"
+        "en": "Debut with the orchestra. Homage to Luciana Pestalozza and Claudio Abbado",
+        "fr": "Débuts avec l'orchestre. Hommage à Luciana Pestalozza et Claudio Abbado"
       },
       "tempsFort": true,
       "lien": "https://www.teatroallascala.org/en/season/2026-2027/concerts/visiting-italian-musical-institutions/homage-to-luciana-pestalozza-and-claudio-abbado-36-festival-milano-musica.html"

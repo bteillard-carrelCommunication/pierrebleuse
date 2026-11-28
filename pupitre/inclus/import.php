@@ -300,7 +300,7 @@ function noms_proches(string $a, string $b): bool
 /** L'ensemble de l'extrait est-il celui de cette représentation de l'agenda ? */
 function ensemble_correspond(string $ensemble, string $titre, array $rep): bool
 {
-    $noms = [$rep['ensemble_fr'], $rep['ensemble_en'] ?? '', $rep['titre_fr']];
+    $noms = array_merge([$rep['ensemble_en'], $rep['titre_en']], traductions_noms('concerts', $rep['concert_id'] ?? '', 'ensemble'), traductions_noms('concerts', $rep['concert_id'] ?? '', 'titre'));
     if (!empty($rep['ensemble_id']) && ($f = fiche_lire((int) $rep['ensemble_id']))) $noms = array_merge($noms, [$f['nom']], lignes($f['autres_noms']));
     foreach ($noms as $n) {
         if (noms_proches($ensemble, (string) $n) || ($titre !== '' && noms_proches($titre, (string) $n))) return true;
@@ -330,8 +330,7 @@ function import_controles(array $p, string $reference): array
 function import_comparer(int $import_id, array $donnees): array
 {
     $reference = $donnees['date_extrait'] ?: aujourdhui();
-    $agenda = bd_lignes("SELECT r.*, c.type, c.titre_fr, c.ensemble_fr, c.ensemble_en, c.ensemble_id, c.salle_fr AS c_salle_fr, c.salle_en AS c_salle_en,
-                                c.ville_fr AS c_ville_fr, c.ville_en AS c_ville_en, c.pays_fr AS c_pays_fr, c.pays_en AS c_pays_en
+    $agenda = bd_lignes("SELECT r.*, c.type, c.titre_en, c.ensemble_en, c.ensemble_id, c.salle_en AS c_salle_en, c.ville_en AS c_ville_en, c.pays_en AS c_pays_en
                          FROM representations r JOIN concerts c ON c.id = r.concert_id WHERE r.statut <> 'annulee' ORDER BY r.date, r.heure, r.id");
     $par_date = [];
     foreach ($agenda as $r) $par_date[$r['date']][] = $r;
@@ -369,7 +368,7 @@ function import_comparer(int $import_id, array $donnees): array
                 if (!$trouvee) { $annulations_sans_objet++; continue; }
                 $prises[$trouvee['id']] = true;
                 $lignes[] = ['engagement' => $i, 'nature' => 'annulee', 'concert_id' => (int) $trouvee['concert_id'], 'representation_id' => (int) $trouvee['id'],
-                    'propose' => ['titre' => $trouvee['titre_fr'], 'ensemble' => $trouvee['ensemble_fr'], 'date' => $r['date'], 'heure' => $trouvee['heure'], 'motif' => $r['motif']],
+                    'propose' => ['titre' => $trouvee['titre_en'], 'ensemble' => $trouvee['ensemble_en'], 'date' => $r['date'], 'heure' => $trouvee['heure'], 'motif' => $r['motif']],
                     'avant' => ['statut' => $trouvee['statut']], 'controles' => [], 'candidats' => null];
                 continue;
             }
@@ -383,10 +382,11 @@ function import_comparer(int $import_id, array $donnees): array
                 if ($r['heure'] && $r['heure'] !== $trouvee['heure']) { $avant['heure'] = $trouvee['heure']; $champs[] = 'heure'; }
                 foreach (['salle', 'ville', 'pays'] as $k) {
                     if ($r[$k] === '') continue;
-                    $connus = array_filter([$trouvee[$k . '_fr'], $trouvee[$k . '_en'], $trouvee['c_' . $k . '_fr'], $trouvee['c_' . $k . '_en']], 'strlen');
+                    // le lieu connu, sous son nom de rédaction et sous ses noms traduits (« Cologne », « Köln »)
+                    $connus = array_filter(array_merge([$trouvee[$k . '_en'], $trouvee['c_' . $k . '_en']], traductions_noms('representations', $trouvee['id'], $k), traductions_noms('concerts', $trouvee['concert_id'], $k)), 'strlen');
                     $pareil = false;
                     foreach ($connus as $n) if (noms_proches($r[$k], $n)) { $pareil = true; break; }
-                    if (!$pareil) { $avant[$k] = $trouvee[$k . '_fr'] !== '' ? $trouvee[$k . '_fr'] : $trouvee['c_' . $k . '_fr']; $champs[] = $k; }
+                    if (!$pareil) { $avant[$k] = $trouvee[$k . '_en'] !== '' ? $trouvee[$k . '_en'] : $trouvee['c_' . $k . '_en']; $champs[] = $k; }
                 }
                 if ($champs) {
                     $ligne['nature'] = 'modifiee';
@@ -399,18 +399,18 @@ function import_comparer(int $import_id, array $donnees): array
                 // programme : comparé une fois par concert, sur les compositeurs
                 if ($e['programme'] && !isset($programmes[$trouvee['concert_id']])) {
                     $programmes[$trouvee['concert_id']] = true;
-                    $en_place = bd_lignes('SELECT compositeur_fr, oeuvre_fr, mention_fr FROM programme WHERE concert_id = ? ORDER BY ordre, id', [$trouvee['concert_id']]);
+                    $en_place = bd_lignes('SELECT compositeur_en, oeuvre_en, mention_en FROM programme WHERE concert_id = ? ORDER BY ordre, id', [$trouvee['concert_id']]);
                     $noms = fn(array $liste, string $k) => array_values(array_unique(array_filter(array_map(function ($x) use ($k) {
                         $mots = explode(' ', normaliser((string) $x[$k]));
                         return end($mots);
                     }, $liste), 'strlen')));
-                    $a = $noms($en_place, 'compositeur_fr');
+                    $a = $noms($en_place, 'compositeur_en');
                     $b = $noms($e['programme'], 'compositeur');
                     sort($a);
                     sort($b);
                     if ($a !== $b) {
                         $lignes[] = ['engagement' => $i, 'nature' => 'programme', 'concert_id' => (int) $trouvee['concert_id'], 'representation_id' => null,
-                            'propose' => ['titre' => $trouvee['titre_fr'], 'date' => $r['date'], 'programme' => $e['programme']],
+                            'propose' => ['titre' => $trouvee['titre_en'], 'date' => $r['date'], 'programme' => $e['programme']],
                             'avant' => ['programme' => $en_place], 'controles' => [], 'candidats' => null];
                     }
                 }
@@ -442,7 +442,7 @@ function import_comparer(int $import_id, array $donnees): array
             foreach ($lignes as $l) if (in_array((int) $x['id'], $l['candidats'] ?? [], true)) { $citee = true; break; }
             if ($citee) continue;
             $lignes[] = ['engagement' => -1, 'nature' => 'disparue', 'concert_id' => (int) $x['concert_id'], 'representation_id' => (int) $x['id'],
-                'propose' => ['titre' => $x['titre_fr'], 'ensemble' => $x['ensemble_fr'], 'date' => $x['date'], 'heure' => $x['heure']],
+                'propose' => ['titre' => $x['titre_en'], 'ensemble' => $x['ensemble_en'], 'date' => $x['date'], 'heure' => $x['heure']],
                 'avant' => ['statut' => $x['statut']], 'controles' => [], 'candidats' => null];
         }
     }
@@ -550,21 +550,21 @@ function import_ligne_valider(int $id, string $choix = ''): ?string
                 if ($concert_id && ($c = bd_ligne('SELECT * FROM concerts WHERE id = ?', [$concert_id]))) {
                     $r = ['concert_id' => (int) $concert_id, 'date' => $p['date'], 'heure' => $p['heure'] ?: null, 'origine' => 'import'];
                     foreach (['salle', 'ville', 'pays'] as $k) {
-                        if ($p[$k] !== '' && !noms_proches($p[$k], $c[$k . '_fr'])) $r[$k . '_fr'] = $p[$k];
+                        if ($p[$k] !== '' && !noms_proches($p[$k], $c[$k . '_en'])) $r[$k . '_en'] = $p[$k];
                     }
                     $plus['representation_id'] = bd_inserer('representations', $r);
-                    journaliser('creation', 'concert', (int) $concert_id, $c['titre_fr'] . ', ' . date_fr($p['date']) . ' (' . $extrait . ')', null, ['date' => $p['date'], 'heure' => $p['heure'], 'statut' => 'connue']);
+                    journaliser('creation', 'concert', (int) $concert_id, $c['titre_en'] . ', ' . date_fr($p['date']) . ' (' . $extrait . ')', null, ['date' => $p['date'], 'heure' => $p['heure'], 'statut' => 'connue']);
                 } else {
                     [$concert_id, $erreurs] = concert_enregistrer(null, [
                         'type' => $p['type'],
-                        'titre_fr' => $p['titre'] !== '' ? $p['titre'] : ($p['ensemble'] !== '' ? $p['ensemble'] : 'Engagement du ' . date_fr($p['date'])),
-                        'ensemble_fr' => $p['ensemble'],
-                        'salle_fr' => $p['salle'], 'ville_fr' => $p['ville'], 'pays_fr' => $p['pays'],
-                        'mentions_fr' => $p['mentions'],
+                        'titre_en' => $p['titre'] !== '' ? $p['titre'] : ($p['ensemble'] !== '' ? $p['ensemble'] : 'Engagement du ' . date_fr($p['date'])),
+                        'ensemble_en' => $p['ensemble'],
+                        'salle_en' => $p['salle'], 'ville_en' => $p['ville'], 'pays_en' => $p['pays'],
+                        'mentions_en' => $p['mentions'],
                         'notes_internes' => 'Créé d\'après l\'' . $extrait . '.',
                         'reps' => [['date' => $p['date'], 'heure' => (string) $p['heure']]],
-                        'prog' => array_map(fn($x) => ['compositeur_fr' => $x['compositeur'], 'oeuvre_fr' => $x['oeuvre'], 'mention_fr' => $x['mention']], $p['programme'] ?? []),
-                        'avec' => array_map(fn($x) => ['nom' => $x['nom'], 'role_fr' => $x['role']], $p['solistes'] ?? []),
+                        'prog' => array_map(fn($x) => ['compositeur_en' => $x['compositeur'], 'oeuvre_en' => $x['oeuvre'], 'mention_en' => $x['mention']], $p['programme'] ?? []),
+                        'avec' => array_map(fn($x) => ['nom' => $x['nom'], 'role_en' => $x['role']], $p['solistes'] ?? []),
                     ]);
                     if ($erreurs) return implode(' ', $erreurs);
                     bd_modifier('representations', ['origine' => 'import'], ['concert_id' => $concert_id]);
@@ -574,18 +574,18 @@ function import_ligne_valider(int $id, string $choix = ''): ?string
                 break;
 
             case 'modifiee':
-                $r = bd_ligne('SELECT r.*, c.titre_fr FROM representations r JOIN concerts c ON c.id = r.concert_id WHERE r.id = ?', [$rep_id]);
+                $r = bd_ligne('SELECT r.*, c.titre_en FROM representations r JOIN concerts c ON c.id = r.concert_id WHERE r.id = ?', [$rep_id]);
                 if (!$r) return 'La représentation à modifier n\'existe plus.';
                 $maj = [];
                 foreach ($p['champs'] ?? [] as $k) {
                     if ($k === 'date') $maj['date'] = $p['date'];
                     elseif ($k === 'heure') { if ($p['heure']) $maj['heure'] = $p['heure']; }
-                    elseif ($p[$k] !== '') $maj[$k . '_fr'] = $p[$k];
+                    elseif ($p[$k] !== '') $maj[$k . '_en'] = $p[$k];
                 }
                 [$a, $b] = differences(array_intersect_key($r, $maj), $maj);
                 if ($b) {
                     bd_modifier('representations', $b, ['id' => $rep_id]);
-                    journaliser('modification', 'concert', (int) $r['concert_id'], $r['titre_fr'] . ', ' . date_fr($r['date']) . ' (' . $extrait . ')', $a, $b);
+                    journaliser('modification', 'concert', (int) $r['concert_id'], $r['titre_en'] . ', ' . date_fr($r['date']) . ' (' . $extrait . ')', $a, $b);
                 }
                 $plus = ['representation_id' => $rep_id, 'concert_id' => (int) $r['concert_id']];
                 break;
@@ -593,16 +593,11 @@ function import_ligne_valider(int $id, string $choix = ''): ?string
             case 'programme':
                 $c = bd_ligne('SELECT * FROM concerts WHERE id = ?', [$l['concert_id']]);
                 if (!$c) return 'Le concert n\'existe plus.';
-                $colonnes = 'compositeur_fr, compositeur_en, oeuvre_fr, oeuvre_en, mention_fr, mention_en';
-                $avant = bd_lignes("SELECT $colonnes FROM programme WHERE concert_id = ? ORDER BY ordre, id", [$c['id']]);
-                bd_supprimer('programme', ['concert_id' => $c['id']]);
-                $apres = [];
-                foreach ($p['programme'] as $i => $x) {
-                    $ligne = ['compositeur_fr' => $x['compositeur'], 'oeuvre_fr' => $x['oeuvre'], 'mention_fr' => $x['mention']];
-                    bd_inserer('programme', $ligne + ['concert_id' => $c['id'], 'ordre' => $i, 'compositeur_id' => fiche_trouver($x['compositeur'], ['compositeur'])]);
-                    $apres[] = $ligne;
-                }
-                journaliser('modification', 'concert', (int) $c['id'], $c['titre_fr'] . ', programme (' . $extrait . ')', ['programme' => $avant], ['programme' => $apres]);
+                $avant = bd_lignes('SELECT compositeur_en, oeuvre_en, mention_en FROM programme WHERE concert_id = ? ORDER BY ordre, id', [$c['id']]);
+                $apres = array_map(fn($x) => ['compositeur_en' => (string) $x['compositeur'], 'oeuvre_en' => (string) $x['oeuvre'], 'mention_en' => (string) $x['mention']], array_values($p['programme']));
+                // une œuvre qui reste au programme garde sa ligne, donc ses traductions
+                lignes_synchroniser('programme', 'concert_id', (int) $c['id'], array_map(fn($x) => $x + ['compositeur_id' => fiche_trouver($x['compositeur_en'], ['compositeur'])], $apres), ['compositeur', 'oeuvre', 'mention']);
+                journaliser('modification', 'concert', (int) $c['id'], $c['titre_en'] . ', programme (' . $extrait . ')', ['programme' => $avant], ['programme' => $apres]);
                 break;
 
             case 'disparue':

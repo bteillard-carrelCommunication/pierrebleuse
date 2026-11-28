@@ -10,7 +10,12 @@
  *   Points de vigilance      les alertes prioritaires, puis les informations ;
  *   Prochaines échéances     embargos, actions de communication datées ;
  *   Dernières publications   ce qui a été publié sur les réseaux ou envoyé par lettre ;
- *   Raccourcis.
+ *   Raccourcis               en haut, par défaut.
+ *
+ * Chaque bloc a sa clé. Le bouton « Mise en page » les rend déplaçables : on les fait glisser par leur
+ * poignée (ou l'on emploie leurs flèches) entre trois zones, « haut » (toute la largeur), « gauche » et
+ * « droite ». La disposition est enregistrée pour le compte (ajax/preferences.php, comptes.preferences) ;
+ * un bloc ajouté plus tard à Pupitre prend sa place d'origine chez tout le monde.
  *
  * Tout chiffre est lu dans la base : rien n'est estimé, rien n'est inventé. Un bloc sans donnée le dit.
  */
@@ -30,21 +35,29 @@ if (est_post()) {
         $c = bd_ligne('SELECT x.*, a.nom FROM annuaire_comptes x JOIN annuaire a ON a.id = x.fiche_id WHERE x.id = ?', [recu_entier('id') ?? 0]);
         if ($c) {
             bd_modifier('annuaire_comptes', ['etat' => recu('etat')], ['id' => $c['id']]);
+            if ($c['reseau'] === 'site' && recu('etat') === 'verifie' && trim((string) bd_valeur('SELECT site FROM annuaire WHERE id = ?', [$c['fiche_id']])) === '') {
+                objet_enregistrer('annuaire', (int) $c['fiche_id'], ['site' => $c['adresse']], 'fiche', $c['nom']);       // le site officiel proposé par l'IA devient celui de la fiche
+            }
             journaliser('validation', 'fiche', (int) $c['fiche_id'], $c['nom'] . ', compte ' . $c['reseau'], ['etat' => $c['etat']], ['etat' => recu('etat')]);
             message('ok', recu('etat') === 'verifie' ? 'Compte vérifié.' : 'Compte marqué « à revoir ».');
         }
-    } elseif ($action === 'note' && ($n = bd_ligne('SELECT n.*, c.titre_fr FROM notes_artiste n JOIN concerts c ON c.id = n.concert_id WHERE n.id = ?', [recu_entier('id') ?? 0]))) {
+    } elseif ($action === 'note' && ($n = bd_ligne('SELECT n.*, c.titre_en FROM notes_artiste n JOIN concerts c ON c.id = n.concert_id WHERE n.id = ?', [recu_entier('id') ?? 0]))) {
         bd_modifier('notes_artiste', ['statut' => 'traitee', 'traitee_par' => compte()['id'], 'traitee_le' => date('Y-m-d H:i:s')], ['id' => $n['id']]);
-        journaliser('note', 'concert', (int) $n['concert_id'], $n['titre_fr'] . ', note de l\'artiste traitée', ['statut' => 'a_traiter'], ['statut' => 'traitee']);
+        journaliser('note', 'concert', (int) $n['concert_id'], $n['titre_en'] . ', note de l\'artiste traitée', ['statut' => 'a_traiter'], ['statut' => 'traitee']);
         message('ok', 'Note marquée comme traitée.');
     } elseif ($action === 'lancer') {
         $ok = taches_lancer_en_fond();
         message($ok ? 'ok' : 'alerte', $ok ? 'Les tâches de fond sont lancées.' : 'Ce poste ne permet pas de lancer les tâches d\'ici : elles attendront le cron.');
+    } elseif ($action === 'bord_defaut') {
+        preference_ecrire('bord', null);
+        message('ok', 'Le tableau de bord a retrouvé sa disposition d\'origine.');
     } elseif ($action === 'recalculer') {
         message('ok', 'Alertes recalculées : ' . pluriel(alertes_recalculer(), 'ouverte', 'ouvertes') . '.');
     }
     rediriger(recu('retour') === 'notifications' ? url('notifications') : url('bord'));
 }
+
+travaux_reguliers();         // sur un poste sans cron : aperçus expirés, invitations de la veille
 
 // ---------- ce que l'écran montre ----------
 $fuseau_artiste = reglage('fuseau');
@@ -56,7 +69,7 @@ $prochain = $a_venir[0] ?? null;
 $imports = bd_lignes("SELECT i.*, (SELECT COUNT(*) FROM import_lignes l WHERE l.import_id = i.id AND l.decision = 'en_attente') AS attente
     FROM imports i WHERE i.statut IN ('a_valider', 'depose', 'lecture') ORDER BY i.id DESC");
 $comptes_proposes = bd_lignes("SELECT x.*, a.nom FROM annuaire_comptes x JOIN annuaire a ON a.id = x.fiche_id WHERE x.etat = 'propose' ORDER BY x.id DESC LIMIT 30");
-$notes = bd_lignes("SELECT n.*, c.titre_fr, k.nom FROM notes_artiste n JOIN concerts c ON c.id = n.concert_id JOIN comptes k ON k.id = n.compte_id WHERE n.statut = 'a_traiter' ORDER BY n.id DESC");
+$notes = bd_lignes("SELECT n.*, c.titre_en, k.nom FROM notes_artiste n JOIN concerts c ON c.id = n.concert_id JOIN comptes k ON k.id = n.compte_id WHERE n.statut = 'a_traiter' ORDER BY n.id DESC");
 $a_valider = count($imports) + count($comptes_proposes) + count($notes);
 
 // alertes, par niveau
@@ -76,9 +89,9 @@ $actualisations = bd_lignes("SELECT * FROM journal WHERE objet_type NOT IN ('sit
 // échéances des trente prochains jours (et celles qui sont passées sans avoir été tenues)
 $horizon = ajouter_jours($jour, 30);
 $echeances = [];
-foreach (bd_lignes("SELECT r.id, r.date, r.embargo_le, r.concert_id, c.titre_fr FROM representations r JOIN concerts c ON c.id = r.concert_id
+foreach (bd_lignes("SELECT r.id, r.date, r.embargo_le, r.concert_id, c.titre_en FROM representations r JOIN concerts c ON c.id = r.concert_id
                     WHERE r.statut = 'embargo' AND r.embargo_le IS NOT NULL AND r.embargo_le <= ? ORDER BY r.embargo_le", [$horizon]) as $r) {
-    $echeances[] = ['date' => $r['embargo_le'], 'titre' => 'Fin d\'embargo · ' . $r['titre_fr'], 'detail' => 'concert du ' . date_fr($r['date']) . ($r['embargo_le'] <= $jour ? ' : l\'annonce peut être faite' : ''),
+    $echeances[] = ['date' => $r['embargo_le'], 'titre' => 'Fin d\'embargo · ' . $r['titre_en'], 'detail' => 'concert du ' . date_fr($r['date']) . ($r['embargo_le'] <= $jour ? ' : l\'annonce peut être faite' : ''),
         'lien' => url('concert', ['id' => $r['concert_id']]), 'retard' => $r['embargo_le'] <= $jour, 'icone' => 'embargo'];
 }
 foreach (communications_lister(['au' => $horizon]) as $k) {
@@ -100,8 +113,18 @@ $libelles_action = ['creation' => 'Création', 'modification' => 'Modification',
 $boutons_alerte = function (array $a): string {
     $f = fn(string $quoi, string $libelle) => '<form method="post">' . champ_csrf() . '<input type="hidden" name="action" value="alerte"><input type="hidden" name="id" value="' . (int) $a['id'] . '"><input type="hidden" name="quoi" value="' . $quoi . '">'
         . '<button type="submit" class="bouton bouton--petit">' . $libelle . '</button></form>';
-    return '<a class="bouton bouton--petit bouton--plein" href="' . e(chemin_pupitre() . '/index.php?' . $a['lien']) . '">Traiter</a>' . $f('reporter', 'Reporter d\'une semaine') . $f('ignorer', 'Ignorer');
+    return '<a class="bouton bouton--petit bouton--doux" href="' . e(chemin_pupitre() . '/index.php?' . $a['lien']) . '">Traiter</a>' . $f('reporter', 'Reporter d\'une semaine') . $f('ignorer', 'Ignorer');
 };
+
+// ---------- mise en page : les blocs, leurs zones, la disposition du compte ----------
+const BORD_DEFAUT = ['haut' => ['raccourcis', 'synthese'], 'gauche' => ['concerts', 'actions', 'site'], 'droite' => ['vigilance', 'echeances', 'publications']];
+$blocs = [];
+/* Ce qui permet de déplacer un bloc : deux flèches et un changement de zone pour le clavier, une poignée pour la souris et le doigt. */
+$outils = fn(string $nom) => '<span class="bord__outils">'
+    . '<button type="button" class="outil" data-glisser-avant title="Monter" aria-label="Monter le bloc « ' . e($nom) . ' »">' . icone('monter') . '</button>'
+    . '<button type="button" class="outil" data-glisser-apres title="Descendre" aria-label="Descendre le bloc « ' . e($nom) . ' »">' . icone('descendre') . '</button>'
+    . '<button type="button" class="outil" data-bord-zone title="Changer de zone : en haut, à gauche, à droite" aria-label="Changer de zone le bloc « ' . e($nom) . ' »">' . icone('deplacer') . '</button>'
+    . '<span class="poignee" data-poignee title="Faire glisser ce bloc">' . icone('poignee') . '</span></span>';
 ?>
 <div class="accueil">
   <div>
@@ -111,14 +134,23 @@ $boutons_alerte = function (array $a): string {
   <div class="titre__actions">
     <?php if (peut('agenda')): ?><a class="bouton" href="<?= e(url('concert', ['id' => 'nouveau'])) ?>"><?= icone('plus') ?>Nouveau concert</a><?php endif; ?>
     <?php if (peut('communication')): ?><a class="bouton bouton--doux" href="<?= e(url('communication', ['id' => 'nouvelle'])) ?>"><?= icone('communication') ?>Prévoir une communication</a><?php endif; ?>
+    <button type="button" class="bouton" data-bord-edition aria-pressed="false" title="Déplacer les blocs du tableau de bord"><?= icone('deplacer') ?><span data-bord-libelle>Mise en page</span></button>
   </div>
 </div>
+<div class="encart encart--bord" data-bord-aide hidden>
+  <?= icone('deplacer') ?>
+  <span><strong>Mise en page.</strong> Faites glisser un bloc par sa poignée, ou employez ses flèches, pour le déplacer : en haut sur toute la largeur, à gauche ou à droite. La disposition vaut pour votre compte. <span data-bord-etat role="status" aria-live="polite"></span></span>
+  <form method="post"><?= champ_csrf() ?><button type="submit" name="action" value="bord_defaut" class="bouton bouton--petit bouton--sombre">Rétablir la disposition d'origine</button></form>
+</div>
 
+<?php ob_start(); ?>
+<section class="bloc-nu" data-bloc="synthese" data-glisser-element aria-label="Synthèse">
+  <div class="bloc__tete bloc__tete--edition"><h2 class="libelle">Synthèse</h2><?= $outils('Synthèse') ?></div>
 <div class="tuiles">
   <?= tuile('alerte', 'Points de vigilance', count($par_niveau['prioritaire']) ? 'à traiter sans attendre' : 'aucune alerte prioritaire', ['lien' => '#b-vigilance', 'chiffre' => count($par_niveau['prioritaire']), 'classe' => 'tuile--vigilance']) ?>
   <?= tuile('actions', 'Actions à réaliser', $n_actions ? ($a_valider ? pluriel($a_valider, 'validation en attente', 'validations en attente') : 'à traiter') : 'rien n\'attend', ['lien' => '#b-actions', 'chiffre' => $n_actions, 'classe' => 'tuile--actions']) ?>
   <?php if ($prochain): ?>
-    <?= tuile('concerts', 'Prochain concert', ucfirst($dans($prochain['date'])) . ' · ' . $prochain['titre_fr'], ['lien' => url('concert', ['id' => $prochain['concert_id']]), 'classe' => 'tuile--calme']) ?>
+    <?= tuile('concerts', 'Prochain concert', ucfirst($dans($prochain['date'])) . ' · ' . $prochain['titre_en'], ['lien' => url('concert', ['id' => $prochain['concert_id']]), 'classe' => 'tuile--calme']) ?>
   <?php else: ?>
     <?= tuile('concerts', 'Prochain concert', 'aucune date à venir', ['lien' => url('agenda'), 'classe' => 'tuile--calme']) ?>
   <?php endif; ?>
@@ -130,11 +162,13 @@ $boutons_alerte = function (array $a): string {
     <?= tuile('ok', 'Site à jour', $derniere ? 'publié ' . il_y_a($derniere['cree_le']) : 'aucune publication encore', ['lien' => url('site'), 'classe' => 'tuile--plein']) ?>
   <?php endif; ?>
 </div>
+</section>
+<?php $blocs['synthese'] = ob_get_clean(); ?>
 
-<div class="bord">
-  <div class="bord__colonne">
-    <section class="carte" aria-labelledby="b-concerts">
-      <div class="bloc__tete"><h2 id="b-concerts">Prochains concerts</h2><span class="bloc__compte"><?= count($a_venir) ?></span><a class="bloc__lien" href="<?= e(url('agenda')) ?>">Tous les concerts</a></div>
+<?php /* les blocs sont d'abord composés un à un, puis posés dans leurs zones */ ?>
+    <?php ob_start(); ?>
+    <section class="carte" data-bloc="concerts" data-glisser-element aria-labelledby="b-concerts">
+      <div class="bloc__tete"><h2 id="b-concerts">Prochains concerts</h2><span class="bloc__compte"><?= count($a_venir) ?></span><a class="bloc__lien" href="<?= e(url('agenda')) ?>">Tous les concerts</a><?= $outils('Prochains concerts') ?></div>
       <?php if (!$prochains): ?>
         <?= etat_vide('concerts', 'Aucune date à venir', 'Les prochaines dates apparaîtront ici dès qu\'elles seront dans l\'agenda.', peut('agenda') ? '<a class="bouton bouton--petit" href="' . e(url('concert', ['id' => 'nouveau'])) . '">Nouveau concert</a>' : '') ?>
       <?php else: ?>
@@ -143,7 +177,7 @@ $boutons_alerte = function (array $a): string {
           <li>
             <?= pastille_date($r['date'], $r['date'] === $jour ? 'pastille-date--jour' : '') ?>
             <div class="liste-dates__corps">
-              <a class="liste-dates__titre" href="<?= e(url('concert', ['id' => $r['concert_id']])) ?>"><?= e($r['titre_fr']) ?></a>
+              <a class="liste-dates__titre" href="<?= e(url('concert', ['id' => $r['concert_id']])) ?>"><?= e($r['titre_en']) ?></a>
               <span class="liste-dates__detail"><?= e(implode(', ', array_filter([$r['lieu_salle'], $r['lieu_ville'], $r['lieu_pays']], 'strlen'))) ?: 'lieu à renseigner' ?></span>
               <span class="liste-dates__detail">
                 <?php if ($r['type'] === 'disque'): ?>Parution
@@ -157,9 +191,11 @@ $boutons_alerte = function (array $a): string {
       </ul>
       <?php endif; ?>
     </section>
+    <?php $blocs['concerts'] = ob_get_clean(); ?>
 
-    <section class="carte" aria-labelledby="b-actions">
-      <div class="bloc__tete"><h2 id="b-actions">Actions à réaliser</h2><span class="bloc__compte"><?= $n_actions ?></span><a class="bloc__lien" href="<?= e(url('notifications')) ?>">Centre de notifications</a></div>
+    <?php ob_start(); ?>
+    <section class="carte" data-bloc="actions" data-glisser-element aria-labelledby="b-actions">
+      <div class="bloc__tete"><h2 id="b-actions">Actions à réaliser</h2><span class="bloc__compte"><?= $n_actions ?></span><a class="bloc__lien" href="<?= e(url('notifications')) ?>">Centre de notifications</a><?= $outils('Actions à réaliser') ?></div>
       <?php if (!$n_actions): ?><?= etat_vide('ok', 'Rien n\'attend', 'Aucune validation en attente, aucune action à traiter.') ?><?php endif; ?>
       <div id="b-valider">
       <?php if ($a_valider): ?>
@@ -168,23 +204,24 @@ $boutons_alerte = function (array $a): string {
         <?php foreach ($imports as $i): ?>
           <li><span class="item__titre">Extrait de l'agence<?= $i['date_extrait'] ? ' du ' . e(date_fr($i['date_extrait'])) : '' ?></span>
             <span><?= $i['statut'] === 'a_valider' ? e(pluriel((int) $i['attente'], 'changement en attente', 'changements en attente')) : 'lecture en cours' ?></span>
-            <div class="item__actions"><a class="bouton bouton--petit bouton--plein" href="<?= e(url('import', ['id' => $i['id']])) ?>"><?= $i['statut'] === 'a_valider' ? 'Valider, corriger, refuser' : 'Suivre' ?></a></div></li>
+            <div class="item__actions"><a class="bouton bouton--petit bouton--doux" href="<?= e(url('import', ['id' => $i['id']])) ?>"><?= $i['statut'] === 'a_valider' ? 'Valider, corriger, refuser' : 'Suivre' ?></a></div></li>
         <?php endforeach; ?>
         <?php foreach ($comptes_proposes as $c): ?>
           <li><span class="item__titre"><?= e($c['nom']) ?> · <?= e(RESEAUX_CONNUS[$c['reseau']] ?? $c['reseau']) ?></span>
-            <span>Compte proposé : <?= e($c['adresse']) ?></span>
+            <span><?= $c['reseau'] === 'site' ? 'Site proposé' : 'Compte proposé' ?> : <a href="<?= e($c['adresse']) ?>" target="_blank" rel="noopener"><?= e($c['adresse']) ?></a></span>
+            <?php if (($c['source'] ?? '') !== ''): ?><span class="discret"><?= ($c['origine'] ?? '') === 'ia' ? 'Trouvé par l\'IA sur ' : 'Source : ' ?><a href="<?= e($c['source']) ?>" target="_blank" rel="noopener"><?= e(couper(preg_replace('#^https?://#', '', $c['source']), 60)) ?></a></span><?php endif; ?>
             <div class="item__actions">
-              <form method="post"><?= champ_csrf() ?><input type="hidden" name="action" value="compte_social"><input type="hidden" name="id" value="<?= (int) $c['id'] ?>"><input type="hidden" name="etat" value="verifie"><button type="submit" class="bouton bouton--petit bouton--plein">Valider</button></form>
+              <form method="post"><?= champ_csrf() ?><input type="hidden" name="action" value="compte_social"><input type="hidden" name="id" value="<?= (int) $c['id'] ?>"><input type="hidden" name="etat" value="verifie"><button type="submit" class="bouton bouton--petit bouton--doux">Valider</button></form>
               <a class="bouton bouton--petit" href="<?= e(url('fiche', ['id' => $c['fiche_id']])) ?>">Corriger</a>
               <form method="post"><?= champ_csrf() ?><input type="hidden" name="action" value="compte_social"><input type="hidden" name="id" value="<?= (int) $c['id'] ?>"><input type="hidden" name="etat" value="a_revoir"><button type="submit" class="bouton bouton--petit">Refuser</button></form>
             </div></li>
         <?php endforeach; ?>
         <?php foreach ($notes as $n): ?>
-          <li><span class="item__titre">Note de <?= e($n['nom']) ?> · <?= e($n['titre_fr']) ?></span>
+          <li><span class="item__titre">Note de <?= e($n['nom']) ?> · <?= e($n['titre_en']) ?></span>
             <span><?= nl2br(e($n['texte'])) ?></span><span class="discret"><?= e(horodatage_fr($n['cree_le'])) ?></span>
             <div class="item__actions">
               <a class="bouton bouton--petit" href="<?= e(url('concert', ['id' => $n['concert_id']])) ?>">Ouvrir la fiche</a>
-              <form method="post"><?= champ_csrf() ?><input type="hidden" name="action" value="note"><input type="hidden" name="id" value="<?= (int) $n['id'] ?>"><button type="submit" class="bouton bouton--petit bouton--plein">Traitée</button></form>
+              <form method="post"><?= champ_csrf() ?><input type="hidden" name="action" value="note"><input type="hidden" name="id" value="<?= (int) $n['id'] ?>"><button type="submit" class="bouton bouton--petit bouton--doux">Traitée</button></form>
             </div></li>
         <?php endforeach; ?>
         </ul>
@@ -201,9 +238,11 @@ $boutons_alerte = function (array $a): string {
         </ul>
       <?php endif; ?>
     </section>
+    <?php $blocs['actions'] = ob_get_clean(); ?>
 
-    <section class="carte" aria-labelledby="b-site">
-      <div class="bloc__tete"><h2 id="b-site">Dernières actualisations du site</h2><a class="bloc__lien" href="<?= e(url('site')) ?>">Publication</a></div>
+    <?php ob_start(); ?>
+    <section class="carte" data-bloc="site" data-glisser-element aria-labelledby="b-site">
+      <div class="bloc__tete"><h2 id="b-site">Dernières actualisations du site</h2><a class="bloc__lien" href="<?= e(url('site')) ?>">Publication</a><?= $outils('Dernières actualisations du site') ?></div>
       <?php if ($ecarts): ?><p class="encart"><?= icone('publier') ?><span><strong><?= e(pluriel($ecarts, 'modification attend', 'modifications attendent')) ?> d'être publiée<?= $ecarts > 1 ? 's' : '' ?>.</strong> Le site ne change pas tant que vous n'avez pas publié.</span></p><?php endif; ?>
       <?php if (!$publications_site && !$actualisations): ?>
         <?= etat_vide('site', 'Rien encore', 'Les publications du site et les contenus modifiés apparaîtront ici.') ?>
@@ -228,11 +267,10 @@ $boutons_alerte = function (array $a): string {
         <?php if (peut('journal')): ?><p class="actions"><a class="bouton bouton--petit" href="<?= e(url('journal')) ?>">Tout le journal</a></p><?php endif; ?>
       <?php endif; ?>
     </section>
-  </div>
-
-  <div class="bord__colonne">
-    <section class="carte" aria-labelledby="b-vigilance">
-      <div class="bloc__tete"><h2 id="b-vigilance">Points de vigilance</h2><span class="bloc__compte"><?= count($par_niveau['prioritaire']) ?></span></div>
+    <?php $blocs['site'] = ob_get_clean(); ?>
+    <?php ob_start(); ?>
+    <section class="carte" data-bloc="vigilance" data-glisser-element aria-labelledby="b-vigilance">
+      <div class="bloc__tete"><h2 id="b-vigilance">Points de vigilance</h2><span class="bloc__compte"><?= count($par_niveau['prioritaire']) ?></span><?= $outils('Points de vigilance') ?></div>
       <?php if (!$par_niveau['prioritaire']): ?><?= etat_vide('bouclier', 'Aucune alerte prioritaire', 'Pas d\'échéance dépassée, rien qui cloche.') ?><?php else: ?>
       <div>
         <?php foreach ($par_niveau['prioritaire'] as $a): ?>
@@ -259,9 +297,11 @@ $boutons_alerte = function (array $a): string {
         </details>
       <?php endif; ?>
     </section>
+    <?php $blocs['vigilance'] = ob_get_clean(); ?>
 
-    <section class="carte" aria-labelledby="b-echeances">
-      <div class="bloc__tete"><h2 id="b-echeances">Prochaines échéances</h2><span class="bloc__compte"><?= count($echeances) ?></span><?php if (peut('communication')): ?><a class="bloc__lien" href="<?= e(url('editorial')) ?>">Calendrier éditorial</a><?php endif; ?></div>
+    <?php ob_start(); ?>
+    <section class="carte" data-bloc="echeances" data-glisser-element aria-labelledby="b-echeances">
+      <div class="bloc__tete"><h2 id="b-echeances">Prochaines échéances</h2><span class="bloc__compte"><?= count($echeances) ?></span><?php if (peut('communication')): ?><a class="bloc__lien" href="<?= e(url('editorial')) ?>">Calendrier éditorial</a><?php endif; ?><?= $outils('Prochaines échéances') ?></div>
       <?php if (!$echeances): ?>
         <?= etat_vide('horloge', 'Aucune échéance dans les trente jours', 'Fins d\'embargo et actions de communication datées apparaîtront ici.') ?>
       <?php else: ?>
@@ -276,10 +316,12 @@ $boutons_alerte = function (array $a): string {
       </ul>
       <?php endif; ?>
     </section>
+    <?php $blocs['echeances'] = ob_get_clean(); ?>
 
     <?php if (peut('communication')): ?>
-    <section class="carte" aria-labelledby="b-publications">
-      <div class="bloc__tete"><h2 id="b-publications">Dernières publications</h2><a class="bloc__lien" href="<?= e(url('social')) ?>">Social Media</a></div>
+    <?php ob_start(); ?>
+    <section class="carte" data-bloc="publications" data-glisser-element aria-labelledby="b-publications">
+      <div class="bloc__tete"><h2 id="b-publications">Dernières publications</h2><a class="bloc__lien" href="<?= e(url('social')) ?>">Social Media</a><?= $outils('Dernières publications') ?></div>
       <?php if (!$publiees): ?>
         <?= etat_vide('social', 'Aucune publication enregistrée', 'Les publications des réseaux et les lettres envoyées apparaîtront ici une fois notées dans Pupitre.', '<a class="bouton bouton--petit" href="' . e(url('communication', ['id' => 'nouvelle'])) . '">Enregistrer une publication</a>') ?>
       <?php else: ?>
@@ -292,10 +334,12 @@ $boutons_alerte = function (array $a): string {
       </ul>
       <?php endif; ?>
     </section>
+    <?php $blocs['publications'] = ob_get_clean(); ?>
     <?php endif; ?>
 
-    <section class="carte" aria-labelledby="b-raccourcis">
-      <div class="bloc__tete"><h2 id="b-raccourcis">Raccourcis</h2></div>
+    <?php ob_start(); ?>
+    <section class="carte" data-bloc="raccourcis" data-glisser-element aria-labelledby="b-raccourcis">
+      <div class="bloc__tete"><h2 id="b-raccourcis">Raccourcis</h2><?= $outils('Raccourcis') ?></div>
       <div class="raccourcis">
         <?php if (peut('agenda')): ?><a class="raccourci" href="<?= e(url('concert', ['id' => 'nouveau'])) ?>"><?= icone('concerts') ?>Nouveau concert</a><?php endif; ?>
         <?php if (peut('import')): ?><a class="raccourci" href="<?= e(url('imports')) ?>"><?= icone('import') ?>Importer l'agenda de l'agence</a><?php endif; ?>
@@ -307,7 +351,25 @@ $boutons_alerte = function (array $a): string {
         <a class="raccourci" href="<?= e(url('artiste')) ?>"><?= icone('artiste') ?>Vue de l'artiste</a>
       </div>
     </section>
-  </div>
+    <?php $blocs['raccourcis'] = ob_get_clean(); ?>
+<?php
+// la disposition du compte, ramenée à ce qui existe : un bloc inconnu est écarté, un bloc absent reprend sa zone d'origine
+$voulue = preference('bord');
+$disposition = ['haut' => [], 'gauche' => [], 'droite' => []];
+$places = [];
+foreach (array_keys($disposition) as $zone) {
+    foreach (is_array($voulue[$zone] ?? null) ? $voulue[$zone] : [] as $cle) {
+        if (is_string($cle) && isset($blocs[$cle]) && !isset($places[$cle])) { $disposition[$zone][] = $cle; $places[$cle] = true; }
+    }
+}
+foreach (BORD_DEFAUT as $zone => $cles) {
+    foreach ($cles as $cle) if (isset($blocs[$cle]) && !isset($places[$cle])) { $disposition[$zone][] = $cle; $places[$cle] = true; }
+}
+?>
+<div class="bord" data-bord>
+<?php foreach (['haut' => 'bord__colonne bord__large', 'gauche' => 'bord__colonne', 'droite' => 'bord__colonne'] as $zone => $classe): ?>
+  <div class="<?= $classe ?>" data-zone="<?= $zone ?>" data-glisser="bord" data-glisser-fige><?php foreach ($disposition[$zone] as $cle) echo $blocs[$cle]; ?></div>
+<?php endforeach; ?>
 </div>
 
 <form method="post" class="actions"><?= champ_csrf() ?>

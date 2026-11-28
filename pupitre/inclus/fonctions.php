@@ -168,6 +168,14 @@ function couper(?string $s, int $n = 80): string
     return mb_strlen($s) > $n ? mb_substr($s, 0, $n - 1) . '…' : $s;
 }
 
+/** Une adresse e-mail telle qu'on l'écrit dans le journal (qui voyage dans git avec la base) : « c…@domaine ». */
+function adresse_masquee(string $adresse): string
+{
+    $adresse = trim($adresse);
+    $i = strrpos($adresse, '@');
+    return $i ? mb_substr($adresse, 0, 1) . '…' . substr($adresse, $i) : $adresse;
+}
+
 function adresse_valide(string $u): bool
 {
     return $u === '' || (bool) preg_match('#^https?://[^\s<>"]+$#i', $u);

@@ -102,7 +102,8 @@ function ia_traduire(array $elements, string $langue, ?int $tache_id = null): ar
     if (!$elements) return [];
     $nom = langues_toutes()[$langue]['nom_fr'] ?? $langue;
     $schema = schema_objet(['traductions' => ['type' => 'array', 'items' => schema_objet(['cle' => ['type' => 'string'], 'texte' => ['type' => 'string'], 'remarque' => ['type' => 'string']])]]);
-    $demande = "Langue cible : " . $nom . " (code " . $langue . ").\n\nÉléments à traduire, en JSON (cle, contexte, texte) :\n"
+    $source = langue_reference();
+    $demande = "Langue source : " . (langues_toutes()[$source]['nom_fr'] ?? $source) . " (code " . $source . ").\nLangue cible : " . $nom . " (code " . $langue . ").\n\nÉléments à traduire, en JSON (cle, contexte, texte) :\n"
         . json_encode(array_map(fn($e) => ['cle' => (string) $e[0], 'contexte' => $e[2], 'texte' => $e[1]], $elements), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
     $cles = array_map(fn($e) => (string) $e[0], $elements);
     [$d, $erreur] = ia_structure('proposition de traduction (' . $langue . ')', ia_consignes('traduction'), [ia_bloc_texte($demande)], $schema, function (array $d) use ($cles) {
@@ -408,10 +409,10 @@ function article_lire_source(string $url, string $texte_colle = '', ?int $tache_
     $texte = $texte_colle !== '' ? mb_substr($texte_colle, 0, 60000) : $meta['texte'];
     if (mb_strlen($texte) < 200 && $meta['description'] === '') {
         return ['ok' => false, 'erreur' => 'Le texte de l\'article n\'a pas pu être récupéré (page vide, protégée ou écrite par un script). Collez son texte, ou saisissez sa fiche à la main.',
-            'propose' => array_filter(['lien' => $url, 'url_canonique' => $meta['canonique'], 'titre_fr' => $meta['titre'], 'media_neuf' => $meta['media'], 'auteur' => $meta['auteur'], 'date_article' => $meta['date'], 'langue' => $meta['langue'], 'origine' => 'url'], 'strlen'), 'notes' => $notes];
+            'propose' => array_filter(['lien' => $url, 'url_canonique' => $meta['canonique'], 'titre_en' => $meta['titre'], 'media_neuf' => $meta['media'], 'auteur' => $meta['auteur'], 'date_article' => $meta['date'], 'langue' => $meta['langue'], 'origine' => 'url'], 'strlen'), 'notes' => $notes];
     }
     // ce que le programme sait déjà faire seul est fait ; l'IA structure le reste
-    $propose = ['lien' => $url, 'url_canonique' => $meta['canonique'] !== $url ? $meta['canonique'] : '', 'titre_fr' => $meta['titre'], 'auteur' => $meta['auteur'], 'date_article' => $meta['date'],
+    $propose = ['lien' => $url, 'url_canonique' => $meta['canonique'] !== $url ? $meta['canonique'] : '', 'titre_en' => $meta['titre'], 'auteur' => $meta['auteur'], 'date_article' => $meta['date'],
         'langue' => $meta['langue'], 'origine' => $texte_colle !== '' ? 'texte' : 'url', 'texte_source' => $texte, 'citations' => [], 'concerts' => [], 'disques' => [], 'traductions' => []];
     $media_id = $meta['media'] !== '' ? fiche_trouver($meta['media'], ['media']) : null;
     if (!$media_id && $url !== '') {
@@ -429,8 +430,8 @@ function article_lire_source(string $url, string $texte_colle = '', ?int $tache_
     }
     $avancer(35, 'Analyse par l\'IA');
     $concerts = [];
-    foreach (bd_lignes("SELECT c.id, c.titre_fr, c.ensemble_fr, c.ville_fr, c.salle_fr, (SELECT MIN(r.date) FROM representations r WHERE r.concert_id = c.id) AS du, (SELECT MAX(r.date) FROM representations r WHERE r.concert_id = c.id) AS au FROM concerts c WHERE c.type <> 'disque' ORDER BY du") as $c) {
-        $concerts[] = ['id' => (int) $c['id'], 'titre' => $c['titre_fr'], 'ensemble' => $c['ensemble_fr'], 'ville' => $c['ville_fr'], 'salle' => $c['salle_fr'], 'du' => $c['du'], 'au' => $c['au']];
+    foreach (bd_lignes("SELECT c.id, c.titre_en, c.ensemble_en, c.ville_en, c.salle_en, (SELECT MIN(r.date) FROM representations r WHERE r.concert_id = c.id) AS du, (SELECT MAX(r.date) FROM representations r WHERE r.concert_id = c.id) AS au FROM concerts c WHERE c.type <> 'disque' ORDER BY du") as $c) {
+        $concerts[] = ['id' => (int) $c['id'], 'titre' => $c['titre_en'], 'ensemble' => $c['ensemble_en'], 'ville' => $c['ville_en'], 'salle' => $c['salle_en'], 'du' => $c['du'], 'au' => $c['au']];
     }
     $albums = array_map(fn($d) => ['id' => (int) $d['id'], 'titre' => preg_replace('/\*/', '', $d['titre']), 'annee' => $d['annee']], bd_lignes('SELECT id, titre, annee FROM disques ORDER BY ordre'));
     $langues_site = [];
@@ -456,7 +457,7 @@ function article_lire_source(string $url, string $texte_colle = '', ?int $tache_
         return ['ok' => true, 'erreur' => '', 'propose' => $propose, 'notes' => $notes];
     }
     // les métadonnées de la page l'emportent ; l'IA comble ce qui manque
-    foreach (['titre_fr' => 'titre', 'auteur' => 'auteur', 'date_article' => 'date', 'langue' => 'langue'] as $champ => $k) {
+    foreach (['titre_en' => 'titre', 'auteur' => 'auteur', 'date_article' => 'date', 'langue' => 'langue'] as $champ => $k) {
         if (($propose[$champ] ?? '') === '' && trim((string) ($d[$k] ?? '')) !== '') $propose[$champ] = trim((string) $d[$k]);
     }
     if (empty($propose['media_id']) && ($propose['media_neuf'] ?? '') === '' && trim((string) ($d['media'] ?? '')) !== '') {

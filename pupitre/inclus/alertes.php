@@ -25,6 +25,10 @@ const TYPES_ALERTE = [
     'connue' => 'Date passée restée « connue »',
     'doublon' => 'Doublon probable',
     'orchestre' => 'Orchestre non référencé',
+    'apercu' => 'Aperçu du site',
+    'depot' => 'Images déposées',
+    'veille' => 'Veille',
+    'courrier' => 'Courrier',
     'site' => 'Écart entre Pupitre et le site',
     'echeance' => 'Échéance à venir',
     'extrait' => 'Extrait de l\'agence',
@@ -59,7 +63,7 @@ function alertes_calculer(): array
     // représentations à venir : lieu, heure, lien source, embargo ; passées restées « connues »
     $par_concert = [];
     foreach (agenda_representations(['sauf_annulees' => true]) as $r) {
-        $titre = '« ' . $r['titre_fr'] . ' », ' . date_fr($r['date']);
+        $titre = '« ' . $r['titre_en'] . ' », ' . date_fr($r['date']);
         $lien = 'page=concert&id=' . $r['concert_id'];
         if ($r['date'] >= $jour) {
             if ($r['type'] !== 'disque') {
@@ -89,14 +93,14 @@ function alertes_calculer(): array
         if (!$manques) continue;
         $prochaine = '';
         foreach ($c['representations'] as $r) if ($r['statut'] !== 'annulee' && $r['date'] >= $jour) { $prochaine = $r['date']; break; }
-        $ajouter('proche', 'c' . $id, '« ' . $c['titre_fr'] . ' », ' . date_fr($prochaine) . ' : il manque ' . implode(', ', $manques) . '.', 'page=concert&id=' . $id, 'prioritaire');
+        $ajouter('proche', 'c' . $id, '« ' . $c['titre_en'] . ' », ' . date_fr($prochaine) . ' : il manque ' . implode(', ', $manques) . '.', 'page=concert&id=' . $id, 'prioritaire');
     }
 
     // doublons probables : agenda, annuaire
     foreach (agenda_doublons() as [$x, $y]) {
         $ids = [(int) $x['id'], (int) $y['id']];
         sort($ids);
-        $ajouter('doublon', 'r' . implode('-', $ids), 'Le ' . date_fr($x['date']) . ' : « ' . $x['titre_fr'] . ' » et « ' . $y['titre_fr'] . ' » se ressemblent.', 'page=concert&id=' . $x['concert_id']);
+        $ajouter('doublon', 'r' . implode('-', $ids), 'Le ' . date_fr($x['date']) . ' : « ' . $x['titre_en'] . ' » et « ' . $y['titre_en'] . ' » se ressemblent.', 'page=concert&id=' . $x['concert_id']);
     }
     foreach (fiches_doublons() as [$x, $y, $raison]) {
         $ajouter('doublon', 'f' . $x['id'] . '-' . $y['id'], 'Annuaire : « ' . $x['nom'] . ' » et « ' . $y['nom'] . ' » (' . $raison . ').', 'page=fiche&id=' . $x['id']);
@@ -104,7 +108,7 @@ function alertes_calculer(): array
 
     // orchestre d'un concert absent de la collection : la notification du cahier des charges
     foreach (concerts_orchestre_inconnu() as [$c, $r]) {
-        $ajouter('orchestre', 'c' . $c['id'], '« ' . $c['ensemble_fr'] . ' » (concert « ' . $c['titre_fr'] . ' ») : cet orchestre n\'est pas encore référencé. Souhaitez-vous l\'ajouter à la carte mondiale ?', 'page=concert&id=' . $c['id'] . '#orchestre');
+        $ajouter('orchestre', 'c' . $c['id'], '« ' . $c['ensemble_en'] . ' » (concert « ' . $c['titre_en'] . ' ») : cet orchestre n\'est pas encore référencé. Souhaitez-vous l\'ajouter à la carte mondiale ?', 'page=concert&id=' . $c['id'] . '#orchestre');
     }
 
     // écart entre Pupitre et le site
@@ -116,9 +120,9 @@ function alertes_calculer(): array
     }
 
     // échéances à venir : un embargo qui se lève dans la semaine
-    foreach (bd_lignes("SELECT r.id, r.date, r.embargo_le, r.concert_id, c.titre_fr FROM representations r JOIN concerts c ON c.id = r.concert_id
+    foreach (bd_lignes("SELECT r.id, r.date, r.embargo_le, r.concert_id, c.titre_en FROM representations r JOIN concerts c ON c.id = r.concert_id
                         WHERE r.statut = 'embargo' AND r.embargo_le > ? AND r.embargo_le <= ? ORDER BY r.embargo_le", [$jour, ajouter_jours($jour, 7)]) as $r) {
-        $ajouter('echeance', 'r' . $r['id'], '« ' . $r['titre_fr'] . ' », ' . date_fr($r['date']) . ' : l\'embargo se lève le ' . date_fr($r['embargo_le']) . '.', 'page=concert&id=' . $r['concert_id'], 'info');
+        $ajouter('echeance', 'r' . $r['id'], '« ' . $r['titre_en'] . ' », ' . date_fr($r['date']) . ' : l\'embargo se lève le ' . date_fr($r['embargo_le']) . '.', 'page=concert&id=' . $r['concert_id'], 'info');
     }
 
     // communication : concerts annoncés et proches pour lesquels rien n'est prévu ; actions à préparer dont la date approche, ou est passée
@@ -147,6 +151,48 @@ function alertes_calculer(): array
         $ajouter('technique', 't' . $t['id'], 'Une tâche de fond (' . $t['type'] . ') s\'est arrêtée le ' . horodatage_fr($t['fin_le']) . ' : ' . $t['message'], 'page=journal', 'prioritaire');
     }
 
+    // aperçus : une validation donnée (on peut publier), des corrections demandées, une décision qui se fait attendre
+    if (bd_table_existe('apercus_validations')) {
+        $publie = (string) (bd_valeur("SELECT MAX(cree_le) FROM publications WHERE nature = 'publication' AND annulee = 0") ?: '1970-01-01 00:00:00');
+        foreach (bd_lignes("SELECT v.*, a.titre, a.expire_le, a.retire_le FROM apercus_validations v JOIN apercus a ON a.id = v.apercu_id WHERE v.cree_le >= ? ORDER BY v.id", [date('Y-m-d H:i:s', time() - 60 * 86400)]) as $v) {
+            $lien = 'page=apercu&id=' . (int) $v['apercu_id'];
+            if ($v['decision'] === 'validee' && $v['decide_le'] > $publie) {
+                $ajouter('apercu', 'v' . $v['id'], 'L\'aperçu « ' . $v['titre'] . ' » a été validé par ' . $v['nom'] . ' le ' . horodatage_fr($v['decide_le']) . ' : le site peut être publié.', $lien);
+            } elseif ($v['decision'] === 'corrections' && $v['decide_le'] > $publie) {
+                $ajouter('apercu', 'v' . $v['id'], $v['nom'] . ' demande des corrections sur l\'aperçu « ' . $v['titre'] . ' »' . (trim((string) $v['remarques']) !== '' ? ' : ' . couper(preg_replace('/\s+/u', ' ', (string) $v['remarques']), 200) : '.'), $lien);
+            } elseif ($v['decision'] === 'attente' && $v['retire_le'] === null && $v['expire_le'] > date('Y-m-d H:i:s') && strtotime($v['expire_le']) < time() + 2 * 86400) {
+                $ajouter('apercu', 'v' . $v['id'], 'L\'aperçu « ' . $v['titre'] . ' » expire le ' . horodatage_fr($v['expire_le']) . ' et ' . $v['nom'] . ' ne s\'est pas encore prononcé.', $lien, 'info');
+            }
+        }
+    }
+
+    // zones de dépôt : des fichiers viennent d'arriver ; un concert tout proche n'a pas de contact « communication »
+    if (bd_table_existe('depots_fichiers')) {
+        foreach (bd_lignes("SELECT d.concert_id, c.titre_en, COUNT(*) AS n, MAX(f.depose_le) AS dernier FROM depots_fichiers f JOIN depots d ON d.id = f.depot_id JOIN concerts c ON c.id = d.concert_id
+                            WHERE f.statut = 'recu' GROUP BY d.concert_id, c.titre_en") as $z) {
+            $ajouter('depot', 'c' . $z['concert_id'], pluriel((int) $z['n'], 'fichier déposé attend', 'fichiers déposés attendent') . ' d\'être vu pour « ' . $z['titre_en'] . ' » (dernier dépôt le ' . horodatage_fr($z['dernier']) . ').', 'page=depot&concert=' . (int) $z['concert_id']);
+        }
+        foreach (bd_lignes("SELECT c.id, c.titre_en, MIN(r.date) AS premiere FROM concerts c JOIN representations r ON r.concert_id = c.id
+                            WHERE r.statut <> 'annulee' AND c.type <> 'disque' AND c.contact_com_email = '' GROUP BY c.id, c.titre_en HAVING MIN(r.date) BETWEEN ? AND ?", [$jour, ajouter_jours($jour, 7)]) as $x) {
+            $ajouter('depot', 'sans' . $x['id'], '« ' . $x['titre_en'] . ' » (' . date_fr($x['premiere']) . ') n\'a pas de contact communication : personne ne sera invité à déposer des images.', 'page=concert&id=' . (int) $x['id'], 'info');
+        }
+    }
+
+    // veille : des signalements attendent d'être lus
+    if (bd_colonne_existe('veille', 'empreinte')) {
+        $a_lire = (int) bd_valeur("SELECT COUNT(*) FROM veille WHERE statut = 'a_lire'");
+        if ($a_lire) $ajouter('veille', 'a_lire', pluriel($a_lire, 'signalement de la veille attend', 'signalements de la veille attendent') . ' d\'être lu' . ($a_lire > 1 ? 's' : '') . '.', 'page=veille', 'info');
+    }
+
+    // courrier : des retours attendent ; un envoi n'a pas été remis
+    if (bd_table_existe('courriers')) {
+        foreach (bd_lignes("SELECT type_retour, COUNT(*) AS n FROM courriers WHERE sens = 'recu' AND statut = 'a_lire' GROUP BY type_retour") as $r) {
+            if ($r['type_retour'] === 'rejet') $ajouter('courrier', 'rejets', pluriel((int) $r['n'], 'mail envoyé par Pupitre n\'a pas été remis', 'mails envoyés par Pupitre n\'ont pas été remis') . ' : adresse à vérifier.', 'page=courrier');
+            elseif ($r['type_retour'] === 'reponse') $ajouter('courrier', 'reponses', pluriel((int) $r['n'], 'réponse attend', 'réponses attendent') . ' dans le courrier.', 'page=courrier');
+            else $ajouter('courrier', $r['type_retour'], pluriel((int) $r['n'], 'retour de mail à lire', 'retours de mail à lire') . ' (' . mb_strtolower(TYPES_RETOUR[$r['type_retour']][0] ?? 'autre') . ').', 'page=courrier', 'info');
+        }
+    }
+
     // dernier extrait de l'agence
     $dernier = import_dernier();
     if (!$dernier) {
@@ -159,26 +205,32 @@ function alertes_calculer(): array
     $noms = fn(array $l) => implode(', ', array_map(fn($x) => preg_replace('/\*/', '', (string) $x), $l));
     $vides = bd_colonne("SELECT d.titre FROM disques d WHERE d.publie = 1 AND d.lien = '' AND NOT EXISTS (SELECT 1 FROM disques_liens l WHERE l.disque_id = d.id) ORDER BY d.ordre, d.id");
     if ($vides) $ajouter('vide', 'disques', (count($vides) > 1 ? 'Albums sans lien d\'écoute ni de commande : ' : 'Album sans lien d\'écoute ni de commande : ') . $noms($vides) . '.', 'page=disques', 'info');
-    $vides = bd_colonne("SELECT COALESCE(a.nom, p.titre_fr) FROM articles p LEFT JOIN annuaire a ON a.id = p.media_id WHERE p.publie = 1 AND p.exemple = 0 AND NOT EXISTS (SELECT 1 FROM articles_citations c WHERE c.article_id = p.id) ORDER BY p.ordre, p.id");
+    $vides = bd_colonne("SELECT COALESCE(a.nom, p.titre_en) FROM articles p LEFT JOIN annuaire a ON a.id = p.media_id WHERE p.publie = 1 AND p.exemple = 0 AND NOT EXISTS (SELECT 1 FROM articles_citations c WHERE c.article_id = p.id) ORDER BY p.ordre, p.id");
     if ($vides) $ajouter('vide', 'articles', (count($vides) > 1 ? 'Articles sans citation : ' : 'Article sans citation : ') . $noms($vides) . '.', 'page=presse', 'info');
     // faux articles de maquette : à supprimer avant la mise en production
     $exemples = (int) bd_valeur('SELECT COUNT(*) FROM articles WHERE exemple = 1');
     if ($exemples) $ajouter('vide', 'exemples', pluriel($exemples, 'faux article de maquette est', 'faux articles de maquette sont') . ' dans la revue de presse : à supprimer avant la mise en production.', 'page=presse', 'info');
     // citations proposées par l'IA, jamais vérifiées par une personne, sur des articles publiés
-    $douteuses = bd_colonne("SELECT DISTINCT COALESCE(a.nom, p.titre_fr) FROM articles_citations c JOIN articles p ON p.id = c.article_id LEFT JOIN annuaire a ON a.id = p.media_id WHERE c.verifiee = 0 AND p.publie = 1");
+    $douteuses = bd_colonne("SELECT DISTINCT COALESCE(a.nom, p.titre_en) FROM articles_citations c JOIN articles p ON p.id = c.article_id LEFT JOIN annuaire a ON a.id = p.media_id WHERE c.verifiee = 0 AND p.publie = 1");
     if ($douteuses) $ajouter('vide', 'citations', 'Citations à vérifier dans l\'article d\'origine : ' . $noms($douteuses) . '.', 'page=presse');
     // traductions proposées par l'IA : elles ne paraissent pas tant qu'elles ne sont pas validées
     foreach (bd_lignes("SELECT langue, COUNT(*) AS n FROM traductions WHERE statut = 'proposee' GROUP BY langue ORDER BY langue") as $t) {
         $ajouter('vide', 'traductions-' . $t['langue'], pluriel((int) $t['n'], 'traduction proposée par l\'IA attend', 'traductions proposées par l\'IA attendent') . ' une validation (' . mb_strtolower(langue_nom($t['langue'])) . ') : elles ne paraissent pas sur le site d\'ici là.',
-            'page=langues&onglet=traductions&langue=' . $t['langue'] . '&statut=proposee');
+            'page=traductions&langue=' . $t['langue'] . '&statut=proposee');
+    }
+    // traductions dont le texte anglais a changé depuis : elles paraissent toujours, mais ne disent peut-être plus la même chose
+    foreach (langues_autres() as $code) {
+        $n = traductions_decompte(array_filter(traductions_inventaire($code, null, true), fn($x) => $x['section'] !== ''))['a_revoir'];
+        if ($n) $ajouter('vide', 'traductions-revoir-' . $code, pluriel($n, 'traduction est à revoir', 'traductions sont à revoir') . ' (' . mb_strtolower(langue_nom($code)) . ') : le texte anglais a changé depuis.',
+            'page=traductions&langue=' . $code . '&statut=a_revoir', 'info');
     }
     // une ressource sans fichier ni adresse porte la mention « à venir »
-    $vides = bd_colonne("SELECT libelle_fr FROM telechargements WHERE media_id IS NULL AND url = '' AND publie = 1 ORDER BY ordre, id");
+    $vides = bd_colonne("SELECT libelle_en FROM telechargements WHERE media_id IS NULL AND url = '' AND publie = 1 ORDER BY ordre, id");
     if ($vides) $ajouter('vide', 'telechargements', (count($vides) > 1 ? 'Téléchargements « à venir » : ' : 'Téléchargement « à venir » : ') . $noms($vides) . '.', 'page=contenu&type=telechargements', 'info');
-    $vides = bd_colonne('SELECT p.ville_fr FROM parcours_orchestres p JOIN annuaire a ON a.id = p.fiche_id WHERE a.nom_provisoire = 1 ORDER BY p.ordre');
+    $vides = bd_colonne('SELECT p.ville_en FROM parcours_orchestres p JOIN annuaire a ON a.id = p.fiche_id WHERE a.nom_provisoire = 1 ORDER BY p.ordre');
     if ($vides) $ajouter('vide', 'orchestres', 'Carte du monde : nom de l\'orchestre à fournir pour ' . $noms($vides) . '.', 'page=carte', 'info');
     foreach (TEXTES as $cle => [$libelle]) {
-        if (trim((string) bd_valeur('SELECT fr FROM textes WHERE cle = ?', [$cle])) === '') $ajouter('vide', 'texte-' . $cle, 'Texte vide : ' . mb_strtolower($libelle) . '.', 'page=blocs', 'info');
+        if (trim((string) bd_valeur('SELECT ' . bd_nom(colonne_reference('textes', 'texte')) . ' FROM textes WHERE cle = ?', [$cle])) === '') $ajouter('vide', 'texte-' . $cle, 'Texte vide : ' . mb_strtolower($libelle) . '.', 'page=blocs', 'info');
     }
     return array_values($a);
 }

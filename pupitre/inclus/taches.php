@@ -15,6 +15,10 @@ const TACHES = [
     'analyse_son' => 'analyse_tache',
     'traduction' => 'traduction_tache',
     'article_lecture' => 'article_tache',
+    'metricool_releve' => 'metricool_tache',
+    'annuaire_completer' => 'annuaire_completer_tache',
+    'veille' => 'veille_tache',
+    'courrier' => 'courrier_tache',
 ];
 
 const TACHE_DELAI = 1200;      // une tâche « en cours » depuis vingt minutes est tenue pour interrompue
@@ -83,15 +87,31 @@ function taches_executer(int $max = 10): array
 /** Une erreur dont le message peut être montré tel quel à l'utilisateur. */
 class ErreurLisible extends RuntimeException {}
 
-/** Chemin de PHP en ligne de commande : PHP_CLI, sinon celui qui accompagne ce PHP. */
+/**
+ * Chemin de PHP en ligne de commande : PHP_CLI, sinon celui qui accompagne ce PHP, sinon un PHP voisin.
+ *
+ * Le PHP du serveur web n'a pas toujours son binaire en ligne de commande (un MAMP dont la version
+ * servie n'a que « php-cgi », un .env recopié d'un autre poste) : on cherche alors, dans le même
+ * dossier d'installation, la version la plus récente qui en a un, puis les emplacements d'usage.
+ * Rend '' si rien ne convient : les tâches attendront le cron.
+ */
 function php_cli(): string
 {
+    static $trouve = null;
+    if ($trouve !== null) return $trouve;
+    $convient = fn($c) => is_string($c) && $c !== '' && is_file($c) && is_executable($c) && !str_contains(basename($c), 'cgi') && !str_contains(basename($c), 'fpm');
     $p = env('PHP_CLI');
-    if ($p !== '' && is_executable($p)) return $p;
+    if ($convient($p)) return $trouve = $p;
     foreach ([PHP_BINDIR . '/php', PHP_BINARY] as $c) {
-        if ($c && is_executable($c) && !str_contains(basename($c), 'cgi') && !str_contains(basename($c), 'fpm')) return $c;
+        if ($convient($c)) return $trouve = $c;
     }
-    return '';
+    // les versions voisines (MAMP, Homebrew, phpenv : …/php8.3.14/bin, …/php8.4.1/bin), la plus récente d'abord
+    $voisins = glob(dirname(PHP_BINDIR, 2) . '/*/bin/php') ?: [];
+    usort($voisins, fn($a, $b) => version_compare(preg_replace('/[^0-9.]/', '', basename(dirname($b, 2))) ?: '0', preg_replace('/[^0-9.]/', '', basename(dirname($a, 2))) ?: '0'));
+    foreach (array_merge($voisins, ['/opt/homebrew/bin/php', '/usr/local/bin/php', '/usr/bin/php']) as $c) {
+        if ($convient($c)) return $trouve = $c;
+    }
+    return $trouve = '';
 }
 
 /**
@@ -114,6 +134,24 @@ function taches_en_cours(): int
 }
 
 /**
+ * Travaux réguliers : ce qui se fait dans la journée, sans attendre la nuit. Les aperçus expirés sont
+ * retirés ; les invitations à déposer des images partent la veille des concerts. Appelés à chaque
+ * passage du cron et, sur un poste sans cron, à l'ouverture du tableau de bord (au plus une fois par
+ * quart d'heure, sauf $forcer). Rend ce qui a été fait : ['apercus' => n, 'invitations' => n].
+ */
+function travaux_reguliers(bool $forcer = false): array
+{
+    try {
+        if (!$forcer && (int) reglage('travaux_le') > time() - 900) return [];
+        reglage_ecrire('travaux_le', (string) time());
+        return array_filter(['apercus' => apercus_purger(), 'invitations' => depots_inviter_veille()]);
+    } catch (Throwable $e) {
+        journal_fichier('erreurs', 'travaux réguliers : ' . $e->getMessage());
+        return [];
+    }
+}
+
+/**
  * Travaux de nuit : alertes recalculées (embargos arrivés à échéance, dates passées…).
  * Une fois par jour, sauf $forcer. Rend vrai s'ils ont tourné.
  */
@@ -126,6 +164,13 @@ function travaux_de_nuit(bool $forcer = false): bool
     foreach (glob(STOCKAGE . '/imports/article-*.json') ?: [] as $f) if (filemtime($f) < time() - 2 * 86400) @unlink($f);     // lectures d'articles : des brouillons
     // le texte d'un article collé pour une lecture n'est pas gardé dans la file des tâches une fois la lecture finie
     bd_requete("UPDATE taches SET charge = NULL WHERE type = 'article_lecture' AND statut IN ('terminee', 'echec') AND fin_le < ?", [date('Y-m-d H:i:s', time() - 2 * 86400)]);
+    // la veille : une collecte par nuit (flux d'actualités ; la recherche de l'IA, payante, deux fois par semaine)
+    try {
+        if (bd_colonne_existe('veille', 'empreinte') && veille_requetes()) tache_creer('veille', ['jours' => 14, 'ia' => in_array((int) date('N'), [1, 4], true)]);
+        if (function_exists('metricool_configure') && metricool_configure() && metricool_marque()['id'] !== '' && bd_table_existe('posts_sociaux')) tache_creer('metricool_releve', ['jours' => 60]);
+    } catch (Throwable $e) {
+        journal_fichier('erreurs', 'travaux de nuit : ' . $e->getMessage());
+    }
     reglage_ecrire('nuit_le', date('Y-m-d'));
     return true;
 }

@@ -14,7 +14,8 @@
    Trois fichiers écrits par Pupitre sont chargés avant celui-ci :
    - data/site.js (window.SITE) : les langues du site, la langue par défaut,
      la langue de référence (celle de rédaction, qui sert de repli quand une
-     traduction manque), la couleur de fond, les blocs visibles ;
+     traduction manque), les blocs visibles (la couleur de fond, elle, est
+     dans css/reglages.css) ;
    - data/libelles.js (window.LIBELLES) : les libellés d'interface (menu,
      boutons, intitulés de colonnes), dans chaque langue ;
    - data/textes.js (window.TEXTES) : les textes éditables (citation,

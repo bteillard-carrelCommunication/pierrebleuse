@@ -1,0 +1,5 @@
+/* reglages.css · généré par Pupitre (écrans « Apparence » et « Blocs du site ») : ne pas modifier à la main.
+   La couleur de fond générale du site et les blocs masqués. Chargé par chaque page, après site.css. */
+:root { --bg: #0b1a30; --bg-rvb: 11 26 48; }
+#visuel-3, [data-menu-liste] a[href="#visuel-3"] { display: none !important; }
+[data-menu-liste] li:has(> a[href="#visuel-3"]) { display: none !important; }

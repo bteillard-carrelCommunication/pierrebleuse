@@ -33,11 +33,14 @@ const PAGES = [
     'medias' => ['mediatheque/liste.php', 'medias'],
     'media' => ['mediatheque/media.php', 'medias'],
     'site' => ['site/site.php', 'site.voir'],
+    'apercus' => ['site/apercus.php', 'site.voir'],
+    'apercu' => ['site/apercus.php', 'site.voir'],
     'journal' => ['journal/journal.php', 'journal'],
     'comptes' => ['reglages/comptes.php', 'comptes'],
     'reglages' => ['reglages/reglages.php', 'reglages'],
     'apparence' => ['reglages/apparence.php', 'reglages'],
     'langues' => ['langues/langues.php', 'contenus'],
+    'traductions' => ['langues/traductions.php', 'contenus'],
     'base' => ['reglages/base.php', 'reglages'],
     'artiste' => ['artiste/vue.php', 'artiste.vue'],
     'carte' => ['contenus/orchestres.php', 'contenus'],
@@ -45,6 +48,11 @@ const PAGES = [
     'social' => ['communication/liste.php', 'communication'],
     'newsletter' => ['communication/liste.php', 'communication'],
     'communication' => ['communication/action.php', 'communication'],
+    'resultats' => ['communication/resultats.php', 'communication'],
+    'veille' => ['veille/veille.php', 'communication'],
+    'courrier' => ['communication/courrier.php', 'communication'],
+    'depots' => ['communication/depots.php', 'communication'],
+    'depot' => ['communication/depots.php', 'communication'],
     'notifications' => ['notifications.php', 'bord'],
     'recherche' => ['recherche.php', 'bord'],
     'interface' => ['reglages/interface.php', 'reglages'],
@@ -80,7 +88,7 @@ if (!isset(PAGES[$page])) {
     }
     if (est_post()) {
         verifier_csrf();
-        if (peut('contenus')) traductions_valider_recues();       // cases « valider » des champs traduits, sur tous les écrans
+        if (peut('contenus')) traductions_valider_recues();       // cases « valider » de l'écran « Traductions »
     }
     $titre = 'Pupitre';
     $page_courante = $page;          // retenue avant d'inclure la page : une page peut employer une variable $page pour son propre compte

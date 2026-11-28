@@ -3,8 +3,8 @@ window.TELECHARGEMENTS = [
   {
     "id": "bio-fr",
     "libelle": {
-      "fr": "Biographie, en français",
-      "en": "Biography, in French"
+      "en": "Biography, in French",
+      "fr": "Biographie, en français"
     },
     "fichier": "",
     "type": "biographie",
@@ -13,8 +13,8 @@ window.TELECHARGEMENTS = [
   {
     "id": "bio-en",
     "libelle": {
-      "fr": "Biographie, en anglais",
-      "en": "Biography, in English"
+      "en": "Biography, in English",
+      "fr": "Biographie, en anglais"
     },
     "fichier": "",
     "type": "biographie",
@@ -23,8 +23,8 @@ window.TELECHARGEMENTS = [
   {
     "id": "photos",
     "libelle": {
-      "fr": "Photographies",
-      "en": "Photographs"
+      "en": "Photographs",
+      "fr": "Photographies"
     },
     "fichier": "",
     "type": "photographie"
@@ -32,8 +32,8 @@ window.TELECHARGEMENTS = [
   {
     "id": "identite",
     "libelle": {
-      "fr": "Identité visuelle",
-      "en": "Visual identity"
+      "en": "Visual identity",
+      "fr": "Identité visuelle"
     },
     "fichier": "",
     "type": "document"

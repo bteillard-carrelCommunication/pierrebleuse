@@ -115,9 +115,9 @@ function communications_lister(array $f = []): array
     if (!$lignes) return [];
     $par_action = [];
     $ids = array_map(fn($l) => (int) $l['id'], $lignes);
-    foreach (bd_lignes('SELECT x.communication_id, c.id, c.titre_fr FROM communications_concerts x JOIN concerts c ON c.id = x.concert_id
-                        WHERE x.communication_id IN (' . implode(',', $ids) . ') ORDER BY c.titre_fr') as $x) {
-        $par_action[(int) $x['communication_id']][(int) $x['id']] = $x['titre_fr'];
+    foreach (bd_lignes('SELECT x.communication_id, c.id, c.titre_en FROM communications_concerts x JOIN concerts c ON c.id = x.concert_id
+                        WHERE x.communication_id IN (' . implode(',', $ids) . ') ORDER BY c.titre_en') as $x) {
+        $par_action[(int) $x['communication_id']][(int) $x['id']] = $x['titre_en'];
     }
     foreach ($lignes as &$l) $l['concerts'] = $par_action[(int) $l['id']] ?? [];
     return $lignes;
@@ -215,7 +215,7 @@ function concerts_a_communiquer(int $jours = 0): array
         if (!$r['publie']) continue;                                     // un concert dépublié ne se communique pas
         $id = (int) $r['concert_id'];
         if (!isset($concerts[$id])) {
-            $concerts[$id] = ['id' => $id, 'titre' => $r['titre_fr'], 'type' => $r['type'], 'ensemble' => $r['ensemble_fr'], 'prochaine' => $r['date'], 'heure' => $r['heure'],
+            $concerts[$id] = ['id' => $id, 'titre' => $r['titre_en'], 'type' => $r['type'], 'ensemble' => $r['ensemble_en'], 'prochaine' => $r['date'], 'heure' => $r['heure'],
                 'ville' => $r['lieu_ville'], 'salle' => $r['lieu_salle'], 'pays' => $r['lieu_pays'], 'dates' => [], 'statuts' => [], 'embargo_le' => null, 'actions' => []];
         }
         $concerts[$id]['dates'][] = $r['date'];
@@ -247,12 +247,12 @@ function calendrier_editorial(string $mois): array
     $au = date('Y-m-t', strtotime($du . ' 12:00'));
     $jours = [];
     foreach (agenda_representations(['sauf_annulees' => true, 'du' => $du, 'au' => $au]) as $r) {
-        $jours[$r['date']][] = ['nature' => 'concert', 'libelle' => $r['titre_fr'], 'lien' => url('concert', ['id' => $r['concert_id']]),
+        $jours[$r['date']][] = ['nature' => 'concert', 'libelle' => $r['titre_en'], 'lien' => url('concert', ['id' => $r['concert_id']]),
             'detail' => trim(heure_fr($r['heure']) . ' ' . $r['lieu_ville']), 'statut' => $r['statut'], 'icone' => $r['type'] === 'disque' ? 'disques' : 'concerts'];
     }
-    foreach (bd_lignes("SELECT r.embargo_le, r.date, r.concert_id, c.titre_fr FROM representations r JOIN concerts c ON c.id = r.concert_id
+    foreach (bd_lignes("SELECT r.embargo_le, r.date, r.concert_id, c.titre_en FROM representations r JOIN concerts c ON c.id = r.concert_id
                         WHERE r.statut = 'embargo' AND r.embargo_le BETWEEN ? AND ? ORDER BY r.embargo_le", [$du, $au]) as $r) {
-        $jours[$r['embargo_le']][] = ['nature' => 'embargo', 'libelle' => 'Fin d\'embargo : ' . $r['titre_fr'], 'lien' => url('concert', ['id' => $r['concert_id']]),
+        $jours[$r['embargo_le']][] = ['nature' => 'embargo', 'libelle' => 'Fin d\'embargo : ' . $r['titre_en'], 'lien' => url('concert', ['id' => $r['concert_id']]),
             'detail' => 'concert du ' . date_fr($r['date']), 'statut' => 'embargo', 'icone' => 'embargo'];
     }
     foreach (communications_lister(['du' => $du, 'au' => $au]) as $a) {

@@ -102,8 +102,8 @@ function element_exporter(array $e): array
                 if (!empty($p['piste'])) $v['piste'] = $p['piste'];
             }
         }
-        if (trim((string) $e['titre_fr']) !== '') $v['titre'] = multi('medias_usages', $e, 'titre');
-        if (trim((string) $e['description_fr']) !== '') $v['description'] = multi('medias_usages', $e, 'description');
+        if (trim((string) $e['titre_en']) !== '') $v['titre'] = multi('medias_usages', $e, 'titre');
+        if (trim((string) $e['description_en']) !== '') $v['description'] = multi('medias_usages', $e, 'description');
     } else {
         $v = ['type' => 'image', 'src' => media_chemin_site($m)];
         $animation = $e['nature'] === 'animation' ? animation_lire((string) ($p['animation']['module'] ?? ''), (array) ($p['animation'] ?? [])) : null;

@@ -14,7 +14,8 @@ if (est_post()) {
     try {
         if (recu('action') === 'publier') {
             $r = publier();
-            message('ok', 'Publié : ' . pluriel($r['fichiers'], 'fichier écrit', 'fichiers écrits')
+            message('ok', 'Publié : ' . ($r['contenus'] ? pluriel($r['contenus'], 'fichier modifié', 'fichiers modifiés') : 'aucun contenu modifié')
+                . ($r['pages_version'] ? ' (' . pluriel($r['pages_version'], 'page n\'a reçu', 'pages n\'ont reçu') . ' que le nouveau numéro de version)' : '')
                 . ($r['medias'] ? ', ' . pluriel($r['medias'], 'média copié', 'médias copiés') : '')
                 . ($r['representations'] ? ', ' . pluriel($r['representations'], 'représentation passée à « publiée »', 'représentations passées à « publiée »') : '')
                 . '. Version des scripts : ' . $r['version'] . '. La mise en ligne (envoi vers le serveur) reste à faire à la main.');
@@ -40,9 +41,12 @@ try {
     $souci = $e->getMessage();
 }
 $derniere = publication_derniere();
+apercus_purger();
+$validation = $etat ? apercu_validation_courante($etat) : ['identique' => null, 'autre' => null];
+$apercus_actifs = apercus_lister(true, 5);
 $historique = bd_lignes('SELECT * FROM publications ORDER BY id DESC LIMIT 12');
 $entrent = publication_representations()['entrent'];
-$sortent = bd_lignes("SELECT r.date, c.titre_fr, r.statut FROM representations r JOIN concerts c ON c.id = r.concert_id
+$sortent = bd_lignes("SELECT r.date, c.titre_en, r.statut FROM representations r JOIN concerts c ON c.id = r.concert_id
     WHERE r.statut = 'annulee' AND r.modifie_le > COALESCE((SELECT MAX(cree_le) FROM publications WHERE nature = 'publication' AND annulee = 0), '1970-01-01') ORDER BY r.date");
 $changes = $etat ? array_filter($etat['fichiers'], fn($f) => in_array($f['etat'], ['modifie', 'nouveau'], true)) : [];
 $reecrits = $etat ? array_filter($etat['fichiers'], fn($f) => $f['etat'] === 'equivalent') : [];
@@ -77,7 +81,7 @@ $libelles = ['modifie' => ['modifié', 'puce--alerte'], 'nouveau' => ['nouveau',
       <details class="ecart"><summary><?= e(pluriel(count($reecrits), 'fichier sera réécrit', 'fichiers seront réécrits')) ?> sans changer de contenu</summary>
         <p class="aide">Mêmes données, écrites autrement (retraits, ordre des clés) : <?= e(implode(', ', array_keys($reecrits))) ?>. Ce n'est pas un écart.</p></details>
     <?php endif; ?>
-    <p class="aide">À chaque publication, le numéro de version des scripts change dans toutes les pages : les navigateurs rechargent les fichiers.</p>
+    <p class="aide">Seuls les fichiers dont le contenu change comptent comme des écarts. À chaque publication, les pages reçoivent en plus un nouveau numéro de version (<code>?v=</code>) : c'est ce qui fait recharger aux navigateurs les fichiers modifiés, sans attendre la fin de leur cache. La couleur de fond et les blocs masqués tiennent dans un seul fichier, <code>css/reglages.css</code>.</p>
   </div>
 
   <?php if ($entrent || $sortent): ?>
@@ -85,11 +89,11 @@ $libelles = ['modifie' => ['modifié', 'puce--alerte'], 'nouveau' => ['nouveau',
     <h2>Agenda</h2>
     <?php if ($entrent): ?>
       <h3>Passeront à « publiée »</h3>
-      <ul class="items"><?php foreach ($entrent as $r): ?><li><span><?= e(date_fr($r['date'])) ?> · <?= e($r['titre_fr']) ?></span></li><?php endforeach; ?></ul>
+      <ul class="items"><?php foreach ($entrent as $r): ?><li><span><?= e(date_fr($r['date'])) ?> · <?= e($r['titre_en']) ?></span></li><?php endforeach; ?></ul>
     <?php endif; ?>
     <?php if ($sortent): ?>
       <h3 style="margin-top:.8rem">Annulées ou reportées depuis la dernière publication</h3>
-      <ul class="items"><?php foreach ($sortent as $r): ?><li><span><?= e(date_fr($r['date'])) ?> · <?= e($r['titre_fr']) ?></span></li><?php endforeach; ?></ul>
+      <ul class="items"><?php foreach ($sortent as $r): ?><li><span><?= e(date_fr($r['date'])) ?> · <?= e($r['titre_en']) ?></span></li><?php endforeach; ?></ul>
     <?php endif; ?>
     <p class="aide">Le site ne reçoit que les représentations annoncées par leur organisateur : les dates connues, sous embargo ou annulées n'y sortent jamais.</p>
   </div>
@@ -98,11 +102,30 @@ $libelles = ['modifie' => ['modifié', 'puce--alerte'], 'nouveau' => ['nouveau',
 
 <div>
   <div class="carte">
+    <h2>Aperçu avant publication</h2>
+    <p class="aide aide--haut">Montrer le site à venir sans le publier : une adresse à partager, valable un temps limité, et de quoi faire valider ces évolutions (procès-verbal).</p>
+    <?php if ($apercus_actifs): ?>
+      <ul class="items">
+        <?php foreach ($apercus_actifs as $x): $decisions = array_count_values(array_column($x['validations'], 'decision')); ?>
+          <li><span class="en-ligne"><a class="item__titre" href="<?= e(url('apercu', ['id' => $x['id']])) ?>"><?= e($x['titre']) ?></a>
+            <?php foreach ($decisions as $decision => $n): ?><span class="puce <?= DECISIONS_APERCU[$decision][1] ?>"><?= e(mb_strtolower(DECISIONS_APERCU[$decision][0])) ?></span><?php endforeach; ?></span>
+            <span class="discret">jusqu'au <?= e(horodatage_fr($x['expire_le'])) ?><?= ($etat && apercu_empreinte($etat) === $x['empreinte']) ? ' · montre l\'état présent' : ' · Pupitre a changé depuis' ?></span></li>
+        <?php endforeach; ?>
+      </ul>
+    <?php endif; ?>
+    <p class="actions"><a class="bouton<?= $a_publier && !$apercus_actifs ? ' bouton--doux' : '' ?>" href="<?= e(url('apercus')) ?>"><?= icone('oeil') ?><?= $apercus_actifs ? 'Tous les aperçus, en créer un' : 'Créer un aperçu' ?></a></p>
+  </div>
+  <div class="carte">
     <h2>Dernière publication</h2>
     <?php if ($derniere): ?>
       <p><strong><?= e(horodatage_fr($derniere['cree_le'])) ?></strong><br><span class="discret">par <?= e($derniere['compte_nom']) ?> · version <?= e($derniere['version']) ?></span></p>
     <?php else: ?>
       <p class="rien">Pupitre n'a pas encore publié.</p>
+    <?php endif; ?>
+    <?php if ($a_publier && $validation['identique']): $v = $validation['identique']; ?>
+      <p class="message message--ok"><?= icone('proces-verbal') ?> Ce qui serait publié a été validé par <?= e($v['nom']) ?> le <?= e(horodatage_fr($v['decide_le'])) ?> (aperçu « <a href="<?= e(url('apercu', ['id' => $v['apercu']])) ?>"><?= e($v['titre']) ?></a> »).</p>
+    <?php elseif ($a_publier && $validation['autre']): $v = $validation['autre']; ?>
+      <p class="message message--alerte"><?= e($v['nom']) ?> a validé l'aperçu « <a href="<?= e(url('apercu', ['id' => $v['apercu']])) ?>"><?= e($v['titre']) ?></a> » le <?= e(horodatage_fr($v['decide_le'])) ?>, mais Pupitre a changé depuis : ce qui serait publié n'est plus exactement ce qui a été validé.</p>
     <?php endif; ?>
     <?php if (peut('site.publier')): ?>
       <form method="post" class="actions"><?= champ_csrf() ?><input type="hidden" name="action" value="publier">
